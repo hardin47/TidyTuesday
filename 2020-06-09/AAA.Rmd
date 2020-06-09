@@ -1,0 +1,22 @@
+---
+title: "African American Achievements"
+author: "Jo Hardin"
+date: "6/9/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warnings=FALSE, message = FALSE)
+library(tidyverse)
+```
+
+## Data
+
+
+```{r}
+firsts <- readr::read_csv("firsts.csv")
+science <- readr::read_csv("science.csv")
+
+firsts
+science
+```
