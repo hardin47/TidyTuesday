@@ -8,7 +8,13 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, warnings=FALSE, message = FALSE)
 library(tidyverse)
+library(lubridate)
 ```
+
+
+My first attempt at a TidyTuesday!  It's been a very busy week, and I'm working to engage in all the important events around me.  I'm so glad that this dataset was chosen, but unfortunately, I didn't have a lot of time to spend working on it.
+
+I've provided a few quick visualizations.  But most importantly, I've set up a workflow and GitHub repo & website.  I'm excited to work on more TidyTuesdays all summer!
 
 ## Data
 
@@ -20,3 +26,96 @@ science <- readr::read_csv("science.csv")
 firsts
 science
 ```
+
+
+## Firsts
+
+```{r}
+firsts <- firsts %>%
+  mutate(sex = ifelse(str_sub(gender, 1,6) == "Female", "female", "male"),
+         century = 100*floor(year/100))
+
+firsts
+```
+
+
+
+```{r}
+ggplot(firsts) +
+  geom_bar(aes(x = sex, fill = category), position = "fill") +
+  scale_fill_brewer(palette = "Spectral") +
+  facet_grid(.~century)
+```
+
+
+### Science
+
+```{r}
+science %>% select(occupation_s) %>%
+  table()
+```
+
+
+```{r}
+science2 <- science %>%
+  dplyr::mutate(occup2 = tolower(occupation_s)) %>%
+  filter(!is.na(occupation_s)) %>%
+  dplyr::mutate(occup2 = dplyr::case_when(
+    str_detect(occup2, "bio") ~ "bio",
+    str_detect(occup2, "zoo") ~ "bio",
+    str_detect(occup2, "engin") ~ "engin",
+    str_detect(occup2, "math") ~ "math",
+    str_detect(occup2, "computer scientist") ~ "cs",
+    str_detect(occup2, "astro") ~ "astro",
+    str_detect(occup2, "invent") ~ "invent",
+    str_detect(occup2, "farmer") ~ "farmer",
+    str_detect(occup2, "chem") ~ "chem",
+    str_detect(occup2, "surg") ~ "medical",
+    str_detect(occup2, "physician") ~ "medical",
+    str_detect(occup2, "nurse") ~ "medical",
+    str_detect(occup2, "psych") ~ "psych",
+    str_detect(occup2, "physic") ~ "physics",
+    str_detect(occup2, "econ") ~ "econ",
+    str_detect(occup2, "business") ~ "econ",
+    str_detect(occup2, "medic") ~ "medical",
+    str_detect(occup2, "ophtha") ~ "medical",
+    str_detect(occup2, "ortho") ~"medical",
+    str_detect(occup2, "epi") ~ "medical",
+    str_detect(occup2, "dentist") ~ "medical",
+    str_detect(occup2, "genet") ~ "bio",
+    str_detect(occup2, "botan") ~ "bio",
+    str_detect(occup2, "scien") ~ "scientist",
+    str_detect(occup2, "anth") ~ "scientist",
+    str_detect(occup2, "robot") ~ "scientist",
+    TRUE ~ as.character(occup2))) 
+
+science2 %>% select(occup2) %>% table()
+
+```
+
+
+```{r}
+science2 <- science2 %>%
+  mutate(end = ifelse(is.na(death), 2020, death)) %>%
+  mutate(living = ifelse(is.na(death), "alive", "dead")) %>%
+  mutate(occupation = occup2) %>%
+  separate(name, c("last_name", "first_name"), remove = FALSE) %>%
+  mutate(scientist = paste(last_name,", ",str_sub(first_name, 1, 1), sep="")) 
+
+ncolor <- length(table(science2$occupation))
+occpalette <- unname(randomcoloR::distinctColorPalette(ncolor))
+```
+
+```{r}
+science2 %>%
+  filter(!is.na(birth)) %>%
+  ggplot() +
+  geom_segment(aes(y = reorder(scientist, birth), yend = scientist, x = birth,
+                           xend = end,
+                           color = occupation), 
+                   size = .5) +
+  labs(title = "Lifetimes of Notable African Americans", x = "years living", y = "") +
+  scale_color_manual(values = occpalette) +
+  theme(axis.text.y = element_text(size = 3, color="navy"))
+```
+
