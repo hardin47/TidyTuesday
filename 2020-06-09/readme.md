@@ -1,3 +1,5 @@
+[TidyTuesday Afridan American Achievements](https://hardin47.github.io/TidyTuesday/2020-06-09/AAA.html)
+
 ![David Blackwell](https://math.illinois.edu/sites/default/files/inline-images/blackwell.png)
 
 # African American Achievements
