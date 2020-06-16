@@ -1,4 +1,4 @@
-[TidyTuesday American Slavery and Juneteenth](https://hardin47.github.io/TidyTuesday/2020-06-09/slavery.html)
+[TidyTuesday American Slavery and Juneteenth](https://hardin47.github.io/TidyTuesday/2020-06-16/slavery.html)
 
 
 ![Abolition of slavery celebration, Washington DC April 19 1866](https://www.blackpast.org/wp-content/uploads/Abolition_of_slavery_celebration_Washington_DC_April_19_1866_Public_domain_illustration_by_Frederick_Dielman.jpg)
