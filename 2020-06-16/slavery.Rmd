@@ -1,0 +1,125 @@
+---
+title: "Slave Routes"
+author: "Jo Hardin"
+date: "6/16/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+library(tidyverse)
+```
+
+```{r}
+african_names <- read_csv("african_names.csv")
+blackpast <- read_csv("blackpast.csv")
+census <- read_csv("census.csv")
+slave_routes <- read_csv("slave_routes.csv")
+```
+
+
+
+##  Mapping Slave Routes
+
+For the major places of purchase, ports of origin, and ports of arrival, interest was in whether there had been substantial changes over time.  Without more extensive knowledge of the places and ports, it is hard to connect what was happening at each.  As such, the graphs show trends only for the places and ports associated with the most voyages.  The most clear trend is that the rate of voyages increased quite dramatically from the seventeenth to nineteenth centuries.
+
+```{r}
+slave_routes <- slave_routes %>%
+  mutate(  purchase = case_when(
+    str_detect(place_of_purchase, "Sierra Leone")  ~ "Sierra Leone",
+    str_detect(place_of_purchase, "Windward")  ~ "Windward",
+    str_detect(place_of_purchase, "Benin")  ~ "Benin",
+    str_detect(place_of_purchase, "Cameroon")  ~ "Cameroon",
+    str_detect(place_of_purchase, "Congo")  ~ "Congo",
+    str_detect(place_of_purchase, "Senegal")  ~ "Senegal",
+    str_detect(place_of_purchase, "Gold Coast")  ~ "Gold Coast",
+    str_detect(place_of_purchase, "Zanzibar")  ~ "Zanzibar",
+    str_detect(place_of_purchase, "Senegambia")  ~ "Senegambia",
+    str_detect(place_of_purchase, "Africa.,")  ~ "Africa",
+    str_detect(place_of_purchase, "West Central Africa")  ~ "West Central Africa",
+    TRUE ~ place_of_purchase
+  )) %>%
+  filter(!is.na(n_slaves_arrived))
+
+
+slave_routes %>% head()
+```
+
+
+```{r}
+slave_routes %>%
+  mutate(decade = 10*floor(year_arrival/10)) %>%
+  add_count(purchase) %>%
+  filter(n >= 500) %>%
+  group_by(purchase, decade) %>%
+  summarize(tot_slaves = sum(n_slaves_arrived, na.rm=TRUE)) %>%
+  ggplot() +
+  geom_smooth(aes(x = decade, y = tot_slaves, color = purchase), se=FALSE) +
+  geom_point(aes(x = decade, y = tot_slaves, color = purchase), size=0.5, alpha = 0.75) +
+  ggtitle("Number of slaves arrived over time, by place of purchase (>= 500 voyage from place)") +
+  theme(plot.title = element_text(size = 10, face = "bold"))
+```
+
+
+
+
+```{r}
+slave_routes %>%
+  mutate(decade = 10*floor(year_arrival/10)) %>%
+  add_count(port_origin) %>%
+  filter(n >= 500) %>%
+  group_by(port_origin, decade) %>%
+  summarize(tot_slaves = sum(n_slaves_arrived, na.rm=TRUE)) %>%
+  ggplot() +
+  geom_smooth(aes(x = decade, y = tot_slaves, color = port_origin), se=FALSE) +
+  geom_point(aes(x = decade, y = tot_slaves, color = port_origin), size=0.5, alpha = 0.75)+
+  ggtitle("Number of slaves arrived over time, by port of origin (>= 500 voyage from port)") +
+  theme(plot.title = element_text(size = 10, face = "bold"))
+```
+
+
+
+```{r}
+slave_routes %>%
+  mutate(decade = 10*floor(year_arrival/10)) %>%
+  add_count(port_arrival) %>%
+  filter(n >= 500) %>%
+  group_by(port_arrival, decade) %>%
+  summarize(tot_slaves = sum(n_slaves_arrived, na.rm=TRUE)) %>%
+  ggplot() +
+  geom_smooth(aes(x = decade, y = tot_slaves, color = port_arrival), se=FALSE) +
+  geom_point(aes(x = decade, y = tot_slaves, color = port_arrival), size=0.5, alpha = 0.75)+
+  ggtitle("Number of slaves arrived over time, by port of arrival (>= 500 voyage to port)") +
+  theme(plot.title = element_text(size = 10, face = "bold"))
+```
+
+
+## Census trends
+
+
+Census trends over time for different regions of the country, broken down by race and status.  As might be expected, in the Northeast, the number of slaves was decreasing precipitously in the second half of the nineteenth century, but in the South the number of slaves increased until the 13th amendment of the US Constitution was ratified in December of 1865.
+
+```{r}
+census <- census %>%
+  pivot_longer(cols = c(total, white, black, black_free, black_slaves), 
+               names_to = "race", values_to = "population")
+
+census %>% head(100)
+```
+
+
+```{r}
+census %>%
+  mutate(region = fct_relevel(region, c("Northeast", "Midwest", "South", "West", "USA Total"))) %>%
+  group_by(region, year, race) %>%
+  mutate(pop = sum(population)) %>%
+ggplot() +
+  geom_line(aes(x=year, y = pop, color = race)) + 
+  facet_wrap(~region) +
+  scale_y_continuous(trans = "log10") +
+  geom_vline(xintercept = 1865) +
+  ggtitle("Population over time, black vertical line at 1865")+
+  ylab("Population on log10 scale") +
+  labs(color = "race / status")
+```
+
