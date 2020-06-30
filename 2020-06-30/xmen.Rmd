@@ -1,0 +1,105 @@
+---
+title: "X-Men and the Bechdel Test"
+author: "Jo Hardin"
+date: "6/30/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+library(tidyverse)
+library(scales)
+```
+
+I wasn't planning to spend a lot of time on this, as I don't really know much or care much about comic books, and life calls in lots of ways!  But I wanted to keep practicing my tidy skills, and the hour I spent working on these data paid off!
+
+I thought it might be interesting to see how often some of the issues focused on characters experiencing different actions, broken down by Bechdel Test status.  I tried `geom_hist` and `geom_bar`, but because of the count default, I wasn't really seeing a good comparison (there are a lot more issues which pass the Bechdel Test than don't).
+
+Through some sleuthing, I was able to find the `stat_count` function which uses `y=..prop..` in `aes()` to determine the y-axis.  I also messed with the colors a bit.  And though there aren't any important results with respect to the comic books, I was able to create the exact plots I wanted.
+
+Also, shout out to Malcolm Barrett (https://twitter.com/malco_barrett) who is doing so many great things in the #rstats community!!  Thanks, Malcolm.
+
+
+## Loading in the Data
+
+```{r}
+comic_bechdel <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-06-30/comic_bechdel.csv')
+
+character_visualization <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-06-30/character_visualization.csv')
+
+characters <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-06-30/characters.csv')
+
+xmen_bechdel <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-06-30/xmen_bechdel.csv')
+
+covers <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-06-30/covers.csv')
+
+issue_collaborators <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-06-30/issue_collaborators.csv')
+
+locations <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-06-30/locations.csv')
+```
+
+
+```{r}
+xmen <- full_join(xmen_bechdel, characters, by = "issue")
+```
+
+
+```{r}
+temp <- xmen %>% 
+  filter(!is.na(character)) %>%
+  group_by(issue, pass_bechdel) %>%
+  summarize(tornclothes = sum(clothing_torn), dead = sum(declared_dead), quits = sum(quits_team),
+            kiss = sum(!is.na(kiss_with_which_character)), 
+            hug = sum(!is.na(hugging_with_which_character)),
+            date = sum(!is.na(on_a_date_with_which_character)),
+            dance = sum(!is.na(dancing_with_which_character)))
+
+temp %>% group_by(pass_bechdel) %>% summarise(n())
+
+```
+
+```{r}
+temp %>%
+  ggplot() +
+  stat_count(aes(x=tornclothes, fill = pass_bechdel, group = pass_bechdel,
+                      y = ..prop..), position = "dodge") +
+  scale_fill_manual(values = c("steelblue", "darkgoldenrod2" )) 
+  
+
+temp %>%
+  ggplot() +
+  stat_count(aes(x=dead, fill = pass_bechdel, group = pass_bechdel,
+                      y = ..prop..), position = "dodge") +
+  scale_fill_manual(values = c("steelblue", "darkgoldenrod2" )) 
+
+temp %>%
+  ggplot() +
+  stat_count(aes(x=quits, fill = pass_bechdel, group = pass_bechdel,
+                      y = ..prop..), position = "dodge") +
+  scale_fill_manual(values = c("steelblue", "darkgoldenrod2" )) 
+
+temp %>%
+  ggplot() +
+  stat_count(aes(x=kiss, fill = pass_bechdel, group = pass_bechdel,
+                      y = ..prop..), position = "dodge") +
+  scale_fill_manual(values = c("steelblue", "darkgoldenrod2" )) 
+
+temp %>%
+  ggplot() +
+  stat_count(aes(x=hug, fill = pass_bechdel, group = pass_bechdel,
+                      y = ..prop..), position = "dodge") +
+  scale_fill_manual(values = c("steelblue", "darkgoldenrod2" )) 
+
+temp %>%
+  ggplot() +
+  stat_count(aes(x=date, fill = pass_bechdel, group = pass_bechdel,
+                      y = ..prop..), position = "dodge") +
+  scale_fill_manual(values = c("steelblue", "darkgoldenrod2" )) 
+
+temp %>%
+  ggplot() +
+  stat_count(aes(x=dance, fill = pass_bechdel, group = pass_bechdel,
+                      y = ..prop..), position = "dodge") +
+  scale_fill_manual(values = c("steelblue", "darkgoldenrod2" )) 
+
+```
