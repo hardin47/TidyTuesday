@@ -2,12 +2,13 @@
 
 ### Tidy Tuesday Analyses
 
+* 2020-07-07 [TidyTuesday Coffee Ratings](https://hardin47.github.io/TidyTuesday/2020-07-07/coffeeratings.html)
+
 * 2020-06-30 [TidyTuesday X-Men and the Bechdel Test](https://hardin47.github.io/TidyTuesday/2020-06-30/xmen.html)
 
 * 2020-06-16 [TidyTuesday American Slavery and Juneteenth](https://hardin47.github.io/TidyTuesday/2020-06-16/slavery.html)
 
 * 2020-06-09 [TidyTuesday African American Achievements](https://hardin47.github.io/TidyTuesday/2020-06-09/AAA.html)
-
 
 
 ### Getting the data

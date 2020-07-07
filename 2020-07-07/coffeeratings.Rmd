@@ -1,0 +1,193 @@
+---
+title: "Predicting Coffee Ratings"
+author: "Jo Hardin"
+date: "7/7/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+library(tidyverse)
+library(GGally)
+library(forestError)
+library(randomForest)
+```
+
+My initial approach to these data is to see how well we can build a model that predicts the rating of the cup of coffee.  First, let's explore the data graphically to understand variables and relationships.  Then we'll apply random forests and prediction intervals on random forests from a recent project I've worked on with Benji Lu: [A Unified Framework for Random Forest Prediction Error Estimation](https://arxiv.org/abs/1912.07435)
+
+## Loading in the Data
+
+In looking at the data, we notice a few things: 
+
+* One of the observations has a total_cup_point of zero.  That can't be right.  It's aroma, flavor, etc. are also all zero, so it seems as though maybe that coffee wasn't rated.  
+
+* Sweetness is highly correlated to species.
+
+* Some of the numeric variables are much more correlated with the coffee rating than others of the variables.
+
+```{r}
+cofrat <- read_csv("coffee_ratings.csv") %>%
+  filter(total_cup_points > 0)
+```
+
+```{r}
+cofrat %>% skimr::skim()
+
+cofrat %>% summarize(sum(total_cup_points ==0))
+```
+
+
+```{r}
+cofrat %>% select(total_cup_points, aroma, flavor, aftertaste, acidity, body,
+                  balance, uniformity, clean_cup, sweetness, cupper_points, 
+                  moisture, category_one_defects, quakers, species) %>%
+  ggpairs(mapping = ggplot2::aes(color = species), columns = c(2:7,1)) 
+
+cofrat %>% select(total_cup_points, aroma, flavor, aftertaste, acidity, body,
+                  balance, uniformity, clean_cup, sweetness, cupper_points, 
+                  moisture, category_one_defects, quakers, species) %>%
+  ggpairs(mapping = ggplot2::aes(color = species), columns = c(8:14,1)) 
+
+```
+
+
+## Predicting
+
+For a first pass at predicting, I'm going to remove 40% of the observations to hold out for later prediction.  I'll use 60% to build a random forest.  Following along with the instructions on the [forestError GitHub repo](https://github.com/benjilu/forestError).
+
+###  Numerical Variables
+
+I'll start by using only the numerical variables (and species) for predicting the coffee rating.  Note that random forests require no missing variables, so if we use other variables, a more sophisticated analysis would require imputing the missing values or dealing with them in some other way.
+
+```{r}
+cofrat.rf <- cofrat %>% select(total_cup_points, aroma, flavor, aftertaste, acidity, body,
+                  balance, uniformity, clean_cup, sweetness, cupper_points, 
+                  moisture, category_one_defects, quakers, species) %>%
+  mutate(species = as.factor(species)) %>%
+  filter(complete.cases(.))
+
+
+# get number of observations and the response column index
+n.rf <- nrow(cofrat.rf)
+response.col <- 1
+
+# split data into training and test sets
+set.seed(4747)
+train.rate = 0.6
+train.ind <- sample(1:n.rf, n.rf * train.rate, replace = FALSE)
+Xtrain <- cofrat.rf[train.ind, -response.col]
+Ytrain <- unlist(cofrat.rf[train.ind, response.col])
+Xtest <- cofrat.rf[-train.ind, -response.col]
+Ytest <- unlist(cofrat.rf[-train.ind, response.col])
+
+# fit random forest to the training data
+cof_rf <- randomForest::randomForest(x = Xtrain, y = Ytrain, 
+                                     nodesize = 5, ntree = 500, keep.inbag = TRUE)
+
+# estimate conditional mean squared prediction errors, conditional
+# biases, conditional prediction intervals, and conditional error
+# distribution functions for the test observations
+output <- quantForestError(cof_rf, Xtrain, Xtest, alpha = 0.05)
+```
+
+
+Now that we've run the random forest and predicted the outcomes, let's visualize how well the prediction intervals captured the actual observed ratings.  Likely due to the many fewer observations at the low ratings, the prediction intervals are much wider.  
+
+```{r}
+output$estimates %>% cbind(Ytest) %>%
+  mutate(capture = case_when(Ytest < lower_0.05 ~ "no",
+                             Ytest > upper_0.05 ~ "no",
+                             TRUE ~ "yes")) %>%
+  ggplot() +
+  geom_point(aes(x = Ytest, y = pred), size = 0.5) +
+  geom_segment(aes(x = Ytest, xend = Ytest, y = lower_0.05, yend = upper_0.05, 
+                   color = capture),
+               lwd=0.5) + 
+  geom_abline(slope = 1, intercept = 0) +
+  geom_text(aes(label = paste("percent capture = ",  
+                              round(100*sum(capture=="yes")/(n.rf*(1 - train.rate)),2))), 
+            x = 85, y = 70) +
+  ggtitle("Prediction Intervals for coffee ratings (numeric variables only)") +
+  xlab("True rating") +
+  ylab("Predicted rating") +
+  scale_color_brewer(type='div', palette = "Set1")
+```
+
+
+
+
+### All the variables
+
+We now predict with more variables.  I keep only those variables without substantial missing observations.  We also do not use unique identifiers like owner, farm_name, lot_number, etc.  Note that there are substantially fewer observations (due to missingness).  So although I set the seed the same, the test observations will be different across the two analyses.
+
+```{r}
+cofrat.rf2 <- cofrat %>% select(total_cup_points, aroma, flavor, aftertaste, acidity, body,
+                  balance, uniformity, clean_cup, sweetness, cupper_points, 
+                  moisture, category_one_defects, quakers, species,
+                  country_of_origin, processing_method, color, 
+                  altitude_mean_meters) %>%
+  mutate(country = case_when(country_of_origin == "Brazil" ~ "Brazil",
+                             country_of_origin == "Costa Rica" ~ "Costa Rica",
+                             country_of_origin == "Columbia" ~ "Columbia",
+                             country_of_origin == "Honduras" ~ "Honduras",
+                             country_of_origin == "El Salvador" ~ "El Salvador",
+                             country_of_origin == "Guatemala" ~ "Guatemala",
+                             country_of_origin == "Mexico" ~ "Mexico",
+                             str_detect(country_of_origin, "United States") ~ "United States",
+                             country_of_origin == "Taiwan" ~ "Taiwan",
+                             TRUE ~ "other country")) %>%
+  mutate_if(is.character, as.factor) %>%
+  select(-country_of_origin) %>%
+  filter(complete.cases(.))
+
+
+# get number of observations and the response column index
+n.rf2 <- nrow(cofrat.rf2)
+response.col <- 1
+
+# split data into training and test sets
+set.seed(4747)
+train.rate = 0.6
+train.ind <- sample(1:n.rf2, n.rf2 * train.rate, replace = FALSE)
+Xtrain <- cofrat.rf2[train.ind, -response.col]
+Ytrain <- unlist(cofrat.rf2[train.ind, response.col])
+Xtest <- cofrat.rf2[-train.ind, -response.col]
+Ytest <- unlist(cofrat.rf2[-train.ind, response.col])
+
+# fit random forest to the training data
+cof_rf2 <- randomForest::randomForest(x = Xtrain, y = Ytrain, 
+                                      nodesize = 5, ntree = 500, keep.inbag = TRUE)
+
+# estimate conditional mean squared prediction errors, conditional
+# biases, conditional prediction intervals, and conditional error
+# distribution functions for the test observations
+output2 <- quantForestError(cof_rf2, Xtrain, Xtest, alpha = 0.05)
+```
+
+
+Now that we've run the random forest and predicted the outcomes, let's visualize how well the prediction intervals captured the actual observed ratings.  Likely due to the many fewer observations at the low ratings, the prediction intervals are much wider.  
+
+We see the same trends as above (fewer observations and wider intervals for lower rated coffees).  Both sets of variables provide good interval predictions with capture rates above 97%.
+
+```{r}
+output2$estimates %>% cbind(Ytest) %>%
+  mutate(capture = case_when(Ytest < lower_0.05 ~ "no",
+                             Ytest > upper_0.05 ~ "no",
+                             TRUE ~ "yes")) %>%
+  ggplot() +
+  geom_point(aes(x = Ytest, y = pred), size = 0.5) +
+  geom_segment(aes(x = Ytest, xend = Ytest, y = lower_0.05, yend = upper_0.05, 
+                   color = capture),
+               lwd=0.5) + 
+  geom_abline(slope = 1, intercept = 0) +
+  geom_text(aes(label = paste("percent capture = ",  
+                              round(100*sum(capture=="yes")/(n.rf2*(1 - train.rate)),2))), 
+            x = 85, y = 70) +
+  ggtitle("Prediction Intervals for coffee ratings (including factor variables)") +
+  xlab("True rating") +
+  ylab("Predicted rating") +
+  scale_color_brewer(type='qual')
+```
+
+
+
