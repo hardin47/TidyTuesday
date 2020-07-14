@@ -1,0 +1,87 @@
+---
+title: "Astronauts"
+author: "Jo Hardin"
+date: "7/14/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+library(tidyverse)
+library(webr)
+```
+
+For a while, I've been wanting to work with donut charts.  I had to upload to R 4.0 in order to use the really cool donut charts from the **webr** package.  The main function is `PieDonut()` and builds a pie chart + a donut chart with options to explode the different pieces of the pie.
+
+Even better than `PieDonut()` however, is the interactivity found in the **sunburstR** package.  Wow!
+
+
+## Loading in the Data
+
+
+```{r}
+astronauts <- read_csv("astronauts.csv") 
+
+astronauts <- astronauts %>%
+  mutate(job_title = case_when(
+    str_detect(occupation, "(?i)Other") ~ "other",
+    str_detect(occupation, "(?i)Space") ~ "other",
+    str_detect(occupation, "(?i)pilot") ~ "pilot",
+    str_detect(occupation, "engineer") ~ "flight engineer",
+    TRUE ~ occupation
+  ))
+
+head(astronauts)
+```
+
+
+
+## `PieDonut()` function from **webr**
+
+```{r}
+PieDonut(astronauts,aes(pie=job_title, donut=sex), 
+         labelposition = 4, r0=1.2, r1 = 5, r2 = 5.5, pieLabelSize = 3,
+         family = "mono") 
+```
+
+
+
+```{r}
+PieDonut(astronauts,aes(pies=sex,donuts=military_civilian),
+         selected=1,labelposition=1)
+```
+
+
+##  **sunburstR**
+
+Then I found the interactive functionality of the functions `sunburst()` and `sund2b()` which are both pretty amazing.
+
+
+https://github.com/timelyportfolio/sunburstR
+
+https://timelyportfolio.github.io/sunburstR/articles/sunburst-2-0-0.html 
+
+
+```{r}
+library(sunburstR)
+library(d3r)
+
+sundata <- astronauts %>%
+  select(sex, job_title, military_civilian) %>%
+  group_by(sex, job_title, military_civilian) %>%
+  summarize(size = n()) %>%
+  d3_nest(value_cols = "size")
+```
+
+```{r}
+sunburst(sundata)
+```
+
+The `sund2b()` function has a lot more interactivity.  Try clicking around the image to see various different functionality.  
+
+```{r}
+sund2b(sundata)
+```
+
+
+
