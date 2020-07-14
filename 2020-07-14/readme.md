@@ -1,4 +1,4 @@
-[TidyTuesday Astronauts](https://hardin47.github.io/TidyTuesday/2020-07-14/astronauts.html)
+[TidyTuesday Astronauts](https://hardin47.github.io/TidyTuesday/2020-07-14/astronaut.html)
 
 ![NASA Astronaut at the International Space Station](https://images.unsplash.com/photo-1447433865958-f402f562b843?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1352&q=80)
 

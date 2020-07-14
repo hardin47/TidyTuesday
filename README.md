@@ -2,7 +2,7 @@
 
 ### Tidy Tuesday Analyses
 
-* 2020-07-14 [TidyTuesday Astronauts](https://hardin47.github.io/TidyTuesday/2020-07-14/astronauts.html)
+* 2020-07-14 [TidyTuesday Astronauts](https://hardin47.github.io/TidyTuesday/2020-07-14/astronaut.html)
 
 * 2020-07-07 [TidyTuesday Coffee Ratings](https://hardin47.github.io/TidyTuesday/2020-07-07/coffeeratings.html)
 
