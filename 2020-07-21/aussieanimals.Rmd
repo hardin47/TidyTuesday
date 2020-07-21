@@ -1,0 +1,94 @@
+---
+title: "Australian Rescue Pets"
+author: "Jo Hardin"
+date: "7/21/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+library(tidyverse)
+library(geofacet)
+```
+
+My goal today is to create a geofacet graph.  I'm heavily relying on the [Introduction to geofacet vignette](https://cran.r-project.org/web/packages/geofacet/vignettes/geofacet.html).  I've seen the graphs done with US states, but I'm excited to see them laid out for Australia.  
+
+## The Data
+
+I'm planning to work with the `australian_outcomes.csv` data, but I'll have to use `pivot_longer()` so that there is only one column representing the different Australian territories.
+
+```{r}
+animal_outcomes <- read_csv("animal_outcomes.csv")
+
+animals_terr <- animal_outcomes %>%
+  pivot_longer(cols = -c(1:3), names_to = "territory",
+               values_to = "pet_count") %>%
+  mutate(`animal type` = factor(animal_type, 
+                              levels = c("Dogs", "Cats", "Wildlife",
+                                         "Other Animals", "Livestock",
+                                         "Horses")))
+
+```
+
+
+## Visualizing Pet Frequency
+
+You can't (to my knowledge) use `facet_wrap()` with `facet_geo()`, but I wanted to see how the "map" below had (or hadn't) changed over the last few decades.  So I picked three years of data to show the same plot three times.  (Note, I'm only showing the first code block for readability sake.)
+
+The most striking conclusion from the plots below is that the number of wildlife rescues has gone up (specifically in Queensland).  Dog and cat rescues seem to have gone down overall.
+
+```{r fig.height=7, fig.width = 10}
+
+animals_terr %>%
+  filter(territory != "Total") %>%
+  filter(year == 1999) %>%
+ggplot() +
+  geom_bar(aes(x = `animal type`, y = pet_count, fill = `animal type`), 
+           stat = "identity") +
+  geofacet::facet_geo( ~territory, grid = "aus_grid1") +
+  scale_y_continuous(breaks = c(0,10000, 20000)) +
+  coord_flip() + 
+  labs(title = "Rescue pet frequency (1999) across Australian territories",
+       y = "Frequency",
+       caption = "Data Source: Royal Society for the Prevention of Cruelty to Animals, https://www.rspca.org.au/what-we-do/our-role-caring-animals/annual-statistics") +
+  theme_bw() 
+```
+
+```{r fig.height=7, fig.width = 10, echo = FALSE}
+  animals_terr %>%
+  filter(territory != "Total") %>%
+  filter(year == 2009) %>%
+ggplot() +
+  geom_bar(aes(x = `animal type`, y = pet_count, fill = `animal type`), 
+           stat = "identity") +
+  geofacet::facet_geo( ~territory, grid = "aus_grid1") +
+  scale_y_continuous(breaks = c(0,10000, 20000)) +
+  coord_flip() + 
+  labs(title = "Rescue pet frequency (2009) across Australian territories",
+       y = "Frequency",
+       caption = "Data Source: Royal Society for the Prevention of Cruelty to Animals, https://www.rspca.org.au/what-we-do/our-role-caring-animals/annual-statistics") +
+  theme_bw() 
+  
+  
+animals_terr %>%
+  filter(territory != "Total") %>%
+  filter(year == 2018) %>%
+ggplot() +
+  geom_bar(aes(x = `animal type`, y = pet_count, fill = `animal type`), 
+           stat = "identity") +
+  geofacet::facet_geo( ~territory, grid = "aus_grid1") +
+  scale_y_continuous(breaks = c(0,10000, 20000)) +
+  coord_flip() + 
+  labs(title = "Rescue pet frequency (2018) across Australian territories",
+       y = "Frequency",
+       caption = "Data Source: Royal Society for the Prevention of Cruelty to Animals, https://www.rspca.org.au/what-we-do/our-role-caring-animals/annual-statistics") +
+  theme_bw() 
+
+```
+
+
+FYI, the geofacet package has a bazillion fantastic grids to choose from!!
+
+```{r}
+get_grid_names()
+```
