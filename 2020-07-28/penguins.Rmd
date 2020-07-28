@@ -1,0 +1,284 @@
+---
+title: "Palmer Penguins"
+author: "Jo Hardin"
+date: "7/28/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+library(palmerpenguins)
+library(tidyverse)
+library(infer)
+set.seed(47)
+```
+
+
+For ages, I've been seeing the art and posts by Allison Horst and Alison Hill and others about this [penguin dataset](https://allisonhorst.github.io/palmerpenguins/).  I'm so excited to have a chance to work with the data, because I expect it to become a staple in my teaching.  Love the idea of using the penguin dataset, among many reasons because it is connected to scientific queries and research.  From the **palmerpenguin** [vignette](https://allisonhorst.github.io/palmerpenguins/):
+
+> Data were collected and made available by [Dr. Kristen Gorman](https://www.uaf.edu/cfos/people/faculty/detail/kristen-gorman.php) and the [Palmer Station, Antarctica LTER](https://pal.lternet.edu/), a member of the [Long Term Ecological Research Network](https://lternet.edu/).
+
+## The Data
+
+Existing in their own package, **palmerpenguins**, the data are straightforward to download.  Yay for [data packages](https://teachdatascience.com/datapackage/)!!
+
+```{r}
+head(penguins)
+```
+
+
+
+## Data Viz
+
+```{r fig.width = 10}
+ggplot(penguins,aes(x = flipper_length_mm, y = bill_length_mm, 
+                 color = species)) +
+  geom_point() + 
+  geom_smooth(method = "lm", se = FALSE) + 
+  facet_wrap(~island)
+```
+
+
+## **infer**
+
+One of the main tools I use in introductory statistics is the **infer** package which includes methods for inference through randomization, bootstrapping, and mathematical models.
+
+### randomization for two proportions
+
+$H_0: p_1 - p_2 = 0$
+
+don't reject $H_0$
+
+```{r}
+stat_2prop <- penguins %>%
+  filter(species %in% c("Gentoo", "Chinstrap")) %>%
+  specify(sex ~ species, success = "female") %>%
+  calculate(stat = "diff in props", order = c("Gentoo", "Chinstrap"))
+
+
+null_2prop <- penguins %>%
+  filter(species %in% c("Gentoo", "Chinstrap")) %>%
+  specify(sex ~ species, success = "female") %>%
+  hypothesize(null = "independence") %>%
+  generate(reps = 1000, type = "permute") %>%
+  calculate(stat = "diff in props", order = c("Gentoo", "Chinstrap"))
+
+
+null_2prop %>%
+  infer::visualize() +
+  shade_p_value(obs_stat = stat_2prop, direction = "two-sided")
+
+
+penguins %>% 
+  filter(species %in% c("Gentoo", "Chinstrap")) %>%
+  prop_test(sex ~ species, order = c("Gentoo", "Chinstrap"))
+  
+```
+
+
+### randomization for chi-sq
+
+$H_0:$ variables (species and island) are independent
+
+definitely reject $H_0$
+
+```{r}
+stat_chisq <- penguins %>%
+  specify(island ~ species) %>%
+  calculate(stat = "Chisq")
+
+
+null_chisq <- penguins %>%
+  specify(island ~ species) %>%
+  hypothesize(null = "independence") %>%
+  generate(reps = 1000, type = "permute") %>%
+  calculate(stat = "Chisq")
+
+
+null_chisq %>%
+  infer::visualize() +
+  shade_p_value(obs_stat = stat_chisq, direction = "greater")
+
+null_chisq %>%
+  infer::visualize(method = "theoretical") +
+  shade_p_value(obs_stat = stat_chisq, direction = "greater")
+
+
+```
+
+
+### bootstrap for one mean & median
+
+#### Population mean
+
+CI for the true mean weight of Gentoo penguins.
+
+```{r}
+stat_mean <- penguins %>%
+  filter(species == "Gentoo") %>%
+  specify(response = body_mass_g) %>%
+  calculate(stat = "mean")
+
+boot_mean <- penguins %>%
+  filter(species == "Gentoo") %>%
+  specify(response = body_mass_g) %>%
+  generate(reps = 1000, type = "bootstrap") %>%
+  calculate(stat = "mean")
+
+
+ci_perc_mean <- boot_mean %>%
+  get_confidence_interval(level = 0.9, type = "percentile")
+
+ci_se_mean <- boot_mean %>%
+  get_confidence_interval(level = 0.9, type = "se",
+                          point_estimate = stat_mean)
+
+boot_mean %>%
+  infer::visualize() +
+  infer::shade_confidence_interval(ci_perc_mean, 
+                                   color = "#569BBD", 
+                                   fill = NULL, size = .5) +
+  infer::shade_confidence_interval(ci_se_mean, 
+                                   color = "#4C721D",
+                                   fill = NULL, size = .5) +
+  ggtitle("Simulation-Based Bootstrap Distribution for Mean") +
+  geom_vline(xintercept = stat_mean$stat) +  
+  geom_line(aes(y = replicate, x = stat, color = "a"), alpha = 0) +  # bogus code
+  geom_line(aes(y = replicate, x = stat, color = "b"), alpha = 0) +  # bogus code
+  geom_line(aes(y = replicate, x = stat, color = "c"), alpha = 0) +  # bogus code
+  ylim(c(0,200)) + 
+  guides(color = guide_legend(override.aes = list(alpha = 1))) +
+  scale_color_manual(name = "CI type",
+                       values = c("a" = "#569BBD", "b" = "#4C721D", "c" = "#000000"),
+                       labels = c("Percentile", "SE", "Observed stat"),
+                     guide = "legend")
+```
+
+#### Population median
+
+CI for the true median weight of Gentoo penguins.
+
+```{r}
+stat_median <- penguins %>%
+  filter(species == "Gentoo") %>%
+  specify(response = body_mass_g) %>%
+  calculate(stat = "median")
+
+boot_median <- penguins %>%
+  filter(species == "Gentoo") %>%
+  specify(response = body_mass_g) %>%
+  generate(reps = 1000, type = "bootstrap") %>%
+  calculate(stat = "median")
+
+
+ci_perc_median <- boot_median %>%
+  get_confidence_interval(level = 0.9, type = "percentile")
+
+ci_se_median <- boot_median %>%
+  get_confidence_interval(level = 0.9, type = "se",
+                          point_estimate = stat_median)
+
+boot_median %>%
+  infer::visualize() +
+  infer::shade_confidence_interval(ci_perc_median, 
+                                   color = "#569BBD", 
+                                   fill = NULL, size = .5) +
+  infer::shade_confidence_interval(ci_se_median, 
+                                   color = "#4C721D",
+                                   fill = NULL, size = .5) +
+  ggtitle("Simulation-Based Bootstrap Distribution for Median") +
+  geom_vline(xintercept = stat_median$stat) +  
+  geom_line(aes(y = replicate, x = stat, color = "a"), alpha = 0) +  # bogus code
+  geom_line(aes(y = replicate, x = stat, color = "b"), alpha = 0) +  # bogus code
+  geom_line(aes(y = replicate, x = stat, color = "c"), alpha = 0) +  # bogus code
+  ylim(c(0,200)) + 
+  guides(color = guide_legend(override.aes = list(alpha = 1))) +
+  scale_color_manual(name = "CI type",
+                       values = c("a" = "#569BBD", "b" = "#4C721D", "c" = "#000000"),
+                       labels = c("Percentile", "SE", "Observed stat"),
+                     guide = "legend")
+```
+
+
+### randomization for two means
+
+$H_0: \mu_1 - \mu_2 = 0$
+
+reject $H_0$
+
+```{r}
+stat_2mean <- penguins %>%
+  filter(species %in% c("Gentoo", "Chinstrap")) %>%
+  specify(body_mass_g ~ species) %>%
+  calculate(stat = "diff in means", order = c("Gentoo", "Chinstrap"))
+
+
+null_2mean <- penguins %>%
+  filter(species %in% c("Gentoo", "Chinstrap")) %>%
+  specify(body_mass_g ~ species) %>%
+  hypothesize(null = "independence") %>%
+  generate(reps = 1000, type = "permute") %>%
+  calculate(stat = "diff in means", order = c("Gentoo", "Chinstrap"))
+
+
+null_2mean %>%
+  infer::visualize() +
+  shade_p_value(obs_stat = stat_2mean, direction = "two-sided")
+
+
+penguins %>% 
+  filter(species %in% c("Gentoo", "Chinstrap")) %>%
+  t_test(body_mass_g ~ species, order = c("Gentoo", "Chinstrap"))
+  
+```
+
+
+### bootstrap for two means
+
+CI for $\mu_1 - \mu_2$, the true difference in body weight for Gentoo vs Chinstrap penguins.
+
+
+```{r}
+boot_2mean <- penguins %>%
+  filter(species %in% c("Gentoo", "Chinstrap")) %>%
+  specify(body_mass_g ~ species) %>%
+  hypothesize(null = "independence") %>%
+  generate(reps = 1000, type = "bootstrap") %>%
+  calculate(stat = "diff in means", order = c("Gentoo", "Chinstrap"))
+
+
+
+ci_perc_2mean <- boot_2mean %>%
+  get_confidence_interval(level = 0.9, type = "percentile")
+
+ci_se_2mean <- boot_2mean %>%
+  get_confidence_interval(level = 0.9, type = "se",
+                          point_estimate = stat_2mean)
+
+boot_2mean %>%
+  infer::visualize() +
+  infer::shade_confidence_interval(ci_perc_2mean, 
+                                   color = "#569BBD", 
+                                   fill = NULL, size = .5) +
+  infer::shade_confidence_interval(ci_se_2mean, 
+                                   color = "#4C721D",
+                                   fill = NULL, size = .5) +
+  ggtitle("Simulation-Based Bootstrap Distribution for Diff in Means") +
+  geom_vline(xintercept = stat_2mean$stat) +  
+  geom_line(aes(y = replicate, x = stat, color = "a"), alpha = 0) +  # bogus code
+  geom_line(aes(y = replicate, x = stat, color = "b"), alpha = 0) +  # bogus code
+  geom_line(aes(y = replicate, x = stat, color = "c"), alpha = 0) +  # bogus code
+  ylim(c(0,200)) + 
+  guides(color = guide_legend(override.aes = list(alpha = 1))) +
+  scale_color_manual(name = "CI type",
+                       values = c("a" = "#569BBD", "b" = "#4C721D", "c" = "#000000"),
+                       labels = c("Percentile", "SE", "Observed stat"),
+                     guide = "legend")
+
+```
+
+
+
+
+
+
