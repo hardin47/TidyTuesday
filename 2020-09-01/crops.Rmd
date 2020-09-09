@@ -1,0 +1,160 @@
+---
+title: "Global Crop Yield"
+author: "Jo Hardin"
+date: "9/1/2020"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+library(tidyverse)
+library(infer)
+library(broom)
+library(openintro)
+set.seed(4747)
+```
+
+
+For a different project, I'm in need of a dataset to use to work through some inferential linear model ideas.  Seems like maybe the crop yield dataset could be used?
+
+Not sure how easy it is to create an inferential claim, but I'm going to try!
+
+## The Data
+
+
+```{r}
+fertilizer <- readr::read_csv('cereal_crop_yield_vs_fertilizer_application.csv')
+tractors <- readr::read_csv('cereal_yields_vs_tractor_inputs_in_agriculture.csv')
+land_use <- readr::read_csv('land_use_vs_yield_change_in_cereal_production.csv')
+arable_land <- readr::read_csv('arable_land_pin.csv')
+
+key_crop_yields <- readr::read_csv('key_crop_yields.csv') %>%
+  rename(wheat = `Wheat (tonnes per hectare)`,
+         rice = `Rice (tonnes per hectare)`,
+         maize = `Maize (tonnes per hectare)`,
+         soybeans = `Soybeans (tonnes per hectare)`,
+         potatoes = `Potatoes (tonnes per hectare)`,
+         beans = `Beans (tonnes per hectare)`,
+         peas = `Peas (tonnes per hectare)`,
+         cassava = `Cassava (tonnes per hectare)`,
+         barley = `Barley (tonnes per hectare)`,
+         cocoa = `Cocoa beans (tonnes per hectare)`,
+         bananas = `Bananas (tonnes per hectare)`)
+  
+crops_USA <- key_crop_yields %>%
+  filter(Code == "USA")
+```
+
+
+
+## Goals for inference in linear regression:
+
+* make inferential claims about the model
+* create confidence intervals for the slope
+
+
+##  EDA
+
+```{r}
+ggplot(crops_USA) +
+  geom_point(aes(x = peas, y = wheat, color = Year)) +
+  geom_smooth(aes(x = peas, y = wheat), method = "lm", se = FALSE, color = COL[1,1]) 
+```
+
+
+```{r}
+ggplot(crops_USA) +
+  geom_point(aes(x = maize, y = wheat)) +
+  geom_smooth(aes(x = maize, y = wheat), method = "lm", se = FALSE, color = COL[1,1]) 
+```
+
+
+
+## SLR
+
+```{r}
+crops_USA %>%
+  lm(wheat ~ peas, .) %>%
+  tidy()
+```
+
+
+
+```{r}
+crops_USA %>%
+  lm(wheat ~ maize, .) %>%
+  tidy()
+```
+
+
+## Sampling distribution
+
+
+```{r}
+set.seed(4747)
+crops2 <- crops_USA %>% 
+  sample_n(size=20) 
+crops3 <- crops_USA %>%
+  sample_n(size=20)
+crops_many <- crops_USA %>%
+  rep_sample_n(size = 20, replace = FALSE, reps = 50)
+```
+
+
+```{r}
+ggplot(crops_USA) +
+  geom_point(aes(x = maize, y = wheat)) +
+  geom_smooth(aes(x = maize, y = wheat), method = "lm", se = FALSE, color = COL[1,1]) 
+```
+
+
+A subset of size 20 items shows a similar positive trend between maize and wheat, despite having fewer observations on the plot.
+
+
+```{r echo = FALSE}
+ggplot(crops2) +
+  geom_point(aes(x = maize, y = wheat)) +
+  geom_smooth(aes(x = maize, y = wheat), method = "lm", se = FALSE, color = COL[1,1]) 
+```
+
+
+A second sample of size 20 also shows a positive trend!
+
+```{r echo = FALSE}
+ggplot(crops3) +
+  geom_point(aes(x = maize, y = wheat)) +
+  geom_smooth(aes(x = maize, y = wheat), method = "lm", se = FALSE, color = COL[4,1]) 
+```
+
+
+But the line is slightly different!
+
+```{r echo = FALSE}
+ggplot(crops2, aes(x = maize, y = wheat)) + geom_point(color="#569BBD") + 
+  geom_smooth(method="lm", se=FALSE, color="#569BBD") + 
+  geom_point(data=crops3, color="#F05133") +
+  geom_smooth(data=crops3, method="lm", se=FALSE, color="#F05133")
+```
+
+
+That is, there is variability in the regression line from sample to sample.  The concept of the sampling variability is something you've seen before, but in this lesson, you will focus on the variability of the line instead of the variability of a single statistic.
+
+```{r echo = FALSE}
+ggplot(crops_many, aes(x=maize, y=wheat, group=replicate)) + 
+  geom_point() + 
+  ggtitle("maize vs. wheat for annual crop yield in the US (n=20)") + 
+  geom_smooth(method="lm", se=FALSE, color = COL[1,1])
+```  
+
+
+```{r echo = FALSE}
+crops_many_lm <- crops_many %>% 
+  group_by(replicate) %>% 
+  do(tidy(lm(wheat ~ maize, data=.))) %>%
+  filter(term=="maize")
+
+ggplot(crops_many_lm, aes(x=estimate)) + geom_histogram()
+```
+
