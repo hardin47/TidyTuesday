@@ -1,5 +1,8 @@
 # TidyTuesday
 
+My Tidy Tuesday adventures: [https://hardin47.github.io/TidyTuesday/](https://hardin47.github.io/TidyTuesday/)
+
+
 ### Getting the data
 
 Each week, copy the week's folder which includes both the data and the information describing the data.  Then create / navigate to the gh-pages branch where the .html file (from the .Rmd) describes the analysis.
