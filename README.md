@@ -1,6 +1,6 @@
 # TidyTuesday
 
-Tidy Tuesday website link: [https://hardin47.github.io/TidyTuesday/](https://hardin47.github.io/TidyTuesday/)
+My Tidy Tuesday adventures: [https://hardin47.github.io/TidyTuesday/](https://hardin47.github.io/TidyTuesday/)
 
 ### Tidy Tuesday Analyses
 
