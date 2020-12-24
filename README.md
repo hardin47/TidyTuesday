@@ -2,6 +2,8 @@
 
 ### Tidy Tuesday Analyses
 
+* 2020-12-22 [TidyTuesday Big Mac Exchange Rates](https://hardin47.github.io/TidyTuesday/2020-12-22/bigmac.html)
+
 * 2020-09-01 [TidyTuesday Global Crop Yield](https://hardin47.github.io/TidyTuesday/2020-09-01/crops.html)
 
 * 2020-07-28 [TidyTuesday Palmer Penguins](https://hardin47.github.io/TidyTuesday/2020-07-28/penguins.html)

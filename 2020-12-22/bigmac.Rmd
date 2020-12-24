@@ -1,0 +1,107 @@
+---
+title: "Big Mac Prices"
+author: "Jo Hardin"
+date: "12/22/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+library(tidyverse)
+library(infer)
+library(broom)
+library(openintro)
+set.seed(4747)
+```
+
+## What do the data look like?
+
+As always, a good first step is to figure out what the data set looks like.  I'll read the data in and try a few summary commands.  I notice that most of the countries have 33 observations, but a few of them have only 5 observations.  I also notice things like France, Spain, Germany are not included.  And there is a country labeled `Euro area`.  Also, I doubt I'll use it, but it is interesting to note that both `UAE` and `United Arab Emirates` are included.  A more comprehensive analysis would need to look into whether there is a political? geographical? economic? reason for the two different labels (or maybe the two labels should be combined).
+
+```{r}
+bigmac <- readr::read_csv("big-mac.csv")
+
+bigmac %>%
+  group_by(name) %>%
+  summarize(count = n())
+
+bigmacW <- bigmac %>%
+  filter(name %in% c("Australia", "Canada", "United States", "Britain", "Euro area"))
+
+bigmacW %>%
+  group_by(name) %>%
+  summarize(count = n())
+
+```
+
+### Big Mac prices
+
+The data are focused on the relationship between changes in Big Mac prices as compared to currency relationships.  Before we move on to understand the currency comparison, let's just look at Big Mac prices.  The first plot provides all of the Big Mac prices (in US\$) over time.  Note that some of the prices seem to come down.  Because the y-axis is in US\$, we cannot break apart the cost of the hamburger from the relationship of the local currency with the US currency.  Many of the lines (i.e., countries) go up and then down.  The sharp down is likely to do more with the country's currency in relationship to US\$ than it does to do with the actual price of the Big Mac.
+
+In order to see the lines a little more clearly, we subset to include only a few countries.  The difference between `dollar_price` and `local_price` can be seen across those countries (of course, the US line is identical in the two plots).  Note that a more interesting plot might have been one comparing countries that had currencies which changed more drastically with respect to the US\$ over this time period.
+
+```{r}
+ggplot(bigmac, aes(x = date, y = dollar_price)) +
+  geom_point(aes(color = name)) + 
+  geom_smooth(aes(color = name), se = FALSE) +
+  ggtitle("Big Mac prices in US$")
+
+ggplot(bigmacW, aes(x = date, y = dollar_price)) +
+  geom_point(aes(color = name)) + 
+  geom_smooth(aes(color = name), se = FALSE) +
+  xlab("purchase price date")+
+  ggtitle("Big Mac prices in US$")
+
+ggplot(bigmacW, aes(x = date, y = local_price)) +
+  geom_point(aes(color = name)) + 
+  geom_smooth(aes(color = name), se = FALSE) +
+  xlab("purchase price date")+
+  ggtitle("Big Mac prices in local currency")
+```
+
+
+### The Economist
+
+Because I don't really know anything about exchange rates or Big Mac prices, I'm going to try to re-make one of the images from the [story in the Economist](https://www.economist.com/news/2020/07/15/the-big-mac-index).  Note that the value on the y-axis combines the exchange rate for the Big Mac as well as the value for the exchange rate for the currency.  I'm not totally sure whether the Big Mac exchange rate values are in the dataset already, so I'll do my best to recreate it.  From *The Economist* article:
+> A Big Mac costs £3.39 in Britain and US$5.71 in the United States. The implied exchange rate is 0.59. The difference between this and the actual exchange rate, 0.79, suggests the British pound is 25.1% undervalued
+
+
+```{r}
+bigmacUS <- bigmac %>%
+  filter(name %in% c("United States")) %>%
+  mutate(local_US_price = local_price) %>%
+  select(date, local_US_price)
+
+bigmac <- full_join(bigmac, bigmacUS, by = "date") %>%
+  mutate(bigmac_exchange = local_price / local_US_price)
+
+bigmac <- bigmac %>%
+  mutate(value = (bigmac_exchange - dollar_ex) / dollar_ex)
+```
+
+I want to check that the currency exchange rate and Big Mac exchange rate seem right.  Of course, I don't know that my calculation is exactly right, but the plot below will give me a sense of whether or not I'm in the right ballpark.  Seems reasonable that the Big Mac exchange rate and currency exchange rate should be reasonably well correlated.
+
+Note that there are a handful of countries with really huge exchange rates.  While we'd need to work carefully with these observations to understand the full picture, they skew our ability to compare the Big Mac exchange rate and the US\$ exchange rate.  We filter out the huge exchange rates before making the descriptive plot.
+
+```{r}
+bigmac %>%
+  filter(dollar_ex < 10) %>%
+  ggplot(aes(x = dollar_ex, y = bigmac_exchange)) + 
+  geom_point()
+```
+
+
+Now to *The Economist* plot.  Their plot is interactive.  If you hover on their plot, you can see different country lines.  I think we can do that using the **plotly** package, but it would take a little bit of work for me to figure that out.  Note that I had to google to figure out how to change the colors on the plot as well as to get rid of the legend on the right (I don't really think the legend adds much, and *The Economist* doesn't have the legend, so it seems best to remove it).
+
+```{r}
+ggplot(bigmac, aes(x = date, y = value)) + 
+  geom_point(alpha = 0.2, aes(col =ifelse(value <=0, "negative", "positive"))) + 
+  geom_hline(yintercept = 0) +
+  geom_line(data = filter(bigmac, name == "Britain"), mapping = aes(x = date, y = value), se = FALSE, col = "blue") +
+  theme(legend.position = "none") +
+  xlab("the Big Mac index") +
+  ggtitle("Big Mac Index, blue line is vs Britian") +
+  scale_color_manual(values=c("red", "blue")) 
+  #labs(fill = "value direction")
+```
+
