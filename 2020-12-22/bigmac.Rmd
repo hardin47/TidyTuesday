@@ -11,6 +11,7 @@ library(tidyverse)
 library(infer)
 library(broom)
 library(openintro)
+library(plotly)
 set.seed(4747)
 ```
 
@@ -63,6 +64,7 @@ ggplot(bigmacW, aes(x = date, y = local_price)) +
 ### The Economist
 
 Because I don't really know anything about exchange rates or Big Mac prices, I'm going to try to re-make one of the images from the [story in the Economist](https://www.economist.com/news/2020/07/15/the-big-mac-index).  Note that the value on the y-axis combines the exchange rate for the Big Mac as well as the value for the exchange rate for the currency.  I'm not totally sure whether the Big Mac exchange rate values are in the dataset already, so I'll do my best to recreate it.  From *The Economist* article:
+
 > A Big Mac costs £3.39 in Britain and US$5.71 in the United States. The implied exchange rate is 0.59. The difference between this and the actual exchange rate, 0.79, suggests the British pound is 25.1% undervalued
 
 
@@ -95,7 +97,7 @@ Now to *The Economist* plot.  Their plot is interactive.  If you hover on their 
 
 ```{r}
 ggplot(bigmac, aes(x = date, y = value)) + 
-  geom_point(alpha = 0.2, aes(col =ifelse(value <=0, "negative", "positive"))) + 
+  geom_point(alpha = 0.2, aes(col =ifelse(value <= 0, "negative", "positive"))) + 
   geom_hline(yintercept = 0) +
   geom_line(data = filter(bigmac, name == "Britain"), mapping = aes(x = date, y = value), se = FALSE, col = "blue") +
   theme(legend.position = "none") +
@@ -105,3 +107,36 @@ ggplot(bigmac, aes(x = date, y = value)) +
   #labs(fill = "value direction")
 ```
 
+### **plotly** package
+
+Just as a way to learn a little bit about the **plotly** package, I'm going to try to create interactive lines.  Note that I've done it two different ways, once with the `ggplotly()` function, and once using `plot_ly()` to create a plot which then we `highlight()`.  Given more time to work on this, we might try to get the color scheme (blue for positive and red for negative) onto the highlight plot, to match the [story in the Economist](https://www.economist.com/news/2020/07/15/the-big-mac-index).
+
+```{r}
+test <- ggplot(bigmac, aes(x = date, y = value)) + 
+  geom_point(alpha = 0.2, aes(col =ifelse(value <= 0, "negative", "positive"), text = sprintf("country: %s", name))) + 
+  geom_hline(yintercept = 0) +
+  geom_line(aes(group = name, text = sprintf("country: %s", name)), se = FALSE, col = "grey") +
+  geom_line(data = filter(bigmac, name == "Britain"), mapping = aes(x = date, y = value), se = FALSE, col = "blue") +
+  theme(legend.position = "none") +
+  xlab("the Big Mac index") +
+  ggtitle("Big Mac Index, blue line is vs Britian") +
+  scale_color_manual(values=c("red", "blue")) 
+  #labs(fill = "value direction")
+
+ggplotly(test, tooltip="text")
+
+
+base <- plot_ly(highlight_key(bigmac, ~name)) %>% group_by(name)
+
+test2 <- base %>% 
+  group_by(name) %>%
+  add_lines(x = ~date, y = ~value) %>%
+  add_markers(x = ~date, y = ~value)
+
+highlight(test2,
+           on = "plotly_hover",
+           selectize = FALSE,
+           dynamic = FALSE,
+           color = "blue",
+           persistent = FALSE)
+```
