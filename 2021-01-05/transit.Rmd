@@ -11,6 +11,7 @@ library(tidyverse)
 library(infer)
 library(broom)
 library(countrycode)
+library(praise)
 set.seed(4747)
 ```
 
@@ -36,6 +37,8 @@ tail(transit_cost)
 transit_cost %>%
   group_by(country) %>%
   summarize(mean(real_cost))
+
+tapply(transit_cost$real_cost, transit_cost$country, mean)
 ```
 
 
@@ -67,5 +70,10 @@ transit_cost %>%
 transit_cost %>%
   ggplot(aes(y = real_cost, x = region, color = region)) + 
   geom_boxplot() 
+```
+
+
+```{r}
+praise()
 ```
 
