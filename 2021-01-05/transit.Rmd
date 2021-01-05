@@ -1,0 +1,71 @@
+---
+title: "Transit Costs Project"
+author: "Jo Hardin"
+date: "1/5/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+library(tidyverse)
+library(infer)
+library(broom)
+library(countrycode)
+set.seed(4747)
+```
+
+###  Inputting Data
+
+Today's data was on transit costs.  Because I don't know a lot about transit, we spent the time, just exploring the variables.
+
+```{r}
+transit_cost <- readr::read_csv("transit_cost.csv") %>%
+  mutate(real_cost = as.numeric(real_cost), start_year = as.numeric(start_year)) %>%
+  filter(!is.na(line)) %>%
+  mutate(region = countrycode(country, origin = "ecb", 
+                                    destination = "region")) %>%
+  mutate(region = case_when(country == "UK" ~ "Europe & Central Asia",
+                            TRUE ~ region))
+```
+
+
+```{r}
+head(transit_cost)
+tail(transit_cost)
+
+transit_cost %>%
+  group_by(country) %>%
+  summarize(mean(real_cost))
+```
+
+
+```{r}
+transit_cost %>%
+  ggplot(aes(x = start_year, y = real_cost, color = as.factor(rr)) )+ 
+  geom_point() +
+  scale_color_manual(values=c("#999999", "#E69F00", "#569BBD"), 
+                       name="Railroad",
+                       breaks=c(0, 1, NA),
+                       labels=c("not railroad", "railroad", "missing"))
+  
+```
+
+
+```{r}
+table(transit_cost$rr)
+```
+
+
+
+
+```{r}
+transit_cost %>%
+  ggplot(aes(x = length, y = real_cost, color = region) )+ 
+  geom_point() 
+
+
+transit_cost %>%
+  ggplot(aes(y = real_cost, x = region, color = region)) + 
+  geom_boxplot() 
+```
+

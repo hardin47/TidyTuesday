@@ -4,6 +4,8 @@ My Tidy Tuesday adventures: [https://hardin47.github.io/TidyTuesday/](https://ha
 
 ### Tidy Tuesday Analyses
 
+* 2021-01-05 [TidyTuesday Transit Cost](https://hardin47.github.io/TidyTuesday/2021-01-05/transit.html)
+
 * 2020-12-22 [TidyTuesday Big Mac Exchange Rates](https://hardin47.github.io/TidyTuesday/2020-12-22/bigmac.html)
 
 * 2020-09-01 [TidyTuesday Global Crop Yield](https://hardin47.github.io/TidyTuesday/2020-09-01/crops.html)
