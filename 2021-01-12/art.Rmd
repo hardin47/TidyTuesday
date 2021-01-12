@@ -81,6 +81,54 @@ artartist1 %>%
 
 ```
 
+
+### Random Forest
+
+In the interest of working through a Random Forest, not in the interest of an actual good prediction model, we'll create a Random Forest.  Note that I used year of birth and year of death to predict year of art, and so I'm surely going to overfit / have too much information.
+
+
+```{r}
+set.seed(47)
+library(tidymodels)
+library(vip)
+
+artRF <- artartist1 %>%
+  filter(id != 558)
+
+data_split <- initial_split(artRF, prop = 0.75)
+
+art_train <- training(data_split)
+art_test  <- testing(data_split) %>%
+  filter(!is.na(gender)) %>%
+  filter(!is.na(width)) %>%
+  filter(!is.na(height)) %>%
+  filter(!is.na(acquisitionYear)) %>%
+  filter(!is.na(yearOfBirth)) %>%
+  filter(!is.na(yearOfDeath))
+
+rand_forest(mode = "regression") %>% 
+   set_args(importance = "permutation") %>%
+   fit(year ~ gender + width + height + acquisitionYear +
+         yearOfBirth + yearOfDeath, 
+       data = art_train) %>% 
+   vip::vip() 
+   
+rand_forest(mode = "regression") %>% 
+   fit(year ~ gender + width + height + acquisitionYear +
+         yearOfBirth + yearOfDeath, data = art_train) %>% 
+   predict(new_data = art_test) %>%
+   ggplot(aes(y = .pred, x = art_test$year)) + 
+   geom_point() +
+   geom_abline(intercept = 0, slope = 1) +
+  ylab("Predicted Year") +
+  xlab("Year of Creation")
+```
+
+
+
+
+
+
 ```{r}
 praise()
 ```
