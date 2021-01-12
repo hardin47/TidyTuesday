@@ -1,0 +1,97 @@
+---
+title: "Art and Artists"
+author: "Jo Hardin"
+date: "1/12/2021"
+output: html_document
+---
+
+The data today come from the [Tate Art Museum](https://github.com/tategallery/collection).
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+library(tidyverse)
+library(infer)
+library(broom)
+library(countrycode)
+library(praise)
+set.seed(4747)
+```
+
+
+## Input data
+
+
+```{r}
+artists <- readr::read_csv("artists.csv")
+artwork <- readr::read_csv("artwork.csv")
+```
+
+
+Note, over half of the pieces in the collection are by Joseph Turner.  We might be curious to analyze the data without his pieces.
+
+```{r}
+artwork %>%
+  group_by(artistId) %>%
+  summarize(count = n()) %>%
+  arrange(desc(count)) %>%
+  head()
+
+artists %>%
+  filter(id == 558) 
+```
+
+Let's combine the datasets so that if we want to use gender to ask questions about the art, the information is available.  Note there are 6 pieces of art without a connection to the artists database.  And there are 194 artists without art in the dataset.
+
+```{r}
+artartist1 <- inner_join(artists, artwork, by = c("id" = "artistId"))
+artartist2 <- full_join(artists, artwork, by = c("id" = "artistId"))
+
+nrow(artwork)
+nrow(artartist1)
+nrow(artartist2)
+```
+
+### Location
+
+Both `placeOfBirth` and `placeOfDeath` are given by "City, Country", and it might be easier to visualize or model if we had only country.
+
+```{r}
+artists <- artists %>%
+  separate(placeOfBirth, c("cityBirth", "countryBirth") ,sep = ", ", fill = "left") %>%
+  separate(placeOfDeath, c("cityDeath", "countryDeath") ,sep = ", ", fill = "left") 
+
+artists %>% group_by(countryBirth) %>%
+  mutate(count = n()) %>%
+  filter(count >= 20) %>%
+  ungroup() %>%
+  ggplot(aes(x = countryBirth, y = yearOfBirth)) + 
+  geom_boxplot()
+
+```
+
+
+#### Viz artwork
+
+
+```{r}
+artartist1 %>%
+  filter(id != 558) %>%
+  ggplot(aes(x = year, color = gender, fill = gender)) + 
+  geom_histogram()
+
+```
+
+```{r}
+praise()
+```
+
+
+
+
+
+
+
+
+
+
+
