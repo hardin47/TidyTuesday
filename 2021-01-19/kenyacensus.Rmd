@@ -1,0 +1,113 @@
+---
+title: "Census Data for Kenya 2019"
+author: "Jo Hardin"
+date: "1/19/2021"
+output: html_document
+---
+
+The data today come from the [**rKenyaCensus**](https://github.com/Shelmith-Kariuki/rKenyaCensus) package by [Shelmith Kariuki](https://twitter.com/Shel_Kariuki):
+
+> [rKenyaCensus](https://github.com/Shelmith-Kariuki/rKenyaCensus) is an R package that contains the 2019 Kenya Population and Housing Census results. The results were released by the [Kenya National Bureau of Statistics](https://twitter.com/KNBStats) in February 2020, and published in four different pdf files (Volume 1 - Volume 4).
+
+Credit due to **FlorenceGalliers** for much of the map code.  https://github.com/FlorenceGalliers/TidyTuesday2021/tree/main/4-Kenya
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+library(tidyverse)
+library(infer)
+library(broom)
+library(countrycode)
+library(praise)
+library(tmap)
+set.seed(4747)
+```
+
+
+###  The Data
+
+Lots of great data in the Tidy Tuesday, but *also* in the associated R package.  Tidying of the data is to keep only the county data (not overall Kenya) and also only the crop data which has information about at least one particular crop.
+
+
+```{r}
+# intall.packages("remotes")
+# remotes::install_github("Shelmith-Kariuki/rKenyaCensus")
+library(rKenyaCensus)
+# data(package = "rKenyaCensus")
+
+gender <- readr::read_csv("gender.csv")
+crops <- readr::read_csv("crops.csv")
+households <- readr::read_csv("households.csv")
+
+crops <- crops %>%
+  filter(SubCounty != "KENYA") %>%
+  rename(County = SubCounty) %>%
+  rename(Cashew = `Cashew Nut`, Khat = `Khat (Miraa)`) %>%
+  mutate(countNA = rowSums(is.na(.))) %>%
+  filter(countNA < 9)
+```
+
+###  Creating and plotting map of Kenyan counties
+
+Shapefiles will determine the county boundaries.
+
+```{r}
+counties <- rKenyaCensus::KenyaCounties_SHP
+```
+
+
+The `sp::merge()` function below seemingly came from the **sp** package which provides a special way to combine shapefiles with other information.
+
+```{r}
+cropplot1 <- sp::merge(x = counties, y = crops,  by = "County")
+```
+
+
+#### A map?
+
+Let's practice drawing the county map of Kenya.
+
+```{r}
+tm_shape(cropplot1) +
+  tm_polygons()
+```
+
+```{r}
+crops2 <- crops %>%
+  select(-countNA) %>%
+  pivot_longer(Tea:Khat, names_to = "cropType", values_to = "housesCrop") %>%
+  mutate(cropalpha = housesCrop / Farming) %>%
+  arrange(County, desc(housesCrop)) %>% 
+  group_by(County) %>%
+  top_n(n=1) 
+
+cropplot2 <- sp::merge(x = counties, y = crops2,  by = "County")
+```
+
+
+Note that the first plot has the number of households divided by the total number of farmers, but the crop households don't add up to the total number of farmers, so it isn't really a percent.  Could probably learn more by digging into the data a little bit (e.g., how is `Farming` defined?).
+
+```{r}
+tm_shape(cropplot2) +
+  tm_polygons(col =  "cropalpha", title = "") +
+  tm_layout(title = "Percent-ish of households who farm the most popular crop",
+            title.size = 1,
+            title.position = c("left", "top"),
+            bg.color = "#4C721D04",
+            legend.title.size = 0.8,
+            legend.title.fontface = "bold",
+            inner.margins = c(0.1, 0.1, 0.1, 0.1))
+
+tm_shape(cropplot2) +
+  tm_polygons(col = "cropType", title = "") +
+  tm_layout(title = "Crop type which is most popular",
+            title.size = 1,
+            title.position = c("left", "top"),
+            bg.color = "#4C721D04",
+            legend.title.size = 0.8,
+            legend.title.fontface = "bold",
+            inner.margins = c(0.1, 0.1, 0.1, 0.1))
+
+```
+
+
+
