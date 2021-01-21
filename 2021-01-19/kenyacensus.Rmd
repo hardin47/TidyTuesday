@@ -109,5 +109,7 @@ tm_shape(cropplot2) +
 
 ```
 
-
+```{r}
+praise()
+```
 
