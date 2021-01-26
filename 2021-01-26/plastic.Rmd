@@ -1,0 +1,69 @@
+---
+title: "Plastic Waste"
+author: "Jo Hardin"
+date: "1/26/2021"
+output: html_document
+---
+
+The data this week comes from [Break Free from Plastic](https://www.breakfreefromplastic.org) courtesy of [Sarah Sauve]( https://sarahasauve.wordpress.com).
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+library(tidyverse)
+library(infer)
+library(broom)
+library(countrycode)
+library(praise)
+library(tmap)
+set.seed(4747)
+```
+
+#### Data
+
+The unit of measurement is "count" which I'm not totally clear about.  Each row represents the country of cleanup (per year, per company, per type), so a count of 3 isn't clear.  They also mention that the data come from particular audits, so maybe they are random samples of some kind.  A fuller analysis would want to understand the units and also whether the observations are truly representative of the larger population of plasic which is being wasted.
+
+```{r}
+plastics <- readr::read_csv("plastics.csv") %>%
+  select(-num_events, - volunteers) 
+  
+```
+
+
+#### Visualizing Waste
+
+The bar plot below uses a color palette based on Joe Biden's inauguration (coats and mittens) by @ciannabp (https://github.com/ciannabp/inauguration).  
+
+```{r}
+#devtools::install_github("ciannabp/inauguration")
+library(inauguration)
+inauguration("inauguration_2021_bernie")
+```
+
+Let's start by looks at the US data only.  Note that the palette only has 7 colors, so if you need more colors for your graph, the palette will fail.
+
+```{r}
+plastics %>%
+  filter(country == "United States of America") %>%
+  filter(!parent_company %in% c("Unbranded", "null", "Grand Total")) %>%
+  group_by(year) %>%
+  arrange(desc(grand_total)) %>%
+  top_n(7) %>%
+  mutate(comapny_ordered = fct_reorder(parent_company, -grand_total)) %>%
+  pivot_longer(empty:grand_total, names_to = "plastic_type", values_to = "count") %>%
+  filter(plastic_type != "grand_total") %>%
+  filter(year == 2019) %>%
+  ggplot(aes(x = comapny_ordered, y = count)) +
+  geom_bar(aes(fill = plastic_type), stat = "identity") +
+  theme(axis.text.x=element_text(angle=45,vjust=1,hjust=1)) +
+  scale_fill_manual(values = inauguration("inauguration_2021_bernie")) +
+  xlab("Company Name")
+  #facet_grid(~year)
+
+```
+
+####  Important Closing
+
+```{r}
+praise()
+```

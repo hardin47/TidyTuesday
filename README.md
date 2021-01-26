@@ -4,6 +4,8 @@ My Tidy Tuesday adventures: [https://hardin47.github.io/TidyTuesday/](https://ha
 
 ### Tidy Tuesday Analyses
 
+* 2021-01-26 [TidyTuesday Plastic Waste](https://hardin47.github.io/TidyTuesday/2021-01-26/plastic.html)
+
 * 2021-01-19 [TidyTuesday of Kenya 2019 Census](https://hardin47.github.io/TidyTuesday/2021-01-19/kenyacensus.html)
 
 * 2021-01-12 [TidyTuesday Tate Art Museum](https://hardin47.github.io/TidyTuesday/2021-01-12/art.html)
