@@ -13,6 +13,7 @@ library(tidyverse)
 library(infer)
 library(broom)
 library(openintro)
+library(kableExtra)
 set.seed(4747)
 ```
 
@@ -69,6 +70,124 @@ ggplot(crops_USA) +
   geom_point(aes(x = maize, y = wheat)) +
   geom_smooth(aes(x = maize, y = wheat), method = "lm", se = FALSE, color = COL[1,1]) 
 ```
+
+The code below is trying to find crops that have natural positive and negative correlations.  Generally, yield is a function of population size, so I found the percent of a particular crop over all crop yield (summed over time) for a given country.  Also, I filtered out countries that didn't have data for most of the crops.
+
+```{r}
+library(ggpubr)
+library(naniar)
+
+mw <- ggplot(crops_USA) +
+  geom_point(aes(x = maize, y = wheat))
+
+
+crops_country <- key_crop_yields %>%
+  filter(!is.na(Code)) %>%  # remove continents, etc.
+  group_by(Code) %>%  # to sum and percent by country
+  summarize(swheat = sum(wheat, na.rm = TRUE),
+            srice = sum(rice, na.rm = TRUE),
+            smaize = sum(maize, na.rm = TRUE),
+            ssoybeans = sum(soybeans, na.rm = TRUE),
+            spotatoes = sum(potatoes, na.rm = TRUE),
+            sbeans = sum(beans, na.rm = TRUE),
+            speas = sum(peas, na.rm = TRUE),
+            scassava = sum(cassava, na.rm = TRUE),
+            sbarley = sum(barley, na.rm = TRUE),
+            scocoa = sum(cocoa, na.rm = TRUE),
+            sbananas = sum(bananas, na.rm = TRUE),
+            pwheat = 100*swheat / (swheat + srice + smaize + ssoybeans + spotatoes + sbeans + speas + scassava + sbarley + scocoa + sbananas),
+            price = 100*srice / (swheat + srice + smaize + ssoybeans + spotatoes + sbeans + speas + scassava + sbarley + scocoa + sbananas),
+            pmaize = 100*smaize / (swheat + srice + smaize + ssoybeans + spotatoes + sbeans + speas + scassava + sbarley + scocoa + sbananas),
+            psoybeans = 100*ssoybeans / (swheat + srice + smaize + ssoybeans + spotatoes + sbeans + speas + scassava + sbarley + scocoa + sbananas),
+            ppotatoes = 100*spotatoes / (swheat + srice + smaize + ssoybeans + spotatoes + sbeans + speas + scassava + sbarley + scocoa + sbananas),
+            pbeans = 100*sbeans / (swheat + srice + smaize + ssoybeans + spotatoes + sbeans + speas + scassava + sbarley + scocoa + sbananas),
+            ppeas = 100*speas / (swheat + srice + smaize + ssoybeans + spotatoes + sbeans + speas + scassava + sbarley + scocoa + sbananas),
+            pcassava = 100*scassava / (swheat + srice + smaize + ssoybeans + spotatoes + sbeans + speas + scassava + sbarley + scocoa + sbananas),
+            pbarley = 100*sbarley / (swheat + srice + smaize + ssoybeans + spotatoes + sbeans + speas + scassava + sbarley + scocoa + sbananas),
+            pcocoa = 100*scocoa / (swheat + srice + smaize + ssoybeans + spotatoes + sbeans + speas + scassava + sbarley + scocoa + sbananas),
+            pbananas = 100*sbananas / (swheat + srice + smaize + ssoybeans + spotatoes + sbeans + speas + scassava + sbarley + scocoa + sbananas),
+            ) %>%
+  replace_with_na_all(condition = ~.x == 0)%>%
+  mutate(nmiss = rowSums(is.na(.))/2) %>%
+  filter(nmiss <= 5)  # filter out countries that don't have data for most of the crops.
+      
+            
+sb <- ggplot(crops_country) +
+  geom_point(aes(x = psoybeans, y = pbananas)) +
+  xlim(c(0,6)) + 
+  xlab("% soybeans") +
+  ylab("% bananas")
+
+sc <- ggplot(crops_country) +
+  geom_point(aes(x = psoybeans, y = pcassava)) +
+  xlim(c(0,6)) + 
+  xlab("% soybeans") +
+  ylab("% cassava")
+
+mc <- ggplot(crops_country) +
+  geom_point(aes(x = pmaize, y = pcassava)) +
+  xlim(c(0,15)) + 
+  xlab("% maize") +
+  ylab("% cassava")
+
+peb <- ggplot(crops_country) +
+  geom_point(aes(x = ppotatoes, y = pbananas)) +
+  xlim(c(0,60)) + 
+  xlab("% potatoes") +
+  ylab("% bananas")
+
+cb <- ggplot(crops_country) +
+  geom_point(aes(x = pcocoa, y = pbananas)) +
+  xlab("% cocoa") +
+  ylab("% bananas")
+
+wb <- ggplot(crops_country) +
+  geom_point(aes(x = pwheat, y = pbarley)) +
+  xlab("% wheat") +
+  ylab("% barley")
+
+pob <- ggplot(crops_country) +
+  geom_point(aes(x = ppeas, y = pbarley)) +
+  xlab("% peas") +
+  ylab("% barley")
+
+ggpubr::ggarrange( peb, sc, mc, cb, pob, wb, 
+                   labels = c("A", "B", "C", "D", "E", "F"),
+                   ncol = 3, nrow = 2)
+
+```
+
+
+```{r}
+temptbl <- tribble(
+ ~variable,  ~col1, ~col2, ~corval,
+ "A", "potatoes", "bananas", round(cor(crops_country$ppotatoes, crops_country$pbananas, use = "pairwise.complete.obs"), digits = 2),
+ "B", "soybeans", "cassava", round(cor(crops_country$psoybeans, crops_country$pcassava, use = "pairwise.complete.obs"), digits = 2),
+ "C", "maize", "cassava", round(cor(crops_country$pmaize, crops_country$pcassava, use = "pairwise.complete.obs"), digits = 2),
+ "D", "cocoa", "bananas", round(cor(crops_country$pcocoa, crops_country$pbananas, use = "pairwise.complete.obs"), digits = 2),
+ "E", "peas", "barley", round(cor(crops_country$ppeas, crops_country$pbarley, use = "pairwise.complete.obs"), digits = 2),
+ "F", "wheat", "barley", round(cor(crops_country$pwheat, crops_country$pbarley, use = "pairwise.complete.obs"), digits = 2),
+)
+
+temptbl %>%
+ kable(caption = "Correlation of percentage of total yield across different crops.",
+  col.names = c("Graph", "x-variable", "y-variable", "correlation")) %>%
+ kable_styling() 
+```
+
+```{r}
+library(GGally)
+ggpairs(crops_country[,13:23])
+
+temp <- cor(crops_country[,13:23], use = "pairwise.complete.obs")
+diag(temp) <- NA
+temp %>%
+  quantile(na.rm = TRUE)
+
+temp
+```
+
+
 
 
 
