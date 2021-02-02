@@ -1,3 +1,5 @@
+[TidyTuesday of Kenya 2019 Census](https://hardin47.github.io/TidyTuesday/2021-01-19/kenyacensus.html)
+
 ![](https://shelkariuki.netlify.app/post/rkenyacensus/featured_hudf75701b5887d4f557a17652b4961ff5_197082_720x0_resize_q90_lanczos.jpg)
 
 # Kenya Census

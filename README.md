@@ -4,6 +4,8 @@ My Tidy Tuesday adventures: [https://hardin47.github.io/TidyTuesday/](https://ha
 
 ### Tidy Tuesday Analyses
 
+* 2021-02-01 [TidyTuesday HBCU enrollment](https://hardin47.github.io/TidyTuesday/2021-02-02/hbcu.html)
+
 * 2021-01-26 [TidyTuesday Plastic Waste](https://hardin47.github.io/TidyTuesday/2021-01-26/plastic.html)
 
 * 2021-01-19 [TidyTuesday of Kenya 2019 Census](https://hardin47.github.io/TidyTuesday/2021-01-19/kenyacensus.html)
@@ -39,13 +41,13 @@ Each week, copy the week's folder which includes both the data and the informati
 
 2. Modify the URL, replace `tree/master` with `trunk`.  For example, replace
 
-`https://github.com/rfordatascience/tidytuesday/tree/master/data/2020/2020-06-09`
+`https://github.com/rfordatascience/tidytuesday/tree/master/data/2021/2021-02-02`
 
-with `https://github.com/rfordatascience/tidytuesday/trunk/data/2020/2020-06-09`
+with `https://github.com/rfordatascience/tidytuesday/trunk/data/2021/2021-02-02`
 
 3.  Download the folder using the terminal window in RStudio.
 
-`svn checkout https://github.com/rfordatascience/tidytuesday/trunk/data/2020/2020-06-09`
+`svn checkout https://github.com/rfordatascience/tidytuesday/trunk/data/2021/2021-02-02`
 
 4. Create a new gh-pages branch.  Build the Rmarkdown file (and resulting HTML) for analyzing the data.
 

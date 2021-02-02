@@ -1,3 +1,5 @@
+[TidyTuesday Big Mac Exchange Rates](https://hardin47.github.io/TidyTuesday/2020-12-22/bigmac.html)
+
 ![](pic2.png)
 
 # The Big Mac index

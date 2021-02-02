@@ -1,0 +1,113 @@
+---
+title: "HBCU Enrollment"
+author: "Jo Hardin"
+date: "2/2/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+library(tidyverse)
+library(infer)
+library(broom)
+library(openintro)
+library(kableExtra)
+library(praise)
+set.seed(4747)
+```
+
+### The Data
+
+The data this week comes from [Data.World](https://data.world/nces/hbcu-fall-enrollment-1976-2015) and [Data.World](https://data.world/nces/high-school-completion-and-bachelors-degree-attainment) and was originally from the [NCES](https://data.world/nces).
+
+The datasets describe different subsets of students:  high school, bachelor's degree, and HBCU.  I'm not 100% sure how each group is defined (e.g., are there graduate students included in the HBCU group?).  But let's look at the HBCU enrollment data in more detail.
+
+
+```{r}
+hbcu_all <- readr::read_csv("hbcu_all.csv")
+hbcu_black <- readr::read_csv("hbcu_black.csv")
+names(hbcu_all)
+```
+
+The main tidying for the dataset is to create a few long columns instead of the current wide data.  I looked at the different columns and thought about which variables we could create.  I came up with the following list of new columns that I'd like to have:
+
+* year
+* enrollment
+* 2 vs 4 vs total
+* public vs private vs total
+* gender
+
+I found the following help in [advanced pivoting](https://dcl-wrangle.stanford.edu/pivot_advanced.html), and realized that if I changed the name of the variables, they would be in a format that would make it easy to use `pivot_longer()` quite directly.  Note that the majority of the columns don't have any gender information (that is, gender is combined into one column), so I indicate the combined gender information with "X".
+
+
+
+
+```{r}
+names(hbcu_all) <- c("year", "total_all_X", "total_all_M", "total_all_F",
+                     "4yr_all_X", "2yr_all_X", "total_public_X", "4yr_public_X", "2yr_public_X",
+                     "total_private_X", "4yr_private_X", "2yr_private_X")
+
+names(hbcu_black) <- c("year", "total_all_X", "total_all_M", "total_all_F",
+                     "4yr_all_X", "2yr_all_X", "total_public_X", "4yr_public_X", "2yr_public_X",
+                     "total_private_X", "4yr_private_X", "2yr_private_X")
+
+
+hbcu <- hbcu_all %>%
+  pivot_longer(
+    cols = -year,
+    names_to = c("degree", "funding", "gender"),
+    names_sep = "_",
+    values_to = "enrollment"
+  ) %>%
+  mutate(race = "all")
+
+hbcuB <- hbcu_black %>%
+    pivot_longer(
+    cols = -year,
+    names_to = c("degree", "funding", "gender"),
+    names_sep = "_",
+    values_to = "enrollment"
+  ) %>%
+  mutate(race = "Black")
+
+
+hbcu_full <- rbind(hbcu, hbcuB)
+```
+
+
+####  Visualize changes in enrollment
+
+```{r}
+#devtools::install_github("ciannabp/inauguration")
+library(inauguration)
+#inauguration("inauguration_2021_bernie")
+```
+
+```{r}
+hbcu_full %>%
+  filter(gender == "X") %>%
+  ggplot(aes(x = year, y = enrollment, color = race, 
+             group = interaction(degree, funding, race), linetype = funding)) +
+  geom_line() +
+  facet_wrap(~degree) +
+  scale_color_manual(values = inauguration("inauguration_2021")[c(6,1)])
+
+
+hbcu_full %>%
+  filter(gender == "X") %>%
+  ggplot(aes(x = year, y = enrollment, color = degree, 
+             group = interaction(degree, funding, race), linetype = funding)) +
+  geom_line() +
+  facet_wrap(~race) +
+  scale_color_manual(values = inauguration("inauguration_2021")[c(2,3,5)])
+
+```
+
+
+####  Important Closing
+
+```{r}
+praise()
+```
+
+

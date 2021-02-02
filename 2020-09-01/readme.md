@@ -1,7 +1,5 @@
 [TidyTuesday Global Crop Yields](https://hardin47.github.io/TidyTuesday/2020-09-01/crops.html)
 
-
-
 ![Harvest picture credit to: https://unsplash.com/@scottagoodwill](https://images.unsplash.com/photo-1507662228758-08d030c4820b?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1489&q=80)
 
 # Global Crop Yields
