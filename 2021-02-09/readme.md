@@ -1,4 +1,4 @@
-[TidyTuesday Wealth Inequality in America](https://hardin47.github.io/TidyTuesday/2021-02-02/wealthinequal.html)
+[TidyTuesday Wealth Inequality in America](https://hardin47.github.io/TidyTuesday/2021-02-09/wealthinequal.html)
 
 
 ![](urban-institute.png)
