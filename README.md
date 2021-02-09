@@ -4,7 +4,9 @@ My Tidy Tuesday adventures: [https://hardin47.github.io/TidyTuesday/](https://ha
 
 ### Tidy Tuesday Analyses
 
-* 2021-02-01 [TidyTuesday HBCU enrollment](https://hardin47.github.io/TidyTuesday/2021-02-02/hbcu.html)
+* 2021-02-09 [TidyTuesday Wealth Inequality in America](https://hardin47.github.io/TidyTuesday/2021-02-02/wealthinequal.html)
+
+* 2021-02-02 [TidyTuesday HBCU enrollment](https://hardin47.github.io/TidyTuesday/2021-02-02/hbcu.html)
 
 * 2021-01-26 [TidyTuesday Plastic Waste](https://hardin47.github.io/TidyTuesday/2021-01-26/plastic.html)
 

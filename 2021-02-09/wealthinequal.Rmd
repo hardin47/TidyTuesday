@@ -1,0 +1,109 @@
+---
+title: "Wealth Inequality in America"
+author: "Jo Hardin"
+date: "2/9/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+library(tidyverse)
+library(infer)
+library(broom)
+library(openintro)
+library(kableExtra)
+library(readxl)
+library(scales)
+library(plotly)
+library(gganimate)
+# devtools::install_github("thomasp85/transformr")
+library(transformr)
+
+library(praise)
+set.seed(4747)
+```
+
+### The Data
+
+The data this week comes from the [Urban Institute](https://apps.urban.org/features/wealth-inequality-charts/) and the [US Census](https://www.census.gov/data/tables/time-series/demo/income-poverty/historical-income-households.html).
+
+The data come in a few different files, and the one we want hasn't already been formatted to csv.  Fortunately, code has been provided for importing and cleaning the dataset:
+
+```{r}
+wealth_raw <- readxl::read_excel("WealthDistribution.xlsx", skip = 1)
+
+wealth_distribution <- wealth_raw %>%
+  rename(percentile = ...1) %>%
+  filter(!is.na(`1963`)) %>%
+  pivot_longer(
+    cols = -percentile,
+    names_to = "year",
+    values_to = "wealth_family"
+  ) %>%
+  mutate(across(c(year, percentile), as.integer))
+```
+
+### Animation
+
+I'd really like to create the first graphic beautifully created by The Urban Institute who lay out nine charts about racial wealth inequality in America in this [article](https://apps.urban.org/features/wealth-inequality-charts/). 
+
+
+I've never created a **gganimate** plot before, so I'm going to follow the instructions in the [gganimate tutorial](https://gganimate.com/articles/gganimate.html).
+
+```{r}
+
+label.data <- data.frame(percentile = c("10th percentile", "50th",
+                                        "90th", "95th", "99th"),
+            x.perc = c(10,50,90, 95, 99), 
+            y.perc = rep(10000000,5))
+
+wealth_distribution %>%
+  # filter(year == 2010) %>%
+  ggplot(aes(x = percentile, y = wealth_family)) +
+  geom_area( color = "black", fill = "light blue") +
+  geom_vline(xintercept = c(10,50,90, 95, 99), color = "grey") + 
+  ylim(c(-100, 12000000)) +
+  geom_text(data = label.data, aes(label = percentile, x = x.perc, y = y.perc),
+            angle = 270, vjust = 1, hjust = 0) +
+  xlab("Percentile") + 
+  ylab("Wealth") + 
+  theme(axis.title.y = element_text(angle=0)) +
+  scale_y_continuous(labels = dollar) +
+  transition_states(year) +
+  ggtitle('Distribution of Family Wealth:',
+          subtitle = 'for the year {closest_state}')
+```
+
+Using **plotly** to find the coordinates along the line.  We can get the animation through a slider, but seemingly `geom_line()` is easier for plotly than `geom_area()`.  Also, notice that I was able to easily adjust the text labels with gganimate but the same code did not adjust the labels in the same way with plotly.
+
+```{r}
+p <- wealth_distribution %>%
+  # filter(year == 2010) %>%
+  ggplot(aes(x = percentile, y = wealth_family)) +
+  geom_line(aes(frame = year), color = "black", fill = "light blue") +
+  geom_vline(xintercept = c(10,50,90, 95, 99), color = "grey") + 
+  ylim(c(-100, 12000000)) +
+  geom_text(data = label.data, aes(label = percentile, x = x.perc, y = y.perc),
+            angle = 270, vjust = 1, hjust = 0) +
+  xlab("Percentile") + 
+  ylab("Wealth") + 
+  theme(axis.title.y = element_text(angle=0)) +
+  scale_y_continuous(labels = dollar) +
+  ggtitle('Distribution of Family Wealth')
+
+ggplotly(p)
+```
+
+
+
+####  Important Closing
+
+```{r}
+praise()
+```
+
+
+
+
+
+
