@@ -1,0 +1,228 @@
+---
+title: "DuBois Challenge"
+author: "Jo Hardin"
+date: "2/16/2021"
+output: html_document
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+library(tidyverse)
+library(infer)
+library(broom)
+library(openintro)
+library(kableExtra)
+
+library(usmap)
+library(maps)
+library(ggpubr)
+
+library(praise)
+set.seed(4747)
+```
+
+### The Data
+
+The data this week are set up to recreate some of the beautiful visualizations made by W.E.B. DuBois who was, among many other things, a civil rights activist and data viz pioneer.
+
+The data were compiled by [Anthony Starks](https://twitter.com/ajstarks), [Allen Hillery](https://twitter.com/AlDatavizguy/status/1358454676497313792?s=20) [Sekou Tyler](https://twitter.com/sqlsekou/status/1360281040657522689?s=20). 
+Note that [Anthony Starks](https://twitter.com/AlDatavizguy/status/1358454677445218304?s=20) has provided many examples and data preparation, including a ["style guide"](https://github.com/ajstarks/dubois-data-portraits/blob/master/dubois-style.pdf) and [article](https://medium.com/nightingale/recreating-w-e-b-du-boiss-data-portraits-87dd36096f34).
+
+To get the data (and the viz!) I used: 
+
+`svn checkout https://github.com/ajstarks/dubois-data-portraits/trunk/challenge/challenge09`
+
+and then moved the files related to Challenge09 into this week's folder.
+
+```{r echo = FALSE, fig.cap = "Comparison of original and challenge demo, side-by-side.", fig.show = 'hold', fig.ncol = 2, out.width='47%'}
+knitr::include_graphics(c("original-plate-08.jpg", "f.jpg"))
+```
+
+```{r}
+birthplace <- read_csv("challenge09/birthplace.csv")
+present <- read_csv("challenge09/present.csv") %>%
+  filter(!(State %in% c("MN", "TX", "AK"))) %>%
+  rbind(c("MT", 38)) %>%
+  rbind(c("AR", 12016)) %>%
+  rbind(c("TX", 12142)) %>%
+  rbind(c("MN",62))
+snames <- data.frame(state = tolower(state.name), abb = state.abb)
+
+states <- ggplot2::map_data("state") %>%
+  filter(!(region %in% c("alaska", "hawaii")))
+
+cities <- maps::us.cities %>%
+  filter(capital == 2) %>%
+  mutate(state = country.etc) %>%
+  filter(!(state %in% c("AK", "HI"))) 
+
+centers <- data.frame(state.center, state = tolower(state.name)) %>%
+  left_join(snames, by = c("state" = "state")) %>%
+  left_join(present, by = c("abb" = "State")) %>%
+  left_join(birthplace, by = c("abb" = "State")) %>%
+  filter(!(abb %in% c("AK", "HI")))  %>%
+  mutate(isGA = ifelse(abb == "GA", "white", "black"))
+```
+
+
+
+## The Challenge
+
+still need to add:
+
+* arrows (find the distance between lat / long to get arrow direction) 
+* commas in numbers greater than 1000 
+* new colors for the second dataset 
+* washington DC 
+* darker brown 
+* bold / bigger / center title 
+* create images (pdf or jpeg) to display next to originals
+
+
+The data are exceptionally tidy already, so today's tasks are more about creating the data viz.  The first thing I need to do is create a map of the USA.  ggplot2 has excellent built in mapping ability.
+
+
+```{r}
+ggplot(data = states) + 
+  geom_polygon(aes(x = long, y = lat, group = group, fill = region), 
+               color = "white", lwd = .15) + 
+  coord_fixed(1.3) +
+  ggtitle("Migration of Negroes.", subtitle = "1890.") +
+  xlab("PRESENT DWELLING PLACE OF NEGROES IN GEORGIA") + 
+  ylab("") + 
+  guides(fill=FALSE) +
+  geom_text(data = centers, aes(x = x, y = y, label = Birthplace)) + 
+  theme_void()
+```
+
+
+
+
+I can't tell from the original graph whether or not the colors are meaningful.  And to be honest, it seems like it might have been better if the colors matched across the two states.  But they don't, and to recreate the graph, I'll need to manually (yikes!) label each state with the color from the original plots.
+
+### Plot for Present Dwelling
+
+
+```{r}
+yellowP <- filter(states, region %in% c("california", "oklahoma", "wyoming",
+                                        "illinois", "florida", "maryland", 
+                                        "connecticut", "maine"))
+
+redP <- filter(states, region %in% c("oregon", "colorado", "arkansas",
+                                     "pennsylvania", "rhode island"))
+
+brownP <- filter(states, region %in% c("utah", "south dakota", "michigan",
+                                       "west virginia", "tennessee"))
+
+
+greenP <- filter(states, region %in% c("montana", "kansas"))
+
+blueP <- filter(states, region %in% c("idaho", "arizona", "missouri", 
+                                      "wisconsin", "new york", "alabama",
+                                      "south carolina", "virginia",
+                                      "district of columbia"))
+                 
+greyP <- filter(states, region %in% c("washington", "texas", "iowa",
+                                      "kentucky", "new jersey", 
+                                      "new hampshire"))                 
+                 
+pinkP <- filter(states, region %in% c("nevada", "nebraska", "minnesota",
+                                      "indiana", "louisiana", "north carolina",
+                                      "vermont"))
+
+tanP <- filter(states, region %in% c("new mexico", "north dakota", "deleware",
+                                     "mississippi", "ohio", "massachusetts"))
+```
+
+
+
+```{r}
+presentplot <- ggplot(data = states) + 
+  geom_polygon(aes(x = long, y = lat, group = group), color = "white", lwd = .15) + 
+  coord_fixed(1.3) +
+  ggtitle("Migration of Negroes.", subtitle = "1890.") +
+  ylab("") + 
+  geom_polygon(data = yellowP, aes(x = long, y = lat, group = group), 
+               fill = "gold", color = "white", lwd = .15) +
+  geom_polygon(data = redP, aes(x = long, y = lat, group = group), 
+               fill = "red3", color = "white", lwd = .15) +
+  geom_polygon(data = brownP, aes(x = long, y = lat, group = group), 
+               fill = "tan4", color = "white", lwd = .15) +
+  geom_polygon(data = greenP, aes(x = long, y = lat, group = group), 
+               fill = "forestgreen", color = "white", lwd = .15) +
+  geom_polygon(data = blueP, aes(x = long, y = lat, group = group), 
+               fill = "steelblue3", color = "white", lwd = .15) +
+  geom_polygon(data = greyP, aes(x = long, y = lat, group = group), 
+               fill = "grey", color = "white", lwd = .15) +
+  geom_polygon(data = pinkP, aes(x = long, y = lat, group = group), 
+               fill = "pink", color = "white", lwd = .15) +
+  geom_polygon(data = tanP, aes(x = long, y = lat, group = group), 
+               fill = "tan", color = "white", lwd = .15) +
+  geom_text(data = centers, size = 3,
+            aes(x = x, y = y, label = `Present Location`, colour = isGA)) + 
+  scale_colour_manual(values=c("#000000", "#FFFFFF")) +
+  theme(legend.position = "none",
+        panel.grid = element_blank(),
+        axis.ticks = element_blank(),
+        axis.text = element_blank(),
+        panel.background = element_blank()) +
+  xlab("PRESENT DWELLING PLACE OF NEGROES IN GEORGIA")  
+
+presentplot
+```
+
+
+### Plot for 
+
+```{r}
+birthplot <- ggplot(data = states) + 
+  geom_polygon(aes(x = long, y = lat, group = group), color = "white", lwd = .15) + 
+  coord_fixed(1.3) +
+  ggtitle("Migration of Negroes.", subtitle = "1890.") +
+  ylab("") + 
+  geom_polygon(data = yellowP, aes(x = long, y = lat, group = group), 
+               fill = "gold", color = "white", lwd = .15) +
+  geom_polygon(data = redP, aes(x = long, y = lat, group = group), 
+               fill = "red3", color = "white", lwd = .15) +
+  geom_polygon(data = brownP, aes(x = long, y = lat, group = group), 
+               fill = "chocolate4", color = "white", lwd = .15) +
+  geom_polygon(data = greenP, aes(x = long, y = lat, group = group), 
+               fill = "forestgreen", color = "white", lwd = .15) +
+  geom_polygon(data = blueP, aes(x = long, y = lat, group = group), 
+               fill = "steelblue3", color = "white", lwd = .15) +
+  geom_polygon(data = greyP, aes(x = long, y = lat, group = group), 
+               fill = "grey", color = "white", lwd = .15) +
+  geom_polygon(data = pinkP, aes(x = long, y = lat, group = group), 
+               fill = "pink", color = "white", lwd = .15) +
+  geom_polygon(data = tanP, aes(x = long, y = lat, group = group), 
+               fill = "tan", color = "white", lwd = .15) +
+  geom_text(data = centers, size = 3,
+            aes(x = x, y = y, label = `Birthplace`, colour = isGA)) + 
+  scale_colour_manual(values=c("#000000", "#FFFFFF")) +
+  theme(legend.position = "none",
+        panel.grid = element_blank(),
+        axis.ticks = element_blank(),
+        axis.text = element_blank(),
+        panel.background = element_blank()) +
+  xlab("BIRTHPLACE OF NEGROES NOW PRESENT IN GEORGIA")  
+
+birthplot
+```
+
+
+###  How close did I get?
+
+I'm going to put the plots together next to the other two for comparison.
+
+```{r echo = FALSE, fig.cap = "Comparison of mine and original.", fig.show = 'hold', fig.ncol = 2, out.width='47%', fig.width = 3}
+ggarrange(presentplot, birthplot, ncol = 1, nrow = 2)
+knitr::include_graphics(c("original-plate-08.jpg"))
+```
+
+```{r echo = FALSE, fig.cap = "Comparison of mine and the challenge demo.", fig.show = 'hold', fig.ncol = 2, out.width='47%', fig.width = 3}
+ggarrange(presentplot, birthplot, ncol = 1, nrow = 2)
+knitr::include_graphics(c("f.jpg"))
+```
+
+```{r}
+praise()
+```

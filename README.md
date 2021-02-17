@@ -4,6 +4,8 @@ My Tidy Tuesday adventures: [https://hardin47.github.io/TidyTuesday/](https://ha
 
 ### Tidy Tuesday Analyses
 
+* 2021-02-16 [TidyTuesday DuBois Challenge](https://hardin47.github.io/TidyTuesday/2021-02-16/DuBois.html)
+
 * 2021-02-09 [TidyTuesday Wealth Inequality in America](https://hardin47.github.io/TidyTuesday/2021-02-09/wealthinequal.html)
 
 * 2021-02-02 [TidyTuesday HBCU enrollment](https://hardin47.github.io/TidyTuesday/2021-02-02/hbcu.html)
@@ -52,9 +54,5 @@ with `https://github.com/rfordatascience/tidytuesday/trunk/data/2021/2021-02-02`
 `svn checkout https://github.com/rfordatascience/tidytuesday/trunk/data/2021/2021-02-02`
 
 4. Create a new gh-pages branch.  Build the Rmarkdown file (and resulting HTML) for analyzing the data.
-
-
-
-
 
 
