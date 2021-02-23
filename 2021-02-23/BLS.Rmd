@@ -1,0 +1,96 @@
+---
+title: "Bureau of Labor Statistics"
+author: "Jo Hardin"
+date: "2/23/2021"
+output: html_document
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+library(tidyverse)
+library(infer)
+library(broom)
+library(openintro)
+library(kableExtra)
+
+library(usmap)
+library(maps)
+library(ggpubr)
+
+library(praise)
+set.seed(4747)
+```
+
+### The Data
+
+The data this week comes from the [BLS](https://www.bls.gov/cps/tables.htm#charemp_m), specifically table `cpsaat17` across several years.
+
+
+```{r}
+employed <- read_csv("employed.csv")
+earn <- read_csv("earn.csv")
+```
+
+
+### Variables
+
+Before plotting the data, let's see what variables we are working with.
+
+```{r}
+employed <- employed %>%
+  filter(!industry %in% c("Women", "Men", "Asian", "Black or African American", "White",
+                          "Other services, except private households",
+                          "Private households", "Wholesale trade",
+                          "Retail trade")) %>%
+  mutate(industry = case_when(
+    str_detect(industry, "Mining") ~ "Mining",
+    TRUE ~ industry)) 
+
+employed %>%
+  select(industry, year) %>%
+  table()
+
+employed %>%
+  select(race_gender) %>%
+  table()
+
+employ_gender <- employed %>%
+  filter(race_gender %in% c("Men", "Women")) %>%
+  pivot_wider(names_from = race_gender, values_from = employ_n)
+```
+
+### Plotting
+
+For a while, I've been considering making a barbell plot, and I think today's data will work for it!
+
+
+```{r}
+employed %>%
+  filter(race_gender == "TOTAL") %>%
+  filter(!is.na(industry)) %>%
+  group_by(industry, year) %>%
+  summarize(employ_tot = sum(employ_n)) %>%
+  ggplot() +
+  geom_line(aes(x = year, y = employ_tot, color = industry))
+```
+
+```{r fig.height=30}
+employ_gender %>%
+  filter(!is.na(industry)) %>%
+  group_by(industry, year) %>%
+  summarize(men_tot = sum(Men, na.rm = TRUE), women_tot = sum(Women, na.rm = TRUE)) %>%
+  mutate(dummyvar = ifelse(industry == "Mining", "a" ,"b")) %>%
+  ggplot() +
+  geom_segment(aes(x = year, xend = year, y = men_tot, yend = women_tot), color = "black") +
+  geom_point(aes(x = year, y = women_tot, color = dummyvar)) +
+  geom_point(aes(x = year, y = men_tot), color = "Dodgerblue") +
+  geom_point(aes(x =year, y = women_tot), color = "yellow") +
+  coord_flip() +
+  ylab("Total Number Employed") +
+  scale_color_manual("gender", values = c("Dodgerblue", "yellow"), label = c("men", "women")) +
+  facet_wrap(~industry, ncol = 1, scale = "free_y")
+```
+
+```{r}
+praise()
+```
+

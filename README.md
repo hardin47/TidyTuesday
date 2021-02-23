@@ -4,6 +4,8 @@ My Tidy Tuesday adventures: [https://hardin47.github.io/TidyTuesday/](https://ha
 
 ### Tidy Tuesday Analyses
 
+* 2021-02-23 [TidyTuesday Bureau of Labor Statistics](https://hardin47.github.io/TidyTuesday/2021-02-23/BLS.html)
+
 * 2021-02-16 [TidyTuesday DuBois Challenge](https://hardin47.github.io/TidyTuesday/2021-02-16/DuBois.html)
 
 * 2021-02-09 [TidyTuesday Wealth Inequality in America](https://hardin47.github.io/TidyTuesday/2021-02-09/wealthinequal.html)
