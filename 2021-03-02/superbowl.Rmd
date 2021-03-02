@@ -1,0 +1,68 @@
+---
+title: "Superbowl Commercials"
+author: "Jo Hardin"
+date: "3/2/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+library(tidyverse)
+library(infer)
+library(broom)
+library(openintro)
+library(kableExtra)
+
+library(ggforce)
+
+library(praise)
+set.seed(4747)
+```
+
+
+###  The Data
+
+The data this week comes from [FiveThirtyEight](https://github.com/fivethirtyeight/superbowl-ads). They have a corresponding [article](https://projects.fivethirtyeight.com/super-bowl-ads/) on the topic. Note that the original source was [superbowl-ads.com](https://superbowl-ads.com/). You can watch all the ads via the FiveThirtyEight article above.
+
+
+```{r}
+youtube <- read_csv("youtube.csv")
+```
+
+
+###  Making a plot
+
+This week includes characteristics of commercials that may or may not be related.  That is, would we expect most of the animal commercials to also be funny?  What other relationships might we see across the different variables?  We'll make a sankey plot to visualize the relationships.
+
+```{r fig.width = 10}
+yt_table <- youtube %>%
+  mutate(Funny = ifelse(funny, "funny", "not funny"),
+         Animals = ifelse(animals, "animals", "no animals"),
+         Sex = ifelse(use_sex, "uses sex", "no sex"),
+         Patriotic = ifelse(patriotic, "patriotic", "not patriotic"),
+         Celebrity = ifelse(celebrity, "celebrity", "no celebrity"),
+         Danger = ifelse(danger, "dangerous", "not dangerous"),
+         Product = ifelse(show_product_quickly, "quick product view", "delayed product view"),
+         Brand = brand) %>%
+  select(Brand, Funny, Animals, Sex, Patriotic, Celebrity, Danger, Product) %>%
+  table()
+
+data <- reshape2::melt(yt_table)
+data <- gather_set_data(data, 1:7)
+
+data %>%
+  mutate(x = fct_relevel(x, "Brand", "Animals", "Funny", "Sex", "Patriotic", 
+                         "Celebrity", "Danger", "Product")) %>%
+ggplot(aes(x, id = id, split = y, value = value)) +
+  geom_parallel_sets_axes(axis.width = 0.1, color = "lightgrey", fill = "white") +
+  geom_parallel_sets_labels(angle = c(rep(0, 10), rep(270, 12)),
+                            position = position_nudge(c(rep(-.3, 10), rep(0.01, 12))) )+
+  geom_parallel_sets(aes(color = Brand, fill = Brand), alpha = 0.3, axis.width = 0.1) +
+  theme(legend.position = "none", axis.title.y = element_blank(), axis.text.y = element_blank(),
+        axis.ticks.y = element_blank()) +
+  xlab("")
+```
+
+```{r}
+praise()
+```

@@ -4,6 +4,8 @@ My Tidy Tuesday adventures: [https://hardin47.github.io/TidyTuesday/](https://ha
 
 ### Tidy Tuesday Analyses
 
+* 2021-03-02 [TidyTuesday Superbowl Commercials](https://hardin47.github.io/TidyTuesday/2021-03-02/superbowl.html)
+
 * 2021-02-23 [TidyTuesday Bureau of Labor Statistics](https://hardin47.github.io/TidyTuesday/2021-02-23/BLS.html)
 
 * 2021-02-16 [TidyTuesday DuBois Challenge](https://hardin47.github.io/TidyTuesday/2021-02-16/DuBois.html)
@@ -53,7 +55,7 @@ with `https://github.com/rfordatascience/tidytuesday/trunk/data/2021/2021-02-02`
 
 3.  Download the folder using the terminal window in RStudio.
 
-`svn checkout https://github.com/rfordatascience/tidytuesday/trunk/data/2021/2021-02-02`
+`svn checkout https://github.com/rfordatascience/tidytuesday/trunk/data/2021/2021-03-02`
 
 4. Create a new gh-pages branch.  Build the Rmarkdown file (and resulting HTML) for analyzing the data.
 
