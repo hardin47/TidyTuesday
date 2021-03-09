@@ -4,6 +4,8 @@ My Tidy Tuesday adventures: [https://hardin47.github.io/TidyTuesday/](https://ha
 
 ### Tidy Tuesday Analyses
 
+* 2021-03-02 [TidyTuesday The Bechdel Test](https://hardin47.github.io/TidyTuesday/2021-03-09/bechdel.html)
+
 * 2021-03-02 [TidyTuesday Superbowl Commercials](https://hardin47.github.io/TidyTuesday/2021-03-02/superbowl.html)
 
 * 2021-02-23 [TidyTuesday Bureau of Labor Statistics](https://hardin47.github.io/TidyTuesday/2021-02-23/BLS.html)
