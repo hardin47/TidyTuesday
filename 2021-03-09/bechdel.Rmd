@@ -97,6 +97,7 @@ all_films %>%
   geom_line() +
   geom_point(aes(size = n_film))
 ```
+
 ### By Rating
 
 Let's go back to the dataset with more variables to see if the test is different across different ratings.  Because we are looking across ratings, I grouped the years to smooth out the variability a little bit.  It seems like of the PG and R+ movies (which is the majority of the films), there is a slight increase in the proportion of movies that pass the Bechdel Test.
