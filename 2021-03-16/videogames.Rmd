@@ -1,0 +1,168 @@
+---
+title: "Video Games"
+author: "Jo Hardin"
+date: "3/16/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE,
+                      fig.width=10)
+library(tidyverse)
+library(infer)
+library(broom)
+library(openintro)
+library(kableExtra)
+library(tidytext)
+library(lubridate)
+
+library(praise)
+set.seed(4747)
+```
+
+
+###  The Data
+
+
+The data this week comes from [Steam](https://www.kaggle.com/michau96/popularity-of-games-on-steam) by way of Kaggle and originally came from [SteamCharts](https://steamcharts.com/). The data was scraped and uploaded to Kaggle.
+
+Unfortunately, I know almost nothing about video games!  These data was really hard to work with.  I love the idea of finding "one-hit wonder" games (presumably from free usage) like @javendano585 did: https://github.com/javendano585/TidyTuesday
+
+```{r}
+games <- read_csv("games.csv") %>%
+  mutate(monthyear = ymd(paste(year,match(substr(month, 1, 3), month.abb),
+                    "01", sep = "-")))
+```
+
+
+###  Visualizing
+
+This first plot doesn't say much.  Trying to see if some of the top games have any seasonality to them.  Not much to see.
+
+```{r}
+games %>%
+  group_by(gamename) %>%
+  summarize(avgyrs = sum(peak)) %>%
+  arrange(desc(avgyrs)) %>%
+  top_n(5) %>%
+  left_join(games, by = "gamename") %>%
+  ggplot(aes(x = monthyear, y = avg, color = gamename)) + 
+  geom_line() +
+  scale_y_continuous(trans='log2')
+```
+
+The following plot is taken from @tessaeagle at https://github.com/tessaeagle/TidyTuesday.  Thanks for the very cool idea for blocks to identify the different games.  Note that after the base graph is created, lots of different measurements can be visualized.     
+
+```{r}
+games %>%
+  filter(avg > 100) %>%
+  filter(year < 2021) %>%
+  mutate(NameofGame = as.factor(gamename)) %>%
+  mutate(month = fct_relevel(as.factor(substr(month, 1, 3)), levels = month.abb)) %>%
+  group_by(monthyear) %>%
+  slice_max(peak) %>%
+  ggplot(aes(x= month, y = year, fill = NameofGame))+
+  geom_tile(color = "black", size = 1.5)+
+   scale_fill_brewer(palette = "RdYlBu")+
+  scale_x_discrete(position = "top")+
+  scale_y_continuous(trans = "reverse") +
+  theme(
+    plot.background = element_rect(fill = "black", color = NA),
+    panel.background = element_rect(fill = "black", color = NA),
+    panel.grid = element_blank(),
+    plot.margin = unit(c(.5,.5,0.5,0), "cm"),
+    plot.title = element_text(color = "white", size = 20, hjust = .5, face = "bold"),
+    legend.background = element_rect(fill = "black"),
+    legend.text = element_text(color = "white", size = 10),
+    legend.title = element_text(color = "white", size = 12),
+    axis.text = element_text(color = "white", size = 13.5, face = "bold"),
+    legend.key = element_blank(),
+    legend.position = "top",
+    plot.caption = element_text(color = "white", size = 13)
+  ) +
+  labs(
+    fill = "Game",
+    title = "Game with highest peak per month-year",
+    caption = "Tidy Tuesday Plot: @hardin47 | Data: Video Games & Steam"
+  ) +
+    guides(fill = guide_legend(nrow = 3)) 
+
+
+```
+
+
+```{r}
+games %>%
+  filter(avg > 100) %>%
+  filter(year < 2021) %>%
+  mutate(NameofGame = as.factor(gamename)) %>%
+  mutate(month = fct_relevel(as.factor(substr(month, 1, 3)), levels = month.abb)) %>%
+  group_by(monthyear) %>%
+  slice_max(avg) %>%
+  ggplot(aes(x= month, y = year, fill = NameofGame))+
+  geom_tile(color = "black", size = 1.5)+
+   scale_fill_brewer(palette = "RdYlBu")+
+  scale_x_discrete(position = "top")+
+  scale_y_continuous(trans = "reverse") +
+  theme(
+    plot.background = element_rect(fill = "black", color = NA),
+    panel.background = element_rect(fill = "black", color = NA),
+    panel.grid = element_blank(),
+    plot.margin = unit(c(.5,.5,0.5,0), "cm"),
+    plot.title = element_text(color = "white", size = 20, hjust = .5, face = "bold"),
+    legend.background = element_rect(fill = "black"),
+    legend.text = element_text(color = "white", size = 10),
+    legend.title = element_text(color = "white", size = 12),
+    axis.text = element_text(color = "white", size = 13.5, face = "bold"),
+    legend.key = element_blank(),
+    legend.position = "top",
+    plot.caption = element_text(color = "white", size = 13)
+  ) +
+  labs(
+    fill = "Game",
+    title = "Game with highest avg per month-year",
+    caption = "Tidy Tuesday Plot: @hardin47 | Data: Video Games & Steam"
+  ) +
+    guides(fill = guide_legend(nrow = 3)) 
+```
+
+
+```{r}
+games %>%
+  filter(avg > 1000) %>%
+  filter(year < 2021 & year > 2015) %>%
+  mutate(NameofGame = as.factor(gamename)) %>%
+  mutate(month = fct_relevel(as.factor(substr(month, 1, 3)), levels = month.abb)) %>%
+  group_by(monthyear) %>%
+  slice_max(avg/peak) %>% 
+  ggplot(aes(x= month, y = year, fill = NameofGame))+
+  geom_tile(color = "black", size = 1.5)+
+   scale_fill_brewer(palette = "RdYlBu")+
+  scale_x_discrete(position = "top")+
+  scale_y_continuous(trans = "reverse") +
+  theme(
+    plot.background = element_rect(fill = "black", color = NA),
+    panel.background = element_rect(fill = "black", color = NA),
+    panel.grid = element_blank(),
+    plot.margin = unit(c(.5,.5,0.5,0), "cm"),
+    plot.title = element_text(color = "white", size = 15, hjust = .5, face = "bold"),
+    legend.background = element_rect(fill = "black"),
+    legend.text = element_text(color = "white", size = 10),
+    legend.title = element_text(color = "white", size = 12),
+    axis.text = element_text(color = "white", size = 13.5, face = "bold"),
+    legend.key = element_blank(),
+    legend.position = "top",
+    plot.caption = element_text(color = "white", size = 13)
+  ) +
+  labs(
+    fill = "Game",
+    title = "Game with highest avg/peak per month-year, 2016-2020",
+    caption = "Tidy Tuesday Plot: @hardin47 | Data: Video Games & Steam"
+  ) +
+    guides(fill = guide_legend(nrow = 5)) 
+```
+
+
+```{r}
+praise()
+```
