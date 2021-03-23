@@ -4,6 +4,8 @@ My Tidy Tuesday adventures: [https://hardin47.github.io/TidyTuesday/](https://ha
 
 ### Tidy Tuesday Analyses
 
+* 2021-03-23 [TidyTuesday UN Votes](https://hardin47.github.io/TidyTuesday/2021-03-23/unvotes.html)
+
 * 2021-03-16 [TidyTuesday Video Games](https://hardin47.github.io/TidyTuesday/2021-03-16/videogames.html)
 
 * 2021-03-09 [TidyTuesday The Bechdel Test](https://hardin47.github.io/TidyTuesday/2021-03-09/bechdel.html)

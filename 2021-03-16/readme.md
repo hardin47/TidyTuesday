@@ -1,4 +1,4 @@
-* 2021-03-16 [TidyTuesday Video Games](https://hardin47.github.io/TidyTuesday/2021-03-16/videogames.html)
+[TidyTuesday Video Games](https://hardin47.github.io/TidyTuesday/2021-03-16/videogames.html)
 
 ![Picture of controllers](https://images.unsplash.com/photo-1580327344181-c1163234e5a0?ixid=MXwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHw%3D&ixlib=rb-1.2.1&auto=format&fit=crop&w=1494&q=80)
 

@@ -1,0 +1,114 @@
+---
+title: "UN Votes"
+author: "Jo Hardin"
+date: "3/23/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE,
+                      fig.width=10)
+library(tidyverse)
+library(infer)
+library(broom)
+library(openintro)
+library(kableExtra)
+library(tidytext)
+library(lubridate)
+
+library(praise)
+set.seed(4747)
+```
+
+
+###  The Data
+
+The data this week comes from [Harvard's Dataverse](https://dataverse.harvard.edu/dataset.xhtml?persistentId=hdl:1902.1/12379) by way of [Mine Çetinkaya-Rundel, David Robinson, and Nicholas Goguen-Compagnoni](https://github.com/dgrtwo/unvotes/blob/7eb7034314ff79c49c9e0785fcd9d216fa04cf14/DESCRIPTION#L6).
+
+Original Data citation:  
+> Citation: Erik Voeten "Data and Analyses of Voting in the UN General Assembly" Routledge Handbook of International Organization, edited by Bob Reinalda (published May 27, 2013). Available at SSRN: http://ssrn.com/abstract=2111149
+
+
+
+```{r}
+unvotes <- read_csv("unvotes.csv")
+roll_calls <- read_csv("roll_calls.csv")
+issues <- read_csv("issues.csv")
+```
+
+
+```{r eval = FALSE, echo = FALSE}
+library(unvotes)
+data(unvotes)
+data(roll_calls)
+data(issues)
+```
+
+```{r}
+issues %>%
+  select(issue, short_name) %>%
+  table()
+```
+
+
+```{r}
+vote_issues <- unvotes %>%
+  full_join(issues, by = "rcid") %>%
+  full_join(roll_calls, by = "rcid")
+  
+```
+
+
+## Voting patterns by date
+
+```{r}
+vote_issues %>%
+  filter(country %in% c("China","United States", "Canada", "Taiwan", "India")) %>%
+  mutate(year = year(date)) %>%
+  filter(!is.na(issue)) %>%
+  filter(year >= 1980) %>%
+  group_by(year, country, short_name) %>%
+  mutate(propyes = mean(vote == "yes"), propno = mean(vote == "no")) %>%
+  ggplot(aes(x = year, y = propyes, color = country)) + 
+  geom_point() + 
+  geom_line() +
+  facet_wrap(~issue)
+```
+
+
+```{r}
+library(viridis)
+vote_issues %>%
+  filter(country %in% c("China","United States", "Canada", "Taiwan", "India")) %>%
+  #mutate(country = ifelse(country == "Taiwan", "China", country)) %>%
+  mutate(year = year(date)) %>%
+  filter(!is.na(issue)) %>%
+  #filter(year >= 1980) %>%
+  group_by(year, country, short_name) %>%
+  ggplot(aes(y = country, x = year, color = vote)) + 
+  geom_jitter(height = .1) +
+  scale_color_viridis(discrete = TRUE) +
+  facet_wrap(~issue)
+```  
+
+
+```{r}
+vote_issues %>%
+  filter(country %in% c("China","United States", "Canada", "Taiwan", "India")) %>%
+  mutate(year = year(date)) %>%
+  filter(!is.na(issue)) %>%
+  filter(year >= 1980) %>%
+  filter(country == "United States") %>%
+  #filter(short_name == "me") %>%
+  ggplot(aes(x = year, fill = vote)) + 
+  geom_area(stat = "bin", position = "fill") +
+  scale_fill_viridis(discrete = TRUE) + 
+  ylab("percentage") + 
+  facet_wrap(~issue)
+
+```
+
+```{r}
+praise()
+```
+
