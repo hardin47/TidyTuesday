@@ -1,0 +1,100 @@
+---
+title: "Makeup Shades"
+author: "Jo Hardin"
+date: "3/30/2021"
+output: 
+  html_document:
+    fig_caption: yes
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE,
+                      fig.width=10, eval.after = 'fig.cap')
+library(tidyverse)
+library(infer)
+library(broom)
+library(openintro)
+library(kableExtra)
+library(tidytext)
+library(lubridate)
+
+library(praise)
+set.seed(4747)
+```
+
+
+###  The Data
+
+
+The data this week comes from [The Pudding](https://github.com/the-pudding/data/tree/master/foundation-names). They have a corresponding [article](https://pudding.cool/2021/03/foundation-names/) related to this data.  
+
+Not only is the article super interesting and important, but [Ofunne Amaka](https://pudding.cool/author/ofunne-amaka) and [Amber Thomas](https://pudding.cool/author/amber-thomas) use scrollytelling which is unbelievably cool.  Also, you can do [scrollytelling in R](https://www.connorrothschild.com/post/automation-scrollytell/) (with Shiny).
+
+
+```{r}
+allShades <- read_csv("allShades.csv") %>%
+  mutate(shade = lightness)
+allNumbers <- read_csv("allNumbers.csv") %>%
+  mutate(shade = lightness)
+allCategories <- read_csv("allCategories.csv") %>%
+  mutate(shade = lightness)
+```
+
+
+###  Working with the actual colors
+
+The first thing I want to do is to figure out if I can get the hex color into my ggplot.  I followed the code by @javendano585 at https://github.com/javendano585/TidyTuesday/tree/main/2021_Week_14 (thanks!).
+
+
+```{r}
+shade_colors <- allShades %>%
+  pull(hex, hex)
+
+allShades %>%
+  filter(brand == "ULTA") %>% 
+  ggplot() +
+  geom_jitter(aes(x = shade, y = hue, fill = hex), size = 10, pch = 21) +
+  scale_fill_manual(values = shade_colors) + 
+  theme_minimal() + 
+  theme(legend.position = "none")
+
+```
+
+
+### Words matter
+
+As [Ofunne Amaka](https://pudding.cool/author/ofunne-amaka) and [Amber Thomas](https://pudding.cool/author/amber-thomas) mention in their post, the name of the foundation 
+
+```{r natwords, fig.cap = "The top panel includes foundation colors which inlcude the words `natural`, `nature`, `nude`, `naked`, or `neutral`.  The bottom panel does not include those words in their name.  The shade is plotted along the x-axis for the 10 brands with the most products. The horizontal line in each panel represents the average shade value across the entire set of products.  It is clear that the average shade value is substantially higher for those products with the natural word in the name."}
+allCategories %>%
+  group_by(brand) %>%
+  mutate(num_prod = n()) %>%
+  filter(num_prod > 150) %>%
+  ungroup() %>%
+  mutate(name = tolower(name)) %>%
+  mutate(nature = case_when(
+    str_detect(name, "natural") ~ "nat word",
+    str_detect(name, "nature") ~ "nat word",
+    str_detect(name, "nude") ~ "nat word",
+    str_detect(name, "naked") ~ "nat word",
+    str_detect(name, "neutral") ~ "nat word",
+    TRUE ~ "no nat word"
+  )) %>%
+  group_by(nature) %>%
+  mutate(med_shade = median(shade), mean_shade = mean(shade)) %>%
+  ungroup() %>%
+  ggplot() +
+    geom_boxplot(aes(x = shade, y = brand)) +
+    geom_jitter(aes(x = shade, y = brand, fill = hex), size = 2, pch = 21, height = 0.1) +
+  geom_vline(aes(xintercept = mean_shade, group = nature)) +
+  scale_fill_manual(values = shade_colors) + 
+  theme_minimal() + 
+  theme(legend.position = "none") +
+  facet_wrap(~ nature, ncol = 1)
+
+```
+
+
+```{r}
+praise()
+```
+
