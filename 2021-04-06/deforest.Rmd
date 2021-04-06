@@ -1,0 +1,77 @@
+---
+title: "Deforestation"
+author: "Jo Hardin"
+date: "4/6/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE,
+                      fig.width=10, eval.after = 'fig.cap')
+library(tidyverse)
+library(infer)
+library(broom)
+library(openintro)
+library(kableExtra)
+library(tidytext)
+library(lubridate)
+library(waffle)
+
+library(praise)
+set.seed(4747)
+```
+
+### The Data
+
+The data this week comes from [Our World in Data](https://ourworldindata.org/forests-and-deforestation).
+
+Hannah Ritchie and Max Roser (2021) - "Forests and Deforestation". Published online at OurWorldInData.org. Retrieved from: '<https://ourworldindata.org/forests-and-deforestation>' [Online Resource]
+
+```{r}
+forest <- read_csv("forest.csv")
+brazil_loss <- read_csv("brazil_loss.csv")
+deforestation_by_source <- read_csv("deforestation_by_source.csv")
+forest_area <- read_csv("forest_area.csv")
+soybean_use <- read_csv("soybean_use.csv")
+vegetable_oil <- read_csv("vegetable_oil.csv")
+```
+
+## Brazil Loss
+
+The plot below provides each dot representing 1000s of hectares (?) of loss, colored by how/why, displayed over time.
+
+```{r}
+brazil <- brazil_loss %>%
+  pivot_longer(cols = commercial_crops:small_scale_clearing,
+               names_to = "why_loss",
+               values_to = "loss_raw") %>%
+  mutate(loss = round(loss_raw/10000)) %>%
+  mutate(year = as.factor(year))
+
+brazil_long <- brazil %>%
+  uncount(weights = loss)
+```
+
+```{r}
+brazil_long %>%
+  count(year, why_loss) %>%
+  ggplot(aes(values = n, fill = why_loss)) +
+  waffle::geom_waffle(flip = TRUE, color = "white", n_rows = 4, size = 0.2) +
+  facet_wrap(~ year, nrow = 1, strip.position = "bottom") +
+  theme(
+    axis.ticks.x = element_blank(),
+    axis.text.x = element_blank(),
+    legend.key = element_blank(),
+    plot.title = element_text(size = 25),
+    legend.position = "top",
+    plot.caption = element_text(color = "black", size = 13)) +
+  labs(
+    fill = "",
+    title = "Changes over time and reasons for deforestation in Brazil",
+    caption = "Tidy Tuesday Plot: @hardin47 | Data: Deforestation") +
+  guides(fill = guide_legend(nrow = 2)) 
+```
+
+```{r}
+praise()
+```

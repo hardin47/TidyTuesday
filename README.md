@@ -4,6 +4,8 @@ My Tidy Tuesday adventures: [https://hardin47.github.io/TidyTuesday/](https://ha
 
 ### Tidy Tuesday Analyses
 
+* 2021-04-06 [TidyTuesday Deforestation](https://hardin47.github.io/TidyTuesday/2021-04-06/deforest.html)
+
 * 2021-03-30 [TidyTuesday Makeup Shades](https://hardin47.github.io/TidyTuesday/2021-03-30/shades.html)
 
 * 2021-03-23 [TidyTuesday UN Votes](https://hardin47.github.io/TidyTuesday/2021-03-23/unvotes.html)
