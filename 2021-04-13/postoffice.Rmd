@@ -1,0 +1,118 @@
+---
+title: "US Post Offices"
+author: "Jo Hardin"
+date: "4/13/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE,
+                      fig.width=10, eval.after = 'fig.cap')
+library(tidyverse)
+library(infer)
+library(broom)
+library(openintro)
+library(kableExtra)
+library(tidytext)
+library(lubridate)
+library(waffle)
+library(geofacet)
+
+
+library(praise)
+set.seed(4747)
+```
+
+### The Data
+
+
+The data this week comes from [Cameron Blevins and Richard W. Helbock](https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/NUKCNA). Their website has more details:  
+
+- [US Post Offices](https://cblevins.github.io/us-post-offices/)
+
+```{r}
+post_offices <- read_csv("post_offices.csv") %>%
+  filter(is.na(established) | (established > 1600 & established < 2021)) %>%
+  filter(is.na(discontinued) | (discontinued > 1600 & discontinued < 2021)) %>%
+  mutate(est_dec = established - established %% 10, disc_dec = discontinued - discontinued %% 10)
+```
+
+
+### Established vs Discontinued
+
+```{r}
+established_po <- post_offices %>%
+  group_by(est_dec) %>%
+  summarize(num_estab = n())
+
+discont_po <- post_offices %>%
+  group_by(disc_dec) %>%
+  summarize(num_discon = n())
+
+counting <- full_join(established_po, discont_po, by = c("est_dec" = "disc_dec")) %>%
+  mutate(year = est_dec) %>%
+  mutate(num_estab = ifelse(is.na(num_estab), 0, num_estab)) %>%
+  mutate(num_discon = ifelse(is.na(num_discon), 0, num_discon))
+
+```
+
+
+
+```{r}
+counting %>%
+  ggplot() +
+  geom_segment(aes(x = year, xend = year, y = -num_discon, yend = num_estab), color = "black") +
+  geom_point(aes(x = year, y = -num_discon), color = "#749dae", size = 5) +
+  geom_point(aes(x =year, y = num_estab), color = "#5c1a33", size = 5) +
+  geom_hline(yintercept = 0, color = "darkgrey") +
+  ylab("change in post offices")
+```
+
+
+### For each state...
+
+By using `geo_facet()` we can re-do the above plot **per** state.
+
+
+```{r}
+established_po_st <- post_offices %>%
+  group_by(est_dec, state) %>%
+  summarize(num_estab = n())
+
+discont_po_st <- post_offices %>%
+  group_by(disc_dec, state) %>%
+  summarize(num_discon = n())
+
+counting_st <- full_join(established_po_st, discont_po_st, by = c("est_dec" = "disc_dec", "state" = "state")) %>%
+  mutate(year = est_dec) %>%
+  mutate(num_estab = ifelse(is.na(num_estab), 0, num_estab)) %>%
+  mutate(num_discon = ifelse(is.na(num_discon), 0, num_discon))
+```
+
+
+
+```{r fig.height = 10, fig.width = 15}
+counting_st %>%
+  mutate(dummyvar = ifelse(is.na(year), "a" ,"b")) %>%
+  ggplot() +
+  geom_segment(aes(x = year, xend = year, y = -num_discon, yend = num_estab), color = "black") +
+    geom_point(aes(x = year, y = num_estab, color = dummyvar),
+               size = 0.2) +
+    geom_point(aes(x = year, y = -num_discon), 
+               color = "Dodgerblue", size = .2) +
+  geom_point(aes(x =year, y = num_estab), 
+             color = "#5c1a33", size = .2) +
+  geom_hline(yintercept = 0, color = "darkgrey") +
+  ylab("") + 
+  scale_color_manual("Change", values = c("#5c1a33", "Dodgerblue"), label = c("established", "discontinued")) +
+  guides(color = guide_legend(override.aes = list(size=3))) +
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1),
+        axis.title=element_text(size=15,face="bold"),
+        plot.title = element_text(size = 20, face = "bold"),
+        plot.caption = element_text(size = 15)) +
+  scale_x_continuous(breaks = c(1800, 1900, 2000), limits = c(1750, 2002)) +
+  facet_geo(~state, grid = "us_state_grid2") +
+    labs(
+    title = "Change in Post Offices per Decade",
+    caption = "Tidy Tuesday Plot: @hardin47 | Data: US Post Offices") 
+```
