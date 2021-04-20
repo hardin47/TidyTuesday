@@ -1,7 +1,6 @@
 [TidyTuesday US Post Offices](https://hardin47.github.io/TidyTuesday/2021-04-13/postoffice.html)
 
 
-
 ![Map of post offices by year in the US, where post offices spread from east to West over the years](pic2.png)
 
 # US Post Offices

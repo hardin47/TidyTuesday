@@ -1,0 +1,127 @@
+---
+title: "Netflix and LDA"
+author: "Jo Hardin"
+date: "4/20/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE,
+                      fig.width=10, eval.after = 'fig.cap')
+library(tidyverse)
+library(infer)
+library(broom)
+library(openintro)
+library(kableExtra)
+library(tidytext)
+library(topicmodels)
+library(lubridate)
+
+
+library(praise)
+set.seed(4747)
+```
+
+### The Data
+
+
+The data this week comes from [Kaggle](https://www.kaggle.com/shivamb/netflix-shows?select=netflix_titles.csv) w/ credit to Shivam Bansal.
+
+> This dataset consists of tv shows and movies available on Netflix as of 2019. The dataset is collected from Flixable which is a third-party Netflix search engine.
+
+
+```{r}
+titles <- read_csv("netflix_titles.csv")
+```
+
+### Creating topics using LDA
+
+By unnesting the descriptions (into separate words), we can identify the words that describe each of the shows.  
+
+
+```{r}
+unnest_desc <- titles %>%
+  unnest_tokens(word, description) %>%
+  filter(!word %in% stop_words$word) %>%
+  group_by(word) %>%
+  mutate(word_total = n()) %>%
+  ungroup() %>%
+  filter(word_total > 50)
+
+netflix_dtm <- unnest_desc %>%
+  unite(type, show_id) %>%
+  count(type, word) %>%
+  cast_dtm(type, word, n)
+```
+
+
+```{r}
+netflix_lda <- LDA(netflix_dtm, k = 10, control = list(seed = 4747))
+netflix_lda
+
+netflix_topics <- tidy(netflix_lda, matrix = "beta")
+netflix_topics
+```
+
+Latent Dirichlet Analysis creates groups of words which are commonly seen together (in the same document).  I created 10 different groups of words.
+
+```{r}
+netflix_top_terms <- netflix_topics %>%
+  group_by(topic) %>%
+  slice_max(beta, n = 10) %>% 
+  ungroup() %>%
+  arrange(topic, -beta)
+
+netflix_top_terms %>%
+  mutate(term = reorder_within(term, beta, topic)) %>%
+  ggplot(aes(beta, term, fill = factor(topic))) +
+  geom_col(show.legend = FALSE) +
+  facet_wrap(~ topic, scales = "free") +
+  scale_y_reordered()
+
+```
+
+### Predicting
+
+Using the word groups above, we can predict which group each show is more likely to belong.  
+
+```{r}
+netflix_gamma <- tidy(netflix_lda, matrix = "gamma")
+
+show_class <- netflix_gamma %>%
+  group_by(document) %>%
+  slice_max(gamma) %>%
+  ungroup()
+
+titles <- titles %>%
+  full_join(show_class, by = c("show_id" = "document"))
+```  
+
+By grouping the shows (by genre), we can see if there are any trends to the LDA groups.  We can see that there are many more international movies than other genres, but there do not appear to be any trends with respect to the genres and LDA groups.  Possibly dramas are enriches in group 4 (?), but even that trend is very minor.
+
+```{r}
+titles %>%
+  filter(!is.na(topic)) %>%
+  mutate(lda_topic = as.factor(topic)) %>%
+  unnest_tokens(genre, listed_in, token = stringr::str_split, pattern = ",") %>%
+  group_by(genre) %>%
+  mutate(genre_total = n()) %>%
+  ungroup() %>%
+  filter(genre_total > 500) %>%
+  #select(genre, topic) %>%
+  group_by(genre, lda_topic) %>%
+  summarize(count = n()) %>%
+  ungroup() %>%
+  #table()
+  ggplot() +
+  geom_tile(aes(x = genre, y = reorder(lda_topic, desc(lda_topic)), fill = count)) +
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1),
+        axis.title=element_text(size=15,face="bold"),
+        plot.title = element_text(size = 20, face = "bold"),
+        plot.caption = element_text(size = 15)) +
+  ylab("LDA topic")+
+  scale_fill_distiller(palette = "RdPu", trans = "reverse") +
+  labs(
+    title = "LDA groups from show descriptions",
+    caption = "Tidy Tuesday Plot: @hardin47 | Data: Netflix Shows") 
+```
