@@ -1,0 +1,74 @@
+---
+title: "CEO Departures"
+author: "Jo Hardin"
+date: "4/27/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE,
+                      fig.width=10, eval.after = 'fig.cap')
+library(tidyverse)
+library(infer)
+library(broom)
+library(tidytext)
+
+library(praise)
+set.seed(4747)
+```
+
+### The Data
+
+The data this week comes from [Gentry et al.](https://onlinelibrary.wiley.com/doi/abs/10.1002/smj.3278) by way of [DataIsPlural](https://www.data-is-plural.com/archive/2021-04-21-edition/).
+
+```{r}
+ceodepart <- read_csv("departures.csv")
+```
+
+
+### Name of CEO
+
+```{r}
+ceodepart <- ceodepart %>%
+  unnest_tokens(names, exec_fullname, token = stringr::str_split, pattern = " ") %>%
+  group_by(co_per_rol) %>%
+  top_n(n=1) %>%
+  ungroup() %>%
+  mutate(departure_code = ifelse(is.na(departure_code), 8, departure_code))
+
+ceodepart %>%
+  filter(names == "robert" | names == "john" ) %>%
+  group_by(departure_code) %>%
+  select(names, departure_code) %>%
+  table()
+
+ceodepart %>%
+  filter(names == "robert" | names == "john" ) %>%
+  ggplot(aes(x = departure_code)) +
+  geom_bar(aes(fill = names), position = "fill")
+
+```
+
+
+```{r}
+ceodepart %>%
+  mutate(name_init = ifelse(str_detect(names, "\\."), "initial", names)) %>%
+  group_by(name_init) %>%
+  mutate(name_count = n()) %>%
+  ungroup() %>%
+  filter(!name_init == "initial") %>%
+  mutate(name_top = ifelse(name_count > 100, name_init, "another")) %>%
+  #filter(name_count > 100 & name_init != "initial") %>%
+  ggplot(aes(x = fyear)) +
+  geom_bar(aes(fill = name_top), position = "fill") + 
+  xlim(c(1992, 2019)) +
+  xlab("year") +
+  ylab("percent") +   
+  scale_fill_viridis_d(direction = -1) +
+  labs(
+    title = "First names of departed CEOs",
+    caption = "Tidy Tuesday Plot: @hardin47 | Data: CEO Departures") 
+```
+
+
+
