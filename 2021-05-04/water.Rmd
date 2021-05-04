@@ -1,0 +1,88 @@
+---
+title: "Water Sources"
+author: "Jo Hardin"
+date: "5/4/2021"
+output: html_document
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE,
+                      fig.width=10, eval.after = 'fig.cap')
+library(tidyverse)
+library(infer)
+library(broom)
+library(tidytext)
+library(lubridate)
+library(plotly)
+library(gganimate)
+
+library(praise)
+set.seed(4747)
+```
+
+### The Data
+
+The data this week comes from [Water Point Data Exchange](https://data.waterpointdata.org/dataset/Water-Point-Data-Exchange-WPDx-Basic-/jfkt-jmqa). Note that the data is limited to some core columns as the full dataset is ~300 Mb. Also data is largely filtered down to African sources.
+
+
+```{r}
+water <- read_csv("water.csv") %>%
+  mutate(year = year(mdy(report_date))) %>%
+  mutate(decade = floor(year/10) * 10) %>%
+  filter(decade > 1970, decade < 2030) %>%
+  drop_na(water_source) %>%
+  mutate(
+    status_id = case_when(
+      status_id == "y"~ "Available water",
+      status_id == "n" ~ "Unavailable water",
+      status_id == "u" ~ "Unknown availability"
+    ))
+
+water_small <- water %>%
+  sample_frac(size = 0.1) %>%
+  filter(lon_deg > -10, lon_deg < 50) %>%
+  filter(lat_deg > -35, lat_deg < 20)
+```
+
+###  `geom_map()`
+
+```{r}
+#world <- map_data("world") %>%
+#  sample_frac(size = 0.3)
+
+some_rows <- sort(sample(1:99338, size = 1000, replace = FALSE))
+
+world <- map_data("world")
+p_wrld <- ggplot() +
+  geom_map(data = world, map = world, 
+           aes(x = long, y = lat, map_id = region),
+           color = "darkgrey", fill = "white") +
+  xlim(c(-10, 50)) + 
+  ylim(c(-35, 20))
+
+p_wrld +
+  geom_point(data = water_small, size = 0.2,
+             aes(x = lon_deg, y = lat_deg, color = water_source)) +
+  transition_states(decade) +
+  facet_grid(~status_id , switch = "x") + 
+  theme_void() +
+  theme(
+    legend.position = "top",
+    strip.background = element_rect(fill = "cadetblue2"),
+    strip.text = element_text(size = 12),
+    legend.title = element_text(size = 12),
+    legend.text = element_text(size = 10),
+    plot.caption = element_text(size = 13),
+    plot.title = element_text(size = 20),
+    plot.subtitle = element_text(size = 18)
+  ) +
+  labs(
+    color = "Water Source",
+#    strip.text.y = element_text(angle = 0, size = rel(4)),
+    caption = "Tidy Tuesday Plot: @hardin47 | Data: Water Sources") +
+    ggtitle("Water Sources Identified",
+            subtitle = "in {closest_state}") +
+    guides(color = guide_legend(nrow = 4))
+```
+

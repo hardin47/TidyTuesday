@@ -4,6 +4,8 @@ My Tidy Tuesday adventures: [https://hardin47.github.io/TidyTuesday/](https://ha
 
 ### Tidy Tuesday Analyses
 
+* 2021-05-04 [TidyTuesday Water Sources](https://hardin47.github.io/TidyTuesday/2021-05-04/water.html)
+
 * 2021-04-27 [TidyTuesday CEO Departures](https://hardin47.github.io/TidyTuesday/2021-04-27/CEOs.html)
 
 * 2021-04-20 [TidyTuesday Netflix](https://hardin47.github.io/TidyTuesday/2021-04-20/netflix.html)
