@@ -1,0 +1,208 @@
+---
+title: "Access to Broadband"
+author: "Jo Hardin"
+date: "5/11/2021"
+output: html_document
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE,
+                      fig.width=10, eval.after = 'fig.cap')
+library(tidyverse)
+library(infer)
+library(janitor)
+library(broom)
+library(zipcodeR)
+# devtools::install_github("UrbanInstitute/urbnmapr")
+library(urbnmapr)
+library(viridis)
+library(patchwork)
+
+library(praise)
+set.seed(4747)
+```
+
+### The Data
+
+
+The data this week comes from [Microsoft](https://github.com/microsoft/USBroadbandUsagePercentages) by way of [The Verge](https://www.theverge.com/22418074/broadband-gap-america-map-county-microsoft-data).
+
+
+```{r}
+broadband <- read_csv("broadband.csv") %>%
+  clean_names() %>%
+  mutate(usage = as.numeric(broadband_usage),
+         availability = as.numeric(broadband_availability_per_fcc))
+```
+###  Broadband 
+
+First let's figure out how to put the broadband data onto a map of the US.^[Code inspired by [Data@Urban](https://urban-institute.medium.com/how-to-create-state-and-county-maps-easily-in-r-577d29300bb2) and their great package urbnmapr.] 
+
+```{r}
+p_broadband <- countydata %>%
+  left_join(counties, by = "county_fips") %>%
+  mutate(county_id = as.numeric(county_fips)) %>%
+  left_join(broadband, by = "county_id") %>%
+  ggplot(aes(x = long, y = lat, group = group, fill = usage)) +
+  geom_polygon(color = NA) +
+  coord_map(projection = "albers", lat0 = 39, lat1 = 45) +
+  labs(fill = "Broadband Usage") +
+  scale_fill_viridis_c()
+
+p_broadband
+```
+
+
+### In comparison to other things
+
+Now that we've colored the map with the broadband data, let's see how it compares to other variables (e.g., population or income available in the urbnmapr R package).
+
+```{r}
+p_pop <- countydata %>%
+  left_join(counties, by = "county_fips") %>%
+  mutate(county_id = as.numeric(county_fips)) %>%
+  left_join(broadband, by = "county_id") %>%
+  ggplot(aes(x = long, y = lat, group = group, fill = hhpop)) +
+  geom_polygon(color = NA) +
+  coord_map(projection = "albers", lat0 = 39, lat1 = 45) +
+  labs(fill = "Household population") +
+  scale_fill_viridis_c()
+
+p_home <- countydata %>%
+  left_join(counties, by = "county_fips") %>%
+  mutate(county_id = as.numeric(county_fips)) %>%
+  left_join(broadband, by = "county_id") %>%
+  ggplot(aes(x = long, y = lat, group = group, fill = horate)) +
+  geom_polygon(color = NA) +
+  coord_map(projection = "albers", lat0 = 39, lat1 = 45) +
+  labs(fill = "Homeownership rate") +
+  scale_fill_viridis_c()
+
+
+p_income <- countydata %>%
+  left_join(counties, by = "county_fips") %>%
+  mutate(county_id = as.numeric(county_fips)) %>%
+  left_join(broadband, by = "county_id") %>%
+  ggplot(aes(x = long, y = lat, group = group, fill = medhhincome)) +
+  geom_polygon(color = NA) +
+  coord_map(projection = "albers", lat0 = 39, lat1 = 45) +
+  labs(fill = "Median household income") +
+  scale_fill_viridis_c()
+
+
+p_broadband + p_pop + p_home + p_income + plot_layout(ncol = 2)
+```
+
+### In California
+
+It is kind of hard to see the trends across the US.  So I thought I'd filter to California only.
+
+```{r}
+p_broadband_CA <- countydata %>%
+  left_join(counties, by = "county_fips") %>%
+  mutate(county_id = as.numeric(county_fips)) %>%
+  left_join(broadband, by = "county_id") %>%
+  filter(state_name == "California") %>% 
+  ggplot(aes(x = long, y = lat, group = group, fill = usage)) +
+  geom_polygon(color = NA) +
+  coord_map(projection = "albers", lat0 = 39, lat1 = 45) +
+  labs(fill = "Broadband Usage") +
+  scale_fill_viridis_c()
+
+p_pop_CA <- countydata %>%
+  left_join(counties, by = "county_fips") %>%
+  mutate(county_id = as.numeric(county_fips)) %>%
+  left_join(broadband, by = "county_id") %>%
+  filter(state_name == "California") %>% 
+  ggplot(aes(x = long, y = lat, group = group, fill = hhpop)) +
+  geom_polygon(color = NA) +
+  coord_map(projection = "albers", lat0 = 39, lat1 = 45) +
+  labs(fill = "Household population") +
+  scale_fill_viridis_c()
+
+p_home_CA <- countydata %>%
+  left_join(counties, by = "county_fips") %>%
+  mutate(county_id = as.numeric(county_fips)) %>%
+  left_join(broadband, by = "county_id") %>%
+  filter(state_name == "California") %>% 
+  ggplot(aes(x = long, y = lat, group = group, fill = horate)) +
+  geom_polygon(color = NA) +
+  coord_map(projection = "albers", lat0 = 39, lat1 = 45) +
+  labs(fill = "Homeownership rate") +
+  scale_fill_viridis_c()
+
+
+p_income_CA <- countydata %>%
+  left_join(counties, by = "county_fips") %>%
+  mutate(county_id = as.numeric(county_fips)) %>%
+  left_join(broadband, by = "county_id") %>%
+  filter(state_name == "California") %>% 
+  ggplot(aes(x = long, y = lat, group = group, fill = medhhincome)) +
+  geom_polygon(color = NA) +
+  coord_map(projection = "albers", lat0 = 39, lat1 = 45) +
+  labs(fill = "Median household income") +
+  scale_fill_viridis_c()
+
+
+p_broadband_CA + p_pop_CA + p_home_CA + p_income_CA + plot_layout(ncol = 2)
+```
+
+### In Oregon
+
+And in Oregon...
+
+```{r}
+p_broadband_OR <- countydata %>%
+  left_join(counties, by = "county_fips") %>%
+  mutate(county_id = as.numeric(county_fips)) %>%
+  left_join(broadband, by = "county_id") %>%
+  filter(state_name == "Oregon") %>% 
+  ggplot(aes(x = long, y = lat, group = group, fill = usage)) +
+  geom_polygon(color = NA) +
+  coord_map(projection = "albers", lat0 = 39, lat1 = 45) +
+  labs(fill = "Broadband Usage") +
+  scale_fill_viridis_c()
+
+p_pop_OR <- countydata %>%
+  left_join(counties, by = "county_fips") %>%
+  mutate(county_id = as.numeric(county_fips)) %>%
+  left_join(broadband, by = "county_id") %>%
+  filter(state_name == "Oregon") %>% 
+  ggplot(aes(x = long, y = lat, group = group, fill = hhpop)) +
+  geom_polygon(color = NA) +
+  coord_map(projection = "albers", lat0 = 39, lat1 = 45) +
+  labs(fill = "Household population") +
+  scale_fill_viridis_c()
+
+p_home_OR <- countydata %>%
+  left_join(counties, by = "county_fips") %>%
+  mutate(county_id = as.numeric(county_fips)) %>%
+  left_join(broadband, by = "county_id") %>%
+  filter(state_name == "Oregon") %>% 
+  ggplot(aes(x = long, y = lat, group = group, fill = horate)) +
+  geom_polygon(color = NA) +
+  coord_map(projection = "albers", lat0 = 39, lat1 = 45) +
+  labs(fill = "Homeownership rate") +
+  scale_fill_viridis_c()
+
+
+p_income_OR <- countydata %>%
+  left_join(counties, by = "county_fips") %>%
+  mutate(county_id = as.numeric(county_fips)) %>%
+  left_join(broadband, by = "county_id") %>%
+  filter(state_name == "Oregon") %>% 
+  ggplot(aes(x = long, y = lat, group = group, fill = medhhincome)) +
+  geom_polygon(color = NA) +
+  coord_map(projection = "albers", lat0 = 39, lat1 = 45) +
+  labs(fill = "Median household income") +
+  scale_fill_viridis_c()
+
+
+p_broadband_OR + p_pop_OR + p_home_OR + p_income_OR + plot_layout(ncol = 2)
+```
+
+```{r echo = FALSE}
+praise()
+```
+
