@@ -86,3 +86,7 @@ p_wrld +
     guides(color = guide_legend(nrow = 4))
 ```
 
+```{r}
+praise()
+```
+

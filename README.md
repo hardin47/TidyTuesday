@@ -4,6 +4,8 @@ My Tidy Tuesday adventures: [https://hardin47.github.io/TidyTuesday/](https://ha
 
 ### Tidy Tuesday Analyses
 
+* 2021-05-25 [TidyTuesday MarioKart](https://hardin47.github.io/TidyTuesday/2021-05-11/mariokart.html)
+
 * 2021-05-11 [TidyTuesday Access to Broadband](https://hardin47.github.io/TidyTuesday/2021-05-11/broadband.html)
 
 * 2021-05-04 [TidyTuesday Water Sources](https://hardin47.github.io/TidyTuesday/2021-05-04/water.html)

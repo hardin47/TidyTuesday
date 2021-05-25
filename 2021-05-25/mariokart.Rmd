@@ -1,0 +1,85 @@
+---
+title: "MarioKart"
+author: "Jo Hardin"
+date: "5/25/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE,
+                      fig.width=10, eval.after = 'fig.cap')
+library(tidyverse)
+library(infer)
+library(broom)
+library(tidytext)
+library(lubridate)
+library(plotly)
+library(gganimate)
+
+library(praise)
+set.seed(4747)
+```
+
+### The Data
+
+
+The data this week comes from [Mario Kart World Records](https://mkwrs.com/) and contains world records for the classic (if you're a 90’s kid) racing game on the Nintendo 64.
+
+```{r}
+mariokart <- read_csv("records.csv")
+
+```
+
+### Change in records
+
+By looking at the world record vs time (for the `Three Lap` shortcut races), it seems there are some pretty easily identifiable jumps in time.
+
+```{r}
+mariokart %>%
+  filter(type == "Three Lap")  %>%
+  filter(shortcut == "Yes") %>%
+  ggplot(aes(x = date, y = time)) + 
+  geom_point() + 
+  geom_step() + 
+  facet_wrap(~track)
+```
+
+But what if we wanted to measure the percent decrease in time?  The new variable of interest will be:
+
+$$\mbox{% decrease} = \Bigg(\frac{\mbox{time}_i - \mbox{time}_{i+1}}{\mbox{time}_i}\Bigg)\cdot100 = \Bigg(1 - \frac{\mbox{time}_{i+1}}{\mbox{time}_i}\Bigg)\cdot100$$
+It is interesting to note that the biggest percent reductions in time happen at the very beginning, except for Choco Mountain.
+
+
+```{r fig.height=9}
+mariokart %>%
+  filter(type == "Three Lap", shortcut == "Yes") %>%
+  group_by(track) %>%
+  mutate(time_lag = dplyr::lag(time)) %>%
+  mutate(perc_decr = (1 - time / time_lag)*100) %>%
+  ggplot(aes(x = date)) +
+  geom_point(aes( y = perc_decr)) +
+  geom_step(aes( y = perc_decr, color = "Percent decrease")) +
+  geom_step(aes( y = time/3, color = "Record time")) +
+  scale_y_continuous(sec.axis = sec_axis(~.*3, name = "Time (sec)")) +
+  scale_color_manual(values = c("#D89A9E", "#114B5F")) +
+  facet_wrap(~track) +
+  labs(
+    y = "Decrease [%]",
+    x = "Date",
+    color = "Trendline:",
+#    strip.text.y = element_text(angle = 0, size = rel(4)),
+    caption = "Tidy Tuesday Plot: @hardin47 | Data: MarioKart") +
+    ggtitle("MarioKart record times") +
+  theme(legend.position = "top",
+        legend.title = element_text(size = 12),
+        legend.text = element_text(size = 10),
+        plot.title = element_text(size = 18))
+```
+
+
+
+
+
+```{r}
+praise()
+```
