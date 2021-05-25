@@ -13,8 +13,6 @@ library(infer)
 library(broom)
 library(tidytext)
 library(lubridate)
-library(plotly)
-library(gganimate)
 
 library(praise)
 set.seed(4747)
@@ -27,7 +25,6 @@ The data this week comes from [Mario Kart World Records](https://mkwrs.com/) and
 
 ```{r}
 mariokart <- read_csv("records.csv")
-
 ```
 
 ### Change in records
@@ -46,7 +43,7 @@ mariokart %>%
 
 But what if we wanted to measure the percent decrease in time?  The new variable of interest will be:
 
-$$\mbox{% decrease} = \Bigg(\frac{\mbox{time}_i - \mbox{time}_{i+1}}{\mbox{time}_i}\Bigg)\cdot100 = \Bigg(1 - \frac{\mbox{time}_{i+1}}{\mbox{time}_i}\Bigg)\cdot100$$
+$$\% \mbox{ decrease} = \Bigg(\frac{\mbox{time}_i - \mbox{time}_{i+1}}{\mbox{time}_i}\Bigg)\cdot100 = \Bigg(1 - \frac{\mbox{time}_{i+1}}{\mbox{time}_i}\Bigg)\cdot100$$
 It is interesting to note that the biggest percent reductions in time happen at the very beginning, except for Choco Mountain.
 
 
