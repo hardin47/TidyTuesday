@@ -1,5 +1,5 @@
 
-* 2021-05-25 [TidyTuesday MarioKart](https://hardin47.github.io/TidyTuesday/2021-05-11/mariokart.html)
+* 2021-05-25 [TidyTuesday MarioKart](https://hardin47.github.io/TidyTuesday/2021-05-25/mariokart.html)
 
 
 ### Please add alt text to your posts

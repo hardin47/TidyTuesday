@@ -13,9 +13,14 @@ library(infer)
 library(broom)
 library(openintro)
 library(kableExtra)
+library(stopwords)  # do we need this?
+library(LiblineaR) # do we need this?
 library(tidytext)
 library(topicmodels)
 library(lubridate)
+# devtools::install_github("tidymodels/parsnip")
+library(parsnip)
+library(recipes)
 
 
 library(praise)
@@ -31,18 +36,22 @@ The data this week comes from [Kaggle](https://www.kaggle.com/shivamb/netflix-sh
 
 
 ```{r}
-titles <- read_csv("netflix_titles.csv")
+nf_titles <- read_csv("netflix_titles.csv")
 ```
+
+## Note:
+
+After posting this entry, I noticed that Julia Silge had done a similar (and obs, way better!) analysis on [her blog](https://juliasilge.com/blog/netflix-titles/).  I've gone through her code and replicated it here.  The majority of the code here is copied directly from her blog.
 
 ### Creating topics using LDA
 
 By unnesting the descriptions (into separate words), we can identify the words that describe each of the shows.  
 
-
+My version:
 ```{r}
-unnest_desc <- titles %>%
+unnest_desc <- nf_titles %>%
   unnest_tokens(word, description) %>%
-  filter(!word %in% stop_words$word) %>%
+  filter(!word %in% stop_words$word) %>% 
   group_by(word) %>%
   mutate(word_total = n()) %>%
   ungroup() %>%
@@ -52,8 +61,34 @@ netflix_dtm <- unnest_desc %>%
   unite(type, show_id) %>%
   count(type, word) %>%
   cast_dtm(type, word, n)
+
 ```
 
+
+Julia Silge's version:
+
+```{r}
+nf_titles %>%
+  unnest_tokens(word, description) %>%
+  anti_join(tidytext::get_stopwords())  %>%  
+  count(type, word, sort = TRUE) %>%
+  group_by(type) %>%
+  slice_max(n, n = 15) %>%
+  ungroup() %>%
+  mutate(word = reorder_within(word, n, type)) %>%
+  ggplot(aes(x = n, y = word, fill = type)) +
+  geom_col(show.legend = FALSE, alpha = 0.8) +
+  scale_y_reordered() + 
+  facet_wrap(~type, scales = "free") +
+  labs(
+    x = "Word frequency", y = NULL,
+    title = "Top words in Netflix descriptions by frequency",
+    subtitle = "after removing stop words"
+  )
+
+```
+
+### Jo LDA
 
 ```{r}
 netflix_lda <- LDA(netflix_dtm, k = 10, control = list(seed = 4747))
@@ -81,7 +116,7 @@ netflix_top_terms %>%
 
 ```
 
-### Predicting
+#### Predicting
 
 Using the word groups above, we can predict which group each show is more likely to belong.  
 
@@ -93,7 +128,7 @@ show_class <- netflix_gamma %>%
   slice_max(gamma) %>%
   ungroup()
 
-titles <- titles %>%
+titles <- nf_titles %>%
   full_join(show_class, by = c("show_id" = "document"))
 ```  
 
@@ -125,3 +160,135 @@ titles %>%
     title = "LDA groups from show descriptions",
     caption = "Tidy Tuesday Plot: @hardin47 | Data: Netflix Shows") 
 ```
+
+
+### Julia's modeling
+
+#### Building
+
+```{r}
+library(tidymodels)
+
+set.seed(47)
+netflix_split <- nf_titles %>%
+  select(type, description) %>%
+  initial_split(strata = type)
+
+# first split into test/train
+netflix_train <- training(netflix_split)
+netflix_test <- testing(netflix_split)
+
+# then use CV on the training data
+netflix_folds <- vfold_cv(netflix_train, strata = type)
+netflix_folds
+```
+Some things I noticed in Julia's code:
+
+   - why do we need the two additional packages (what do they do beyond tidytext?)
+   - she tokenizes the words *after* building the training data.  which makes sense, of course.  but **why not after cross validating**?
+   - i want to know more about what the normalize function does
+   - no idea what smote does.  i need to learn about smote.
+   - why do all these functions start with `step_` ?
+   
+
+```{r}
+library(textrecipes)
+library(themis)
+
+netflix_rec <- recipe(type ~ description, data = netflix_train) %>%
+  step_tokenize(description) %>%
+  step_tokenfilter(description, max_tokens = 1e3) %>%
+  step_tfidf(description) %>%
+  step_normalize(all_numeric_predictors()) %>%
+  step_smote(type)
+
+netflix_rec
+```
+
+A linear support vector machine actually seems really good here.  There are a zillion binary variables (each word is one-hot coded).  Also, because the predictor variables are all binary, it doesn't seem like any transformations (i.e., transformed boundary) would be any different than a linear model.
+
+Again, lots to learn here!  In particular, how are models being set up without information about the CV folds?  And why add a recipe?  What does that mean?  In terms of students working through this code, how can it be parsed down for as few new functions as possible?
+
+```{r}
+svm_spec <- parsnip::svm_linear() %>%
+  set_mode("classification") %>%
+  set_engine("LiblineaR")
+
+
+netflix_wf <- workflow() %>%
+  add_recipe(netflix_rec) %>%
+  add_model(svm_spec)
+
+netflix_wf
+```
+
+
+
+```{r}
+doParallel::registerDoParallel()
+
+set.seed(4747)
+svm_rs <- fit_resamples(
+  netflix_wf,
+  netflix_folds,
+  metrics = metric_set(accuracy, recall, precision),
+  control = control_resamples(save_pred = TRUE)
+)
+
+collect_metrics(svm_rs)
+```
+
+
+```{r}
+library(tune)
+svm_rs %>%
+  conf_mat_resampled(tidy = FALSE) %>% 
+  autoplot()
+```
+
+
+```{r}
+final_fitted <- last_fit(
+  netflix_wf,
+  netflix_split,
+  metrics = metric_set(accuracy, recall, precision)
+)
+
+collect_metrics(final_fitted)
+
+collect_predictions(final_fitted) %>%
+  conf_mat(type, .pred_class)
+```
+
+```{r}
+netflix_fit <- pull_workflow_fit(final_fitted$.workflow[[1]])
+
+tidy(netflix_fit) %>%
+  arrange(estimate)
+```
+
+
+
+```{r}
+tidy(netflix_fit) %>%
+  filter(term != "Bias") %>%
+  group_by(sign = estimate > 0) %>%
+  slice_max(abs(estimate), n = 15) %>%
+  ungroup() %>%
+  mutate(
+    term = str_remove(term, "tfidf_description_"),
+    sign = if_else(!sign, "More from TV shows", "More from movies")
+  ) %>%
+  ggplot(aes(x = abs(estimate), 
+             y = fct_reorder(term, abs(estimate)),
+             fill = sign)) +
+  geom_col(alpha = 0.8, show.legend = FALSE) +
+  facet_wrap(~sign, scales = "free") +
+  labs( x = "Coefficient from linear SVM", y = NULL,
+        title = "Which words are most predictive of movies vs. TV shows?",
+        subtitle = "For description text of movies and TV shows on Netflix")
+```
+
+
+
+
