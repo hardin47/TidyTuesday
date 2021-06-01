@@ -197,6 +197,7 @@ library(themis)
 
 netflix_rec <- recipe(type ~ description, data = netflix_train) %>%
   step_tokenize(description) %>%
+  step_stopwords(description) %>%
   step_tokenfilter(description, max_tokens = 1e3) %>%
   step_tfidf(description) %>%
   step_normalize(all_numeric_predictors()) %>%
