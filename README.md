@@ -4,6 +4,8 @@ My Tidy Tuesday adventures: [https://hardin47.github.io/TidyTuesday/](https://ha
 
 ### Tidy Tuesday Analyses
 
+* 2021-06-08 [TidyTuesday Commercial Fishing](https://hardin47.github.io/TidyTuesday/2021-06-08/fishing.html)
+
 * 2021-06-01 [TidyTuesday SurvivoR](https://hardin47.github.io/TidyTuesday/2021-06-01/survivor.html)
 
 * 2021-05-25 [TidyTuesday MarioKart](https://hardin47.github.io/TidyTuesday/2021-05-25/mariokart.html)

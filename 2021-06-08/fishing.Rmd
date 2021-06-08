@@ -1,0 +1,250 @@
+---
+title: "Commercial Fishing"
+author: "Jo Hardin"
+date: "6/8/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE,
+                      fig.width=10, eval.after = 'fig.cap')
+library(tidyverse)
+library(infer)
+library(broom)
+library(tidymodels)
+library(lubridate)
+library(dotwhisker)
+library(janitor)
+
+library(praise)
+set.seed(4747)
+```
+
+### Alt text!
+
+Thanks to the work of those at RStudio, alt text is easy to add to a figure chunk.  I've added alt text to each of the figures in this week's #TidyTuesday.  To see the alt text, hover the mouse over the figure, and a text box with a plot description will pop up.
+
+### The Data
+
+The data this week comes from [Great Lakes Fishery Commission](http://www.glfc.org/great-lakes-databases.php). Full details on the data can be found on their [statistic notes](http://www.glfc.org/commercial/COMMERCIAL%20FISH%20PRODUCTION_Notes%20on%20Statistics.pdf) and [background notes](http://www.glfc.org/commercial/COMMERCIAL%20FISH%20PRODUCTION_background.pdf).
+
+
+```{r}
+fishing <- read_csv("fishing.csv", na = c("", "NA", "*")) %>%
+  clean_names()
+stocked <- read_csv("stocked.csv", na = c("", "NA", "*")) %>%
+  clean_names()
+```
+
+```{r fig.alt = c("A line plot with year on the x-axis, values on the y-axis, lines colored by Great Lake, and faceted by species.  Values seem to be highest for Chubs species in Lake Michigan in the 1950s, and the Cisco species in Lake Erie in the early 1900s and Lake Superior in the mid-1900s.", "A line plot with year on the x-axis, grand total on the y-axis, lines colored by Great Lake, and faceted by species. Lake Erie seems to have the most stocking.  In early 1900s it was stocked with Cisco, more recently it has been stocked with Yellow Perch.  There was also a bit of stocking of Cisco in Lake Superior in the mid-1900s")}
+fishing %>%
+  filter(str_detect(region, "U.S. Total")) %>% 
+  filter(!is.na(region)) %>% 
+  mutate(species = fct_lump(species, 12)) %>% 
+  filter(species != "Other") %>% 
+  ggplot(aes(x = year, y = values, color = lake)) +
+  geom_line() +
+  facet_wrap(~species) +
+  theme(legend.position = "top")
+
+
+fishing %>%
+  filter(str_detect(region, "U.S. Total")) %>% 
+  filter(!is.na(region)) %>% 
+  mutate(species = fct_lump(species, 12)) %>% 
+  filter(species != "Other") %>% 
+  ggplot(aes(x = year, y = grand_total, color = lake)) +
+  geom_line() +
+  facet_wrap(~species) +
+  theme(legend.position = "top")
+```
+
+
+
+### A model
+
+I'm on a quest to learn `tidymodels`, so I'm going to try again today to model the given data.  However, I am slightly uncomfortable with the idea of modeling this data because the idea of comparing things over time seems to violate all sorts of modeling conditions.  Also, in the fishing dataset, one-third to one-half of the observations are missing.  The data can't possibly be missing at random! And last, I don't understand the data.  For example, the variable `agemonth` is described as the "Age in months."  The age of what?  Presumably of the stocked fish, but a single row can't be a single fish.  So the stocked fish all come from the same clutch?  Does that make sense?  Also, what is `mark` ("marking method") and `validation` ("validation method") ?  Seems like I should have much more knowledge about fishing and about these data before trying to model the data.  
+
+
+```{r}
+stocked_small <- stocked %>%
+  select(year, lake, stat_dist, no_stocked, agemonth, species, sid) %>%
+  mutate(lake = factor(lake)) %>%
+  #mutate(lake = ifelse(lake == "MI", "MI", "notMI")) %>%
+  filter(!(species %in% c("LAH", "LAS", "SMB", "STN", "YEP"))) %>%
+  drop_na()
+
+set.seed(47)
+
+data_split <- initial_split(stocked_small, prop = 2/3)
+
+stocked_train <- training(data_split)
+stocked_test <- testing(data_split)
+```
+
+
+#### recipe
+
+Note to figure out:  the `step_dummy()` line caused the random forest to not run.  The outcome variable cannot have been formatted using `step_dummy()`.  Also, if `step_dummy()` is applied to a variable, the role will be `predictor` even if the `update_role()` is used.
+
+```{r}
+stock_rec <-
+  recipe(lake ~ ., data = stocked_train) %>%
+  step_dummy(species) %>%
+  update_role(stat_dist, sid, new_role = "ID") 
+
+summary(stock_rec)
+```
+Just to mix it up, we're going to try to classify the data into the different lakes.  There are five Great Lakes.  First we specify that we're going to use a Random Forest as the engine / model of interest:
+
+```{r}
+rf_mod1 <-
+  rand_forest(mtry = 5,
+              trees = 500,
+              min_n = 5) %>%
+  set_engine("ranger", importance = "permutation") %>%
+  set_mode("classification") 
+```
+
+
+After we've specified the engine, we can then `fit()` the model:
+
+```{r}
+stock_rf1 <-
+  workflow() %>%
+  add_model(rf_mod1) %>%
+  add_recipe(stock_rec) %>%
+  fit(data = stocked_train)
+
+stock_rf1
+```
+
+
+# vip
+
+The variable importance plot gives a measure of which variable(s) was/were typically chosen first as the most important information to discriminate between the lakes.
+
+```{r fig.alt = "Barplot of importance values for each of the variables in the random forest. agemonth has the highest importance (of roughly 0.22), followed by species = LAT (of about 0.2) and species = RBT (of about 0.15)."}
+library(vip)
+
+stock_rf1 %>%
+  pull_workflow_fit() %>%
+  vip()
+```
+
+### CV to find a better values of `mtry` and `min_n` in the random forest.
+
+```{r}
+rf_mod2 <-
+  rand_forest(mtry = tune(),
+              trees = 500,
+              min_n = tune()) %>%
+  set_engine("ranger", importance = "permutation") %>%
+  set_mode("classification") 
+```
+
+After we've specified the engine, we can then `fit()` the model:
+
+```{r}
+stock_rf2 <-
+  workflow() %>%
+  add_model(rf_mod2) %>%
+  add_recipe(stock_rec) %>%
+  fit(data = stocked_train)
+
+stock_rf2
+```
+
+Now we'll CV the data so that we can run the random forest on different subsets of the training data.
+
+```{r}
+set.seed(4747)
+stock_folds <- vfold_cv(stocked_train, v = 3)
+
+stock_grid <- grid_regular(mtry(range = c(2, 13)),
+                          min_n(range = c(5, 40)),
+                          levels = 5)
+
+stock_grid
+```
+
+Now we tune the model, this time using the grid of parameter values.  Note that our problem is classifying the lakes which is not binary.  Therefore the default ROC metric will fail.  We use `metric_set(accuracy)` as the measure of fit.
+
+```{r}
+doParallel::registerDoParallel()
+
+set.seed(470)
+tune_result <- tune_grid(
+  stock_rf2,
+  resamples = stock_folds,
+  grid = stock_grid,
+  metrics = metric_set(accuracy)
+)
+
+tune_result
+```
+
+
+```{r fig.alt = "Line plot of mtry by accuracy, colored by the minimum terminal node size.  The smallest node size of 5 has the highest accuracy, and the accuracy levels off as mtry goes from 7 to 10 to 13."}
+tune_result %>%
+  collect_metrics() %>%
+  filter(.metric == "accuracy") %>%
+  mutate(min_n = factor(min_n)) %>%
+  ggplot(aes(x = mtry, y = mean, color = min_n)) +
+  geom_line(alpha = 0.5, size = 1.5) +
+  geom_point() + 
+  labs(y = "accuracy",
+       color = "minimum node size")
+```
+
+
+###  Fit to the test data
+
+
+```{r}
+rf_best <-
+  rand_forest(mtry = 8,
+              trees = 500,
+              min_n = 5) %>%
+  set_engine("ranger", importance = "permutation") %>%
+  set_mode("classification") 
+
+stock_best <-
+  workflow() %>%
+  add_model(rf_best) %>%
+  add_recipe(stock_rec) %>%
+  fit(data = stocked_train)
+
+stock_rf_final <-
+  stock_best %>%
+  last_fit(data_split, metrics = metric_set(accuracy))
+
+stock_rf_final %>%
+  collect_metrics()
+
+stock_rf_final %>%
+  collect_predictions() 
+```
+
+
+```{r fig.alt = "A heatmap showing the observed and predicted Great Lakes.  The model is fairly accurate, so the darker colors (higher counts) are observed on the diagonal with only a handful of observations being misclassified.  The misclassification happens evenly across all of the classes."}
+stock_rf_final %>%
+  collect_predictions() %>%
+  select(.pred_class, lake) %>%
+  group_by(.pred_class, lake) %>%
+  summarize(count = n()) %>%
+  ungroup() %>%
+  ggplot() + 
+  geom_tile(aes(x = lake, y = reorder(.pred_class, desc(.pred_class)), fill = count)) +
+    theme(
+        axis.title=element_text(size=15,face="bold"),
+        plot.title = element_text(size = 20, face = "bold"),
+        plot.caption = element_text(size = 15)) +
+  ylab("LDA topic")+
+  scale_fill_distiller(palette = "RdPu", trans = "reverse") +
+  labs(
+    x = "Stocked lake", y = "",
+    title = "Predicting Great Lakes",
+    caption = "Tidy Tuesday Plot: @hardin47 | Data: Commercial Fishing",
+    subtitle = "Predicted lake") 
+```
