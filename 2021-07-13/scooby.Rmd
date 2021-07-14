@@ -1,0 +1,370 @@
+---
+title: "Scooby Doo"
+author: "Jo Hardin"
+date: "7/13/2021"
+output: html_document
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE,
+                      cache = TRUE,
+                      fig.width=10, eval.after = 'fig.cap')
+library(tidyverse)
+library(infer)
+library(broom)
+library(tidymodels)
+library(lubridate)
+library(dotwhisker)
+library(janitor)
+
+library(praise)
+set.seed(4747)
+```
+
+### Alt text!
+
+Thanks to the work of those at RStudio, alt text is easy to add to a figure chunk.  I've added alt text to each of the figures in this week's #TidyTuesday.  To see the alt text, hover the mouse over the figure, and a text box with a plot description will pop up.
+
+
+### The Data
+
+The data this week comes from [Kaggle](https://www.kaggle.com/williamschooleman/scoobydoo-complete) thanks to manual data aggregation by [plummye](https://www.kaggle.com/williamschooleman). Hat tip to [Sara Stoudt](https://github.com/rfordatascience/tidytuesday/issues/345) for recommending this dataset!
+
+```{r}
+scooby <- read_csv("scoobydoo.csv") 
+
+scooby <- scooby %>%
+  mutate(imdb = as.numeric(imdb), engagement = as.numeric(engagement),
+         number_of_snacks = as.numeric(number_of_snacks)) %>%
+  mutate(monsters_gen = case_when(
+    str_detect(monster_gender, "Male") & str_detect(monster_gender,"Female") ~ "Both",
+    str_detect(monster_gender, "Male") ~ "Male",
+    str_detect(monster_gender, "Female") ~ "Female",
+    TRUE ~ "NoGender")) %>%
+  mutate(motive2 = case_when(
+    motive == "Food" ~ "Food",
+    motive == "Preservation" ~ "Preservation",
+    motive == "Abduction" ~ "Abduction",
+    motive == "Trespassing" ~ "Trespassing",
+    motive == "Smuggling" ~ "Smuggling",
+    motive == "Natural Resource" ~ "Natural Resource",
+    motive == "Conquer" ~ "Conquer",
+    motive == "Treasure" ~ "Treasure",
+    motive == "Theft" ~ "Theft",
+    motive == "Competition" ~ "Competition",
+    is.na(motive)  ~ "None",
+    TRUE ~ "Other"
+  )) %>%
+  mutate(year = year(date_aired))
+```
+
+### Predicting IMDB
+
+Can we figure out what characteristics of the show will best lead to a high IMDB rating?
+
+####  IMDB as a function of ...
+
+Before starting to build a model to predict the rating, I'm going to visualize the IMDB rating as a function of various other variables.
+
+```{r fig.alt = "Scatterplot with year on the x-axis and imdb rating on the y-axis.  The points are colored by motive and faceted by gender of the monster.  The majority of the points are in the male monster box.  There are no substantial patterns to discern in the scatterplots."}
+ggplot(scooby) +
+  geom_point(aes(x = date_aired, y = imdb, color = motive2)) + 
+  facet_wrap(~ monsters_gen) +
+  labs(caption = "Tidy Tuesday Plot: @hardin47 | Data: Scooby Doo") 
+```
+
+```{r}
+scooby %>%
+  group_by(year, monsters_gen) %>%
+  summarize(count = n()) %>%
+  ungroup %>%
+ggplot() +
+  geom_bar(stat = "identity", aes(x = year, count, 
+                                  group = monsters_gen, 
+                                  fill = monsters_gen)) +
+  labs(caption = "Tidy Tuesday Plot: @hardin47 | Data: Scooby Doo") 
+```
+
+
+## A model
+
+Back to practicing tidy models...
+
+
+####  test & training data
+
+```{r}
+scooby_small <- scooby %>%
+  select(imdb, season, run_time, monsters_gen, monster_amount,
+         starts_with("caught"), starts_with("captured"),
+         starts_with("unmask"), starts_with("snack"),
+         suspects_amount, motive2, culprit_amount,
+         number_of_snacks, batman, scooby_dum, scrappy_doo,
+         hex_girls, blue_falcon) %>%
+  drop_na()
+
+set.seed(47)
+
+data_split <- initial_split(scooby_small, prop = 2/3)
+
+scooby_train <- training(data_split)
+scooby_test <- testing(data_split)
+```
+
+
+
+#### recipe
+
+```{r}
+scooby_rec <-
+  recipe(imdb ~ ., data = scooby_train) 
+
+summary(scooby_rec)
+```
+
+#### set the model
+
+```{r}
+rf_mod1 <-
+  rand_forest(mtry = 5,
+              trees = 500,
+              min_n = 5) %>%
+  set_engine("ranger", importance = "permutation") %>%
+  set_mode("regression") 
+```
+
+#### fit the model
+
+After we've specified the engine, we can then `fit()` the model:
+
+```{r}
+set.seed(4747)
+scooby_rf1 <-
+  workflow() %>%
+  add_model(rf_mod1) %>%
+  add_recipe(scooby_rec) %>%
+  fit(data = scooby_train)
+
+scooby_rf1
+```
+
+#### model fit
+
+##### vip
+
+The variable importance plot gives a measure of which variable(s) was/were typically chosen first as the most important information to discriminate between the lakes.
+
+```{r fig.alt = "Barplot of importance values for each of the variables in the random forest. runtime has the highest importance (of roughly 0.11) and monster_amount (of about 0.08)."}
+library(vip)
+
+scooby_rf1 %>%
+  pull_workflow_fit() %>%
+  vip()
+```
+##### observed vs predicted
+
+```{r}
+scooby_test %>%
+  cbind(predict(scooby_rf1, new_data = scooby_test)) %>%
+  ggplot() +
+  geom_point(aes(x = imdb, y = .pred, color = season)) +
+  geom_abline(slope = 1, intercept = 0)
+```
+
+# Julia Silge's screencast
+
+[Julia did a tidymodel](https://juliasilge.com/blog/scooby-doo/) to predict whether or not the monster is real.  I'm just going to copy her code directly to walk through the process of building a tidymodel.
+
+```{r}
+scooby %>%
+  filter(monster_amount > 0) %>%
+  count(monster_real)
+```
+
+How many monsters are real in buckets of 5 years.  Notice the trick for empty bars at the ends.
+
+```{r}
+scooby %>%
+  filter(monster_amount > 0) %>%
+  count(
+    year_aired = 5 * ((lubridate::year(date_aired) + 1) %/% 5),
+    monster_real
+  ) %>%
+  mutate(year_aired = factor(year_aired)) %>%
+  ggplot(aes(year_aired, n, fill = monster_real)) +
+  geom_col(position = position_dodge(preserve = "single"), alpha = 0.8) +
+  labs(x = "Date aired", y = "Monsters per decade", fill = "Real monster?")
+```
+
+
+## wrangling the data
+
+* keep only episodes with a real monster
+* format variable type
+* create training, test, and CV
+
+Note that the training data is set in an interesting way here.  First of all, there is some stratified sampling to make sure that the groups are balanced.  But Julia also bootstrapped (within??) each sample.  I'm not totally sure.
+
+```{r}
+set.seed(123)
+scooby_split <- scooby %>%
+  mutate(
+    year_aired = lubridate::year(date_aired)
+  ) %>%
+  filter(monster_amount > 0, !is.na(imdb)) %>%
+  mutate(
+    monster_real = case_when(
+      monster_real == "FALSE" ~ "fake",
+      TRUE ~ "real"
+    ),
+    monster_real = factor(monster_real)
+  ) %>%
+  select(year_aired, imdb, monster_real, title) %>%
+  initial_split(strata = monster_real)
+scooby_train <- training(scooby_split)
+scooby_test <- testing(scooby_split)
+
+set.seed(234)
+scooby_folds <- bootstraps(scooby_train, strata = monster_real)
+scooby_folds
+```
+
+#### set the model
+
+Note that we wouldn't be able to run the model after this step because we haven't set the parameters yet.  We'll need to tune them.
+
+```{r}
+tree_spec <-
+  decision_tree(
+    cost_complexity = tune(),
+    tree_depth = tune(),
+    min_n = tune()
+  ) %>%
+  set_mode("classification") %>%
+  set_engine("rpart")
+
+tree_spec
+```
+
+So we set up a grid of possible values to try (using mostly the default tuning values):
+
+```{r}
+tree_grid <- grid_regular(cost_complexity(), tree_depth(), min_n(), levels = 4)
+tree_grid
+```
+
+#### find the model
+
+
+Now let’s fit each possible parameter combination to each resample. By putting non-default metrics into metric_set(), we can specify which metrics are computed for each resample.  There are 25 Bootstrap resamples x 64 possible parameter settings (each time keeping track of the metrics).
+
+```{r}
+doParallel::registerDoParallel()
+
+set.seed(345)
+tree_rs <-
+  tune_grid(
+    tree_spec,
+    monster_real ~ year_aired + imdb,
+    resamples = scooby_folds,
+    grid = tree_grid,
+    metrics = metric_set(accuracy, roc_auc, sensitivity, specificity)
+  )
+
+tree_rs
+```
+#### evaluate model
+
+```{r}
+show_best(tree_rs)
+```
+
+
+
+```{r}
+autoplot(tree_rs)
+```
+
+Lots of ways to choose "best" ... `select_best()` gives the numerically best model (for some metric).  Alternatively, we can choose a simpler tree within a small amount of the best metric.  A less complex tree might keep us from over fitting.
+
+Now, `final_tree` has the parameter values, so we **can** fit it to the data!
+
+```{r}
+simpler_tree <- select_by_one_std_err(tree_rs,
+  -cost_complexity,
+  metric = "roc_auc"
+)
+
+final_tree <- finalize_model(tree_spec, simpler_tree)
+```
+
+
+#### fit the model
+
+Note the use of the `fit()` functions instead of the `last_fit()` function.  The `fit()` function uses only the training data.  The `last_fit()` function fits the final best model to the training set and **evaluates** on the test set!
+
+```{r}
+final_fit <- fit(final_tree, monster_real ~ year_aired + imdb, scooby_train)
+```
+
+####  on the test data
+
+But we do want to see how the model will work on the test data...
+
+```{r}
+final_rs <- last_fit(final_tree, monster_real ~ year_aired + imdb, scooby_split)
+collect_metrics(final_rs)
+```
+
+```{r}
+# remotes::install_github("grantmcdermott/parttree")
+library(parttree)
+
+scooby_train %>%
+  ggplot(aes(imdb, year_aired)) +
+  geom_parttree(data = final_fit, aes(fill = monster_real), alpha = 0.2) +
+  geom_jitter(alpha = 0.7, width = 0.05, height = 0.2, aes(color = monster_real))
+```
+
+
+# pivoting and summarizing
+
+There were some **great** plots today on Twitter, so I'm trying them out.  The code below is mostly due to [@jack_davison](https://github.com/jack-davison/TidyTuesday/tree/master/R).
+
+
+```{r}
+colors = tribble(
+  ~name, ~color,
+  "daphnie", "#7C6AA8",
+  "shaggy", "#B2BE34",
+  "scooby", "#B1752C",
+  "velma", "#FA9C39", 
+  "fred", "#01A0DA"
+)
+
+scooby_plot <- scooby %>%
+  select(index, year, contains("unmask"), contains("captured"), contains("snack")) %>%
+  select(-number_of_snacks) %>%
+  mutate(across(-c(index,year), as.logical)) %>% 
+  pivot_longer(where(is.logical)) %>% 
+  mutate(activity = str_extract(name, "unmask|captured|snack"),
+         name = str_remove(name, "unmask_|captured_|snack_")) %>% 
+  group_by(year) %>%
+  count(name, value, activity) %>% 
+  filter(value, name != "other") %>% 
+  left_join(colors, by = "name") %>% 
+  mutate(name = fct_reorder(name, n, max)) %>%
+  mutate(decade = floor(year/10)*10) %>%
+  ungroup() %>%
+  group_by(decade, name, activity) %>%
+  summarise(n_decade = sum(n))
+```
+
+
+```{r}
+scooby_plot %>%
+  ggplot() +
+  geom_line(aes(x = decade, y = n_decade, group = name,
+                color = name)) +
+  facet_grid(activity~1)
+```
+
