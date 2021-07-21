@@ -4,6 +4,8 @@ My Tidy Tuesday adventures: [https://hardin47.github.io/TidyTuesday/](https://ha
 
 ### Tidy Tuesday Analyses
 
+* 2021-07-20 [TidyTuesday Drought across the US](https://hardin47.github.io/TidyTuesday/2021-07-20/drought.html)
+
 * 2021-07-13 [TidyTuesday Scooby Doo](https://hardin47.github.io/TidyTuesday/2021-07-13/scooby.html)
 
 * 2021-06-08 [TidyTuesday Commercial Fishing](https://hardin47.github.io/TidyTuesday/2021-06-08/fishing.html)

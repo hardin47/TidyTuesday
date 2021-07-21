@@ -1,0 +1,120 @@
+---
+title: "Drought in the US"
+author: "Jo Hardin"
+date: "7/20/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE,
+                      fig.width=10, eval.after = 'fig.cap')
+library(tidyverse)
+library(infer)
+library(broom)
+library(tidymodels)
+library(lubridate)
+library(dotwhisker)
+library(janitor)
+library(geofacet)
+
+library(praise)
+set.seed(4747)
+```
+
+## The Data
+
+The data this week comes from the [U.S. Drought Monitor](https://droughtmonitor.unl.edu/DmData/DataDownload/ComprehensiveStatistics.aspx). Many more datasets including county-level data can be accessed there. In the interest of size we stuck with state-level data.
+
+
+Please [reference the data](https://droughtmonitor.unl.edu/About/Permission.aspx) as seen below:
+
+> The U.S. Drought Monitor is jointly produced by the National Drought Mitigation Center at the University of Nebraska-Lincoln, the United States Department of Agriculture, and the National Oceanic and Atmospheric Administration. Map courtesy of NDMC.
+
+```{r}
+drought <- read_csv("drought.csv") 
+
+CA_drought <- drought %>%
+  filter(state_abb == "CA")
+```
+
+
+The data as given are cumulative percentages (and areas and counts).  To create information about the percentage (or area or count), we need a lagged difference.
+
+```{r}
+drought <- drought %>%
+  group_by(state_abb, map_date) %>%
+  mutate(drought_lvl = factor(drought_lvl, 
+                               levels = c("None", "D0", "D1", "D2", "D3", "D4"))) %>%
+  arrange(state_abb, map_date, drought_lvl) %>%
+  mutate(area_pct_lvl =  area_pct - lead(area_pct)) %>%
+  mutate(area_pct_lvl = case_when(
+    is.na(area_pct_lvl) ~ area_pct, 
+    drought_lvl == "None" ~ area_pct,
+    TRUE ~ area_pct_lvl))
+
+CA_drought <- CA_drought %>%
+  group_by(state_abb, map_date) %>%
+  mutate(drought_lvl = factor(drought_lvl, 
+                               levels = c("None", "D0", "D1", "D2", "D3", "D4"))) %>%
+  arrange(map_date, drought_lvl) %>%
+  mutate(area_pct_lvl =  area_pct - lead(area_pct)) %>%
+  mutate(area_pct_lvl = case_when(
+    is.na(area_pct_lvl) ~ area_pct, 
+    drought_lvl == "None" ~ area_pct,
+    TRUE ~ area_pct_lvl))
+```
+
+
+##  Viz
+
+Viewing CA droughts over time.  As we know, CA is bracing for terrible drought conditions in the coming years.
+
+```{r fig.alt = "A plot of California only.  A bar plot with time on the x-axis and percent of state in drought on the y-axis.  Only the highest 4 states of drought are shown, and we can see that from about 2012 to 2017, almost 100% of the area of California was in one of the drought levels with 2015 and 2016 being close to 50% of the state being in the highest level of drought."}
+CA_drought %>%
+  filter(drought_lvl != "None", drought_lvl != "D0") %>%
+  ggplot(aes(x = valid_start, y = area_pct_lvl, color = drought_lvl,
+             fill = drought_lvl))+
+  geom_col() +
+  scale_color_brewer(palette = "OrRd") +
+  scale_fill_brewer(palette = "OrRd") +
+  xlab("date") +
+  ylab("percent of state in drought")  
+```
+
+And all 50 states.  It is interesting to see that many of the (mostly western) states have had serious drought positions over the years.
+
+```{r fig.alt = "Each of the 50 states has a separate plot, and the separate plots are faceted / laid out roughly according to the US map.  Each of the 50 plots is a bar plot with time on the x-axis and percent of state in drought on the y-axis.  The western states have suffered from server drought for much of the last 10 years."}
+drought %>%
+  filter(drought_lvl != "None", drought_lvl != "D0") %>%
+  ggplot(aes(x = valid_start, y = area_pct_lvl, color = drought_lvl,
+             fill = drought_lvl)) +
+  geom_col() +
+  scale_color_brewer(palette = "OrRd") +
+  scale_fill_brewer(palette = "OrRd") +
+  xlab("date") +
+  ylab("") +
+  facet_geo(~state_abb, grid = "us_state_grid2") +
+  scale_x_continuous(breaks = c(2000, 2010, 2020)) +
+  scale_y_continuous(breaks = c(0, 100)) +
+  labs(
+    title = "Percent of state in drought",
+    captions = "Tidy Tuesday Plot: @hardin47 | Data: US Drought Monitor"
+  ) +
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1),
+        axis.title=element_text(size=15,face="bold"),
+        plot.title = element_text(size = 20, face = "bold"),
+        plot.caption = element_text(size = 15)) 
+```
+
+
+
+```{r}
+praise()
+```
+
+
+
+
+
+
+
