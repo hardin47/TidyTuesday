@@ -1,0 +1,368 @@
+---
+title: "120 years of Olympics"
+author: "Jo Hardin"
+date: "7/27/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, 
+                      warning = FALSE, cache = TRUE,
+                      fig.width=10, eval.after = 'fig.cap')
+library(tidyverse)
+library(infer)
+library(broom)
+library(tidymodels)
+library(lubridate)
+library(dotwhisker)
+library(janitor)
+library(geofacet)
+library(kernlab)
+library(viridis)
+library(patchwork)
+
+library(praise)
+set.seed(4747)
+```
+
+## Caveat
+
+I've tried for a long time now to get the SVM to run on these data.  I recognize that there isn't a lot of signal here to predict winners!  I think the lack of signal is what is keeping the model from converging.  The code / steps below seem to be correct, but the file won't knit, even after many hours.  I'll try SVMs again in a future week where maybe there *is* more signal!  
+
+## The Data
+
+The data this week comes from [Kaggle](https://www.kaggle.com/heesoo37/120-years-of-olympic-history-athletes-and-results?select=noc_regions.csv).
+
+> This is a historical dataset on the modern Olympic Games, including all the Games from Athens 1896 to Rio 2016. I scraped this data from www.sports-reference.com in May 2018. The R code I used to scrape and wrangle the data is on GitHub. I recommend checking my kernel before starting your own analysis.
+
+```{r}
+olympics <- read_csv("olympics.csv") %>%
+  mutate(win = ifelse(is.na(medal), "no", "yes")) %>%
+  mutate(country = case_when(
+    noc == "USA" ~ "USA",
+    noc == "FRA" ~ "FRA",
+    noc == "GBR" ~ "GBR",
+    noc == "ITA" ~ "ITA",
+    noc == "GER" ~ "GER",
+    noc == "CAN" ~ "CAN",
+    noc == "JPN" ~ "JPN",
+    noc == "EUN" ~ "RUS",
+    noc == "RUS" ~ "RUS",
+    noc == "URS" ~ "URS",
+    noc == "BUL" ~ "BUL",
+    TRUE ~ "other"
+  ))
+```
+
+##  The model
+
+In my ongoing pursuit to understand tidymodels, I'm going to use a support vector machine to predict whether or not a medal was won.  I'm finally starting to get the hang of the `tidymodels` structure:
+
+* test / train / folds
+* specify the model
+* feature engineering (called recipe)
+* workflow = model + recipe
+* fit (on train or on CV data)
+
+Does the model includes parameters that need to be tuned, then the flow is slightly different:
+
+* test / train / folds
+* specify the model **without** any parameter values (set them to `tune()`)
+* feature engineering (called recipe) (same as above)
+* workflow = model + recipe
+* tune_grid (like fit, but across all CV folds and full parameter grid)
+* fit (on CV data)
+
+Notice that most people / teams don't win.
+But with 40,000 winning observations, we should be able to fit a good model.
+Unfortunately, SVMs are really slow, so I can't run the model on the full dataset.  Instead, I'm taking a much smaller random sample.
+
+```{r}
+olympics %>%
+  count(win)
+```
+
+
+Let's look at the information contained in the data about winning over time. Notice the trick for empty bars at the ends (and the modular arithmetic to get bins of size 12).
+
+```{r}
+olympics %>%
+  count(
+    year12 = 12 * ((year + 1) %/% 12),
+    win
+  ) %>%
+  mutate(year12 = factor(year12)) %>%
+  ggplot(aes(x = year12, y = n, fill = win)) +
+  geom_col(position = position_dodge(preserve = "single"), alpha = 0.8) +
+  labs(x = "Year of Olympics (bins of size 12)", y = "Count", fill = "Win?")
+```
+
+## wrangling the data: test / training / folds
+
+I had to use `drop_na()` early on because otherwise the predictions didn't line up with the cases in the original dataset.
+
+```{r}
+set.seed(123)
+olympics_split <- olympics %>%
+  drop_na(sex, age, height, weight, year, season, win, country) %>%
+  # sampling 100% of the winners and 18% of the non-winners
+  # (18% was chosen just to get the groups to balance)
+  group_by(win) %>% 
+  nest() %>%            
+  ungroup() %>% 
+  mutate(prop = c(0.09, 0.5)) %>% 
+  mutate(samp = map2(data, prop, sample_frac)) %>% 
+  select(-data, -prop) %>%
+  unnest(samp) %>%
+  mutate_if(is.character, as.factor) %>%
+  initial_split(strata = win) 
+  
+olympics_train <- training(olympics_split)
+olympics_test <- testing(olympics_split)
+
+olympics_train %>%
+  count(win)
+olympics_test %>%
+  count(win)
+```
+
+#### Specify the model
+
+Note that we wouldn't be able to run the model after this step because we haven't set the parameters yet.  We'll need to tune them.
+
+```{r eval = FALSE}
+olympics_mod <-
+  svm_poly(
+    cost = 0.1,
+    degree = 3,
+    scale_factor = 1
+  ) %>%
+  set_mode("classification") %>%
+  set_engine("kernlab")
+
+olympics_mod
+```
+
+#### Feature engineering / build recipe
+
+```{r eval = FALSE}
+olympics_rec <- recipe(win ~ ., data = olympics_train) %>%
+  # don't want to use name, etc. to predict win
+  update_role(name, team, city, sport, event, medal, new_role = "ID") %>%
+  # remove variables
+  step_rm(noc, id) %>%
+  # unfortunately, I'm going to remove data with NA values
+  # the SVM won't use them anyway
+  # skip = TRUE means to not worry about the win variable when
+  # running predictions
+  #step_naomit(all_predictors(), win, skip = TRUE) %>%
+  # make dummy variables
+  step_dummy(all_nominal_predictors()) %>% 
+  # remove zero variance predictors
+  step_zv(all_predictors()) %>%
+  # SVMs need centered & scaled variables
+  step_normalize(all_predictors()) 
+
+prep(olympics_rec)  #check to make sure recipe worked
+```
+
+
+
+#### build workflow
+
+```{r eval = FALSE}
+olympics_wflow <- workflow() %>%
+  add_model(olympics_mod) %>%
+  add_recipe(olympics_rec)
+
+olympics_wflow
+```
+
+#### Predicted values: test & training
+
+Look at: https://workflows.tidymodels.org/reference/predict-workflow.html and https://parsnip.tidymodels.org/reference/predict.model_fit.html
+
+```{r eval = FALSE}
+olympics_fit <- olympics_wflow %>%
+  fit(data = olympics_train)
+```
+
+
+
+```{r fig.alt = "Scatterplots showing the SVM predicted probability of winning a medal (on y-axis) broken down by whether or not the individual did win a medal (on x-axis).  Two sets of scatterplots are shown, one for the test data, one for the training data.  For those who win, the SVM predicted probability is, on average, slightly higher than for those who didn't win.  But the signal is not strong for training or test data.", eval = FALSE}
+# the output of `predict` is two columns when `type = "prob"`
+# so we need to make it into a tibble before binding the columns
+
+olympics_pred_train <- olympics_train %>% 
+  select(win, name) %>%
+  bind_cols(as_tibble(predict(olympics_fit,
+                            new_data = olympics_train, 
+                            type = "prob"))) 
+
+
+olympics_pred_test <- olympics_test %>% 
+  select(win, name) %>%
+  bind_cols(as_tibble(predict(olympics_fit,
+                            new_data = olympics_test, 
+                            type = "prob"))) 
+
+p1 <- ggplot(olympics_pred_train) +
+  geom_jitter(aes(y = .pred_yes, x = win), color = "#114B5F",
+              alpha = 0.2, height = 0.1, width = 0.1) +
+  ggtitle("Prediction probability (of win), training data") +
+  ylab("")
+
+p2 <- ggplot(olympics_pred_test) +
+  geom_jitter(aes(y = .pred_yes, x = win), color = "#114B5F",
+              alpha = 0.2, height = 0.1, width = 0.1) +
+  ggtitle("Prediction probability (of win), training data") +
+  ylab("")
+
+p1 + p2 + plot_layout(ncol = 2)
+```
+
+####  See how the model does on CV data
+
+Cross validated data is a built in independent sample
+
+```{r eval = FALSE}
+olympics_folds <- vfold_cv(olympics_train, strata = win, v = 5)
+olympics_folds
+```
+
+```{r eval = FALSE}
+doParallel::registerDoParallel()
+
+set.seed(4747)
+olympics_cv <- olympics_wflow %>%
+  fit_resamples(
+    resamples = olympics_folds,
+    metrics = metric_set(roc_auc, accuracy, sens, spec),
+    control = control_grid(save_pred = TRUE)
+  )
+
+collect_metrics(olympics_cv)
+```
+
+
+
+#### Specify the model WITH tuning parameters
+
+Note that with the following model, we can't run anything because we haven't set the parameters yet.  We'll need to tune them.
+
+```{r eval = FALSE}
+olympics_mod_tune <-
+  svm_poly(
+    cost = tune(),
+    degree = tune(),
+    scale_factor = 1
+    ) %>%
+  set_mode("classification") %>%
+  set_engine("kernlab")
+
+olympics_mod_tune
+```
+
+We set up a grid of possible values to try (using mostly the default tuning values):
+
+```{r eval = FALSE}
+svm_grid <- grid_regular(cost(), degree())
+svm_grid
+```
+
+
+
+
+####  Now, with the CV data, fit the parameters
+
+```{r eval = FALSE}
+doParallel::registerDoParallel()
+
+set.seed(4747)
+olympics_res_tune <- 
+  tune_grid(
+    olympics_mod_tune,  # the model
+    olympics_rec,       # the recipe
+    resamples = olympics_folds,
+    grid = svm_grid,
+    metrics = metric_set(roc_auc, accuracy, sens, spec),
+    control = control_grid(save_pred = TRUE)    
+  )
+```
+
+
+```{r eval = FALSE}
+autoplot(olympics_res_tune)
+```
+
+
+```{r eval = FALSE}
+show_best(olympics_res_tune, metric = "accuracy")
+show_best(olympics_res_tune, metric = "roc_auc")
+```
+
+```{r eval = FALSE}
+collect_metrics(olympics_res_tune)
+
+best_values <- select_best(olympics_res_tune, metric = "roc_auc")
+best_values
+
+conf_mat_resampled(olympics_res_tune, parameters = best_values)
+```
+
+Note that to create the ROC curve, the variable `win` is considered alphabetically by R.  So to compare, we use `.pred_no` instead of `.pred_yes`.
+ 
+```{r eval = FALSE}
+olympics_res_tune %>%
+  collect_predictions() %>%
+  group_by(id) %>%
+  roc_curve(win, .pred_no) %>%
+  ggplot(aes(1 - specificity, sensitivity, color = id)) +
+  geom_abline(lty = 2, color = "gray80", size = 1.5) +
+  geom_path(show.legend = TRUE, alpha = 0.6, size = 1.2) +
+  scale_color_viridis(discrete = TRUE) +
+  labs(color = "CV Fold") +
+  coord_equal()
+```
+
+```{r eval = FALSE}
+collect_predictions(olympics_res_tune) %>%
+  arrange(.row)
+```
+
+### On the test data
+
+```{r eval = FALSE}
+olympics_mod_best <- 
+  svm_poly(
+    cost = 32,
+    degree = 1,
+    scale_factor = 1
+  ) %>%
+  set_mode("classification") %>%
+  set_engine("kernlab")  
+  
+olympics_final <- workflow() %>%
+  add_recipe(olympics_rec) %>%
+  add_model(olympics_mod_best) %>%
+  last_fit(olympics_split)
+```
+
+```{r eval = FALSE}
+olympics_final %>%
+  collect_metrics()
+```
+
+```{r eval = FALSE}
+olympics_final %>%
+  collect_predictions() %>%
+  conf_mat(win, .pred_class)  
+```
+
+
+```{r}
+praise()
+```
+
+
+
