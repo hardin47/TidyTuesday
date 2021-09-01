@@ -22,6 +22,7 @@ library(kernlab)
 library(viridis)
 library(patchwork)
 library(ggupset)
+library(knitr)
 
 library(praise)
 set.seed(4747)
