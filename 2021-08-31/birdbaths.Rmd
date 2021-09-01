@@ -1,0 +1,101 @@
+---
+title: "Birds + Baths in Australia"
+author: "Jo Hardin"
+date: "8/31/2021"
+output: html_document
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, 
+                      warning = FALSE, cache = TRUE,
+                      fig.width=10, eval.after = 'fig.cap')
+library(tidyverse)
+library(infer)
+library(broom)
+library(tidymodels)
+library(lubridate)
+library(dotwhisker)
+library(janitor)
+library(geofacet)
+library(kernlab)
+library(viridis)
+library(patchwork)
+library(ggupset)
+
+library(praise)
+set.seed(4747)
+```
+
+
+## The Data
+
+The data this week comes from [Cleary et al, 2016](https://figshare.com/articles/dataset/Avian_Assemblages_at_Bird_Baths_A_Comparison_of_Urban_and_Rural_Bird_Baths_in_Australia/3110284) with the corresponding article [Avian Assemblages at Bird Baths: A Comparison of Urban and Rural Bird Baths in Australia](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0150899#abstract0).
+
+One note on the "cleaned" data is that the cleaning script didn't account for the fact that there were totals in the Excel speadsheet (which should be removed before `pivor_longer`).
+
+
+```{r}
+bird_baths <- readxl::read_xlsx("S1File.xlsx") %>%
+  janitor::clean_names() %>%
+  filter(!is.na(survey_year)) %>%
+  mutate(survey_year = as.character(survey_year),
+         observer = as.character(observer)) %>%
+  mutate_if(is.numeric, as.logical)
+```
+
+## Data Viz
+
+With only 5 variables, there isn't really much to model.  So I'll focus on a data visualization today.
+
+I also wanted to try out a plot I saw recently [here](https://twitter.com/rfunctionaday/status/1430762352635523076?s=20).  It is a Venn diagram made into a bar chart!  The R package is called **ggupset**.
+
+The idea is, how many **observers** saw each of the bird types.
+```{r}
+bird_baths_long <- bird_baths %>%
+  pivot_longer(cols = 5:last_col(), names_to = "bird_type", values_to = "bird_count") 
+
+bird_baths_long_true <- bird_baths_long %>%
+  filter(bird_count) %>%
+  select(-bird_count)
+```
+
+```{r}
+common_birds <- bird_baths_long_true %>%
+  group_by(bird_type) %>%
+  summarize(n_birds = n()) %>%
+  filter(n_birds > 150) %>%
+  pull(bird_type)
+```
+
+```{r fig.cap = "For the 10 most common birds, how often were they seen together by a particular observer.",  fig.alt = "Bar chart with the height of the bar representing the number of observes who saw a particular type of bird. The bar chart is similar to a Venn diagram where the tallest bars represent the single birds sigtings (with or without others) and the lowest bars represent the number of sightings of a combination of many of the birds.  The bars are ordered lexicographically."}
+bird_baths_long_true %>%
+  filter(bird_type %in% common_birds) %>%
+  group_by(observer) %>%
+  summarize(birds = list(bird_type)) %>%
+  ggplot(aes(x = birds)) + 
+  geom_bar() + 
+  ggupset::scale_x_mergelist(sep = "-") +
+  axis_combmatrix(sep = "-")
+```
+
+```{r fig.cap = "For the 10 most common birds, how often were they seen together by a particular observer.",  fig.alt = "Bar chart with the height of the bar representing the number of observes who saw a particular type of bird. The bar chart is similar to a Venn diagram where the tallest bars represent the single birds sigtings (with or without others) and the lowest bars represent the number of sightings of a combination of many of the birds.  The bars are ordered by degree."}
+bird_baths_long_true %>%
+  filter(bird_type %in% common_birds) %>%
+  group_by(observer) %>%
+  summarize(birds = list(bird_type)) %>%
+  ggplot(aes(x = birds)) + 
+  geom_bar() + 
+  scale_x_upset(order_by = "degree", n_intersections = 50)
+```
+
+
+```{r}
+praise()
+```
+
+
+
+
+
+
