@@ -4,6 +4,8 @@ My Tidy Tuesday adventures: [https://hardin47.github.io/TidyTuesday/](https://ha
 
 ### Tidy Tuesday Analyses
 
+* 2021-09-07 [TidyTuesday Formula 1 Races](https://hardin47.github.io/TidyTuesday/2021-09-07/formula1.html)
+
 * 2021-08-31 [TidyTuesday Bird Baths](https://hardin47.github.io/TidyTuesday/2021-08-31/birdbaths.html)
 
 * 2021-07-27 [TidyTuesday Olympics](https://hardin47.github.io/TidyTuesday/2021-07-27/olympics.html)

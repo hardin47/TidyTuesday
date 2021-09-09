@@ -1,0 +1,180 @@
+---
+title: "Formula 1"
+author: "Jo Hardin"
+date: "9/7/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, 
+                      warning = FALSE, cache = TRUE,
+                      fig.width=10, eval.after = 'fig.cap')
+library(tidyverse)
+library(infer)
+library(broom)
+library(tidymodels)
+library(lubridate)
+library(dotwhisker)
+library(janitor)
+library(geofacet)
+library(kernlab)
+library(viridis)
+library(patchwork)
+library(ggupset)
+library(knitr)
+library(skimr)
+
+library(praise)
+set.seed(4747)
+```
+
+## The Data
+
+The data this week comes from the [Ergast API](https://ergast.com/mrd/db/#csv), which has a CC-BY license.  H/t to [Sara Stoudt](https://github.com/rfordatascience/tidytuesday/issues/372) for sharing the link to the data by way of [Data is Plural](https://www.data-is-plural.com/archive/2021-08-25-edition/)!
+
+```{r}
+lap_times <- readr::read_csv("lap_times.csv", na = c("", "NA", "\\N"))
+races <- readr::read_csv("races.csv", na = c("", "NA", "\\N"))
+results <- readr::read_csv("results.csv", na = c("", "NA", "\\N"))
+constructors <- readr::read_csv("constructors.csv", na = c("", "NA", "\\N"))
+```
+
+
+## Investigating the data
+
+The ideas for combining the datasets and looking at race time come from: https://github.com/nrennie/tidytuesday/tree/main/2021/07-09-2021
+
+```{r fig.alt = "average winning time (all races combined) over the years."}
+races_joined <- left_join(left_join(dplyr::filter(results, positionText == 1), races, by = "raceId"), 
+                                    constructors, by = "constructorId") %>%
+  mutate(win_time = milliseconds / laps) %>%
+  select(resultId, constructorId, laps, milliseconds, fastestLap,
+         fastestLapSpeed, year, name.x, win_time, nationality) %>%
+  filter(name.x %in% c("Monaco Grand Prix", "British Grand Prix", "Italian Grand Prix", "French Grand Prix", "German Grand Prix")) %>%
+  filter(constructorId %in% c(1, 3, 6, 32, 131))
+
+mean_races <- races_joined %>% group_by(year) %>% 
+  summarize(mean_ms = mean(as.numeric(milliseconds)),
+            mean_win = mean(as.numeric(win_time)))
+```
+
+
+
+```{r fig.alt = "average winning time per lap (all races combined) over the years."}
+ggplot() + 
+  geom_line(mean_races, 
+            mapping = aes(x = year, y = mean_ms/1000/60/60), color = "black") + 
+  geom_point(races_joined, 
+             mapping = aes(x = year, y = as.numeric(milliseconds)/1000/60/60, 
+                          color = nationality)) +
+  labs(x = "", y = "", subtitle = "Winning Time (hours)")
+
+```
+
+Whoa!  There are some huge outliers.  Turns out that in 2021 the Belgian Grand Priz was only **one** lap!  Which makes me think that the winning time should be `milliseconds/laps`.  I'm going to replot the data with a more appropriate value on the y-axis.
+
+```{r}
+ggplot() + 
+  geom_line(mean_races, mapping = aes(x = year, y = mean_win/1000/60/60), color = "black") + 
+  geom_point(races_joined, mapping = aes(x = year, y = as.numeric(win_time)/1000/60/60, color = nationality)) +
+  labs(x = "", y = "", subtitle = "Winning Time (hours)")
+
+```
+
+## Tidy model to predict win_time
+
+The goal of the model will be to predict `win_time` (= `milliseconds` / `laps`) using
+`constructorId` (1, 3, 6, 32, 131: 5 levels), `fastestLap`, `fastestLapSpeed`, `year`, `name.x` (5 levels), and `nationality` (10 levels).
+
+#### data split
+
+```{r}
+set.seed(4747)
+formula1_split <- races_joined %>%
+  drop_na() %>%
+  initial_split()
+
+formula1_train <- training(formula1_split)
+formula1_test <- testing(formula1_split)
+```
+
+#### recipe
+
+```{r}
+formula1_recipe <- recipe(win_time ~., data = formula1_train) %>%
+  update_role(resultId, new_role = "ID") %>%
+  step_dummy(name.x, nationality, constructorId) %>%
+  step_rm(milliseconds)
+
+formula1_recipe
+```
+
+#### set a model
+
+```{r}
+formula1_mod <- rand_forest(
+  mtry = 4,
+  trees = 100,
+  min_n = 3) %>%
+  set_mode("regression") %>%
+  set_engine("ranger")
+```
+
+#### alternative model setting
+
+if the plan is to tune hyperparameters, then use `tune()` for the parameters:
+
+```{r}
+formula1_mod_tune <- rand_forest(
+  mtry = tune(),
+  trees = 100,
+  min_n = tune()) %>%
+  set_mode("regression") %>%
+  set_engine("ranger")
+```
+
+#### build workflow
+
+```{r}
+formula1_wf1 <- workflow() %>%
+  add_recipe(formula1_recipe) %>%
+  add_model(formula1_mod)
+
+formula1_wf1
+```
+
+### fit model
+
+```{r}
+formula1_results <- formula1_wf1 %>%
+  fit(data = formula1_train)
+
+formula1_results
+```
+
+```{r fig.alt = "scatter plot of actual win time versus predicted win time for training data.  moderate correlation, but there are only 37 training points."}
+formula1_results %>% predict(new_data = formula1_train) %>% cbind(formula1_train) %>%
+  ggplot() +
+  geom_point(aes(x = win_time, y = .pred, color = name.x)) +
+  geom_abline(slope = 1, intercept = 0)
+```
+
+```{r fig.alt = "scatter plot of actual win time versus predicted win time for test data.  not a great correlation (not too bad either), but there are only 13 test points."}
+formula1_results %>% predict(new_data = formula1_test) %>% cbind(formula1_test) %>%
+  ggplot() +
+  geom_point(aes(x = win_time, y = .pred, color = name.x)) +
+  geom_abline(slope = 1, intercept = 0)
+
+```
+
+
+
+
+## reflection
+
+model wasn't great.  but i'm going to call this activity a win because i was able to build a pretty straightforward model that did predict the per-lap winning time to some degree.  note that because we wanted a complete dataset (no missing values) with a bunch of variables, the dataset got much smaller!  37 training points and 13 test points isn't much to do model building.
+
+```{r}
+praise()
+```
+
