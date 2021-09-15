@@ -163,7 +163,8 @@ songs_test <- testing(songs_split)
 ```{r}
 songs_recipe <- recipe(genre ~., data = songs_train) %>%
   update_role(song_id, new_role = "ID") %>%
-  update_role(week_id, new_role = "ID")
+  update_role(week_id, new_role = "ID") %>%
+  step_normalize(all_predictors())
 
 songs_recipe
 ```

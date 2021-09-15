@@ -281,7 +281,8 @@ songs_test &lt;- testing(songs_split)</code></pre>
 <h4>recipe</h4>
 <pre class="r"><code>songs_recipe &lt;- recipe(genre ~., data = songs_train) %&gt;%
   update_role(song_id, new_role = &quot;ID&quot;) %&gt;%
-  update_role(week_id, new_role = &quot;ID&quot;)
+  update_role(week_id, new_role = &quot;ID&quot;) %&gt;%
+  step_normalize(all_predictors())
 
 songs_recipe</code></pre>
 <pre><code>## Data Recipe
@@ -291,7 +292,11 @@ songs_recipe</code></pre>
 ##       role #variables
 ##         ID          2
 ##    outcome          1
-##  predictor         12</code></pre>
+##  predictor         12
+## 
+## Operations:
+## 
+## Centering and scaling for all_predictors()</code></pre>
 </div>
 <div id="set-a-model" class="section level4">
 <h4>set a model</h4>
