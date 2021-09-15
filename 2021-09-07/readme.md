@@ -1,3 +1,5 @@
+* 2021-09-07 [TidyTuesday Formula 1 Races](https://hardin47.github.io/TidyTuesday/2021-09-07/formula1.html)
+
 ### Please add alt text to your posts
 
 Please add alt text (alternative text) to all of your posted graphics for `#TidyTuesday`. 

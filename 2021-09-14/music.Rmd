@@ -1,0 +1,335 @@
+---
+title: "Top 100 Billboard Music"
+author: "Jo Hardin"
+date: "9/14/2021"
+output: html_document
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, 
+                      warning = FALSE, cache = TRUE,
+                      fig.width=10, eval.after = 'fig.cap')
+library(tidyverse)
+library(infer)
+library(broom)
+library(tidymodels)
+library(lubridate)
+library(dotwhisker)
+library(janitor)
+library(geofacet)
+library(kernlab)
+library(viridis)
+library(patchwork)
+library(ggupset)
+library(knitr)
+library(skimr)
+
+library(praise)
+set.seed(4747)
+```
+
+
+## The Data
+
+The data this week comes from [Data.World](https://data.world/kcmillersean/billboard-hot-100-1958-2017#) by way of Sean Miller, [Billboard.com](http://billboard.com/) and Spotify.
+
+
+```{r}
+billboard <- read_csv("billboard.csv")
+audio_features <- read_csv("audio_features.csv")
+```
+
+```{r}
+billboard %>%
+  select(song_id) %>%
+  distinct() %>%
+  count()
+```
+
+
+## Finding the songs of interest
+
+First, we want to `filter` the rows to keep only the songs of interest.  We keep the songs that are on the Billboard Top 100 Chart for at least 20 weeks total.
+
+```{r}
+songs <- billboard %>%
+  group_by(song_id) %>%
+  arrange(desc(week_id)) %>%
+  slice(1) %>%
+  ungroup %>%
+  filter(weeks_on_chart >= 20) 
+```
+
+
+
+```{r}
+songs %>%
+  ggplot() + 
+  geom_point(aes(x = weeks_on_chart, y = peak_position)) +
+  scale_y_continuous(trans = "reverse") +
+  ggtitle("Peak position (order reversed) by weeks on chart")
+```
+
+Using the top songs, we'll `join` with the `audio_features` dataset to add features which we can then model to predict genre.
+
+Note: when we do a `left_join` there should be the same number of rows in the output dataframe as in the left dataframe (here `songs`).  In our `left_join` we got **more** rows.  Yikes!
+
+```{r}
+songs_full <- songs %>% left_join(audio_features, by = "song_id")
+```
+
+```{r}
+# thanks to @nrennie at
+# https://github.com/nrennie/tidytuesday/blob/main/2021/14-09-2021/14092021.R
+# function for genre
+select_genre <- function(word){
+  if (is.na(word)){
+    return(NA)
+  }
+  if (grepl("pop", word, fixed = TRUE)){
+    return("Pop")
+  }
+  if (grepl("rap", word, fixed = TRUE)){
+    return("Rap")
+  }
+  if (grepl("rock", word, fixed = TRUE)){
+    return("Rock")
+  }
+  if (grepl("country", word, fixed = TRUE)){
+    return("Country")
+  }
+  if (grepl("r&b", word, fixed = TRUE)){
+    return("R & B")
+  }
+  if (grepl("hip hop", word, fixed = TRUE)){
+    return("Hip Hop")
+  }
+  else {
+    return("Other")
+  }
+}
+```
+
+
+```{r}
+main_genre = sapply(songs_full$spotify_genre, function(x) unlist(strsplit(str_sub(x, 3, -3), split = "\', \'"))[1])
+songs_full$main_genre <- main_genre
+genre <- unname(sapply(songs_full$main_genre, function(x) select_genre(x)))
+songs_full$genre <- genre
+```
+
+
+```{r}
+songs_full %>%
+  ggplot() + 
+  geom_point(aes(x = weeks_on_chart, y = peak_position, color = genre)) +
+  scale_y_continuous(trans = "reverse") +
+  ggtitle("Peak position (order reversed) by weeks on chart")
+```
+
+
+```{r}
+songs_full %>%
+  select(genre, main_genre, spotify_genre)
+```
+
+
+
+## Building a k-nn classifier
+
+
+The goal of the model will be to predict `genre` from:
+
+`danceability`, `energy`, `key`, `loudness`, `mode`, `speechiness`, `acousticness`, 
+`instrumentalness`, `liveness`, `valence`, `tempo`, `spotify_track_popularity`
+
+#### data split
+
+```{r}
+set.seed(4747)
+songs_split <- songs_full %>%
+  select(song_id, week_id, genre, danceability, energy, key, loudness, mode, speechiness,
+         acousticness, instrumentalness, liveness, valence, tempo, 
+         spotify_track_popularity) %>%
+  filter(genre != "R & B") %>%
+  drop_na() %>%
+  initial_split()
+
+songs_train <- training(songs_split)
+songs_test <- testing(songs_split)
+```
+
+#### recipe
+
+```{r}
+songs_recipe <- recipe(genre ~., data = songs_train) %>%
+  update_role(song_id, new_role = "ID") %>%
+  update_role(week_id, new_role = "ID")
+
+songs_recipe
+```
+
+#### set a model
+
+```{r}
+songs_mod <- nearest_neighbor(
+  neighbors = 7,
+  weight_func = "gaussian") %>%
+  set_mode("classification") %>%
+  set_engine("kknn")
+```
+
+#### alternative model setting
+
+if the plan is to tune hyperparameters, then use `tune()` for the parameters:
+
+```{r}
+songs_mod_tune <- nearest_neighbor(
+  neighbors = tune(),
+  weight_func = "gaussian") %>%
+  set_mode("classification") %>%
+  set_engine("kknn")
+```
+
+#### build workflow
+
+```{r}
+songs_wf1 <- workflow() %>%
+  add_recipe(songs_recipe) %>%
+  add_model(songs_mod)
+
+songs_wf1
+```
+
+### fit model
+
+```{r}
+songs_results <- songs_wf1 %>%
+  fit(data = songs_train)
+
+songs_results
+```
+
+```{r fig.alt = "heat map to show the confusion matrix comparing the actual genre and the predicted genre for the training data.  the model does quite well with the vast majority of the observations being correctly predicted.  the most likely incorrect prediction is for pop music."}
+songs_results %>% predict(new_data = songs_train) %>% cbind(songs_train) %>%
+  select(.pred_class, genre) %>% table()
+
+songs_results %>% predict(new_data = songs_train) %>% cbind(songs_train) %>%
+  select(.pred_class, genre) %>% table() %>% as.data.frame() %>%
+  ggplot(mapping = aes(y = .pred_class,
+                     x = genre)) +
+  geom_tile(aes(fill = Freq)) +
+  geom_text(aes(label = sprintf("%1.0f", Freq)), vjust = 1) +
+  scale_fill_gradient(low = "blue",
+                      high = "red") +
+  ggtitle("Confusion matrix on training songs") +
+  labs(y = "Predicted genre",
+       x = "Original genre")
+```
+
+
+
+```{r fig.alt = "heat map to show the confusion matrix comparing the actual genre and the predicted genre for the test data.  the model less well on the test data, but still, much better than chance.  pop and other get predicted for one another.  the most likely incorrect prediction is for pop music."}
+songs_results %>% predict(new_data = songs_test) %>% cbind(songs_test) %>%
+  select(.pred_class, genre) %>% table()
+
+songs_results %>% predict(new_data = songs_test) %>% cbind(songs_test) %>%
+  select(.pred_class, genre) %>% table() %>% as.data.frame() %>%
+  ggplot(mapping = aes(y = .pred_class,
+                     x = genre)) +
+  geom_tile(aes(fill = Freq)) +
+  geom_text(aes(label = sprintf("%1.0f", Freq)), vjust = 1) +
+  scale_fill_gradient(low = "blue",
+                      high = "red") +
+  ggtitle("Confusion matrix on test songs") +
+  labs(y = "Predicted genre",
+       x = "Original genre")
+```
+
+
+
+# Tune the model!
+
+
+#### build workflow
+
+First, a few extra tidbits we need for finding the best value of `k`.
+```{r}
+songs_grid = grid_regular(neighbors(), levels = 5)
+
+set.seed(47)
+songs_folds <- vfold_cv(songs_train)
+```
+
+
+```{r}
+songs_wf2 <- workflow() %>%
+  add_recipe(songs_recipe) %>%
+  add_model(songs_mod_tune)
+
+songs_wf2
+```
+
+
+```{r}
+songs_results2 <- songs_wf2 %>%
+  tune_grid(
+    resamples = songs_folds,
+    grid = songs_grid
+  )
+
+songs_results2
+```
+### collect metrics
+
+```{r}
+songs_results2 %>%
+  collect_metrics()
+```
+
+```{r}
+songs_results2 %>%
+  collect_metrics() %>%
+  ggplot(aes(x = neighbors, y = mean)) +
+  geom_line(size = 1.5, alpha = 0.6) +
+  geom_point(size = 2) +
+  facet_wrap(~ .metric, scales = "free", nrow = 2) +
+  scale_x_log10(labels = scales::label_number()) 
+
+songs_results2 %>%
+  show_best("roc_auc")
+```
+
+
+### fit model
+
+```{r}
+songs_best <- songs_results2 %>%
+  select_best("accuracy")
+
+songs_best
+
+songs_wf3 <- songs_wf2 %>%
+  finalize_workflow(songs_best)
+
+songs_fit3 <- songs_wf3 %>%
+  last_fit(songs_split)
+
+songs_fit3 %>%
+  collect_metrics
+```
+
+Default way to make ROC curve for **each** of the music genres.  So cool!!!
+
+```{r fig.alt = "a separate ROC curve for each genre, where the sensitivity and specificity are calculated for each group on a correct / incorrect basis.  Hip hop has the best curve, pop's curve is the worst (not much better than random guessing)."}
+songs_fit3 %>%
+  collect_predictions() %>%
+  yardstick::roc_curve(genre, .pred_Country:.pred_Rock) %>%
+  autoplot()
+```
+
+
+
+```{r}
+praise()
+```
+
