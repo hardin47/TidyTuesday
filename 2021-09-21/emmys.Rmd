@@ -1,0 +1,143 @@
+---
+title: "The Emmy Awards"
+author: "Jo Hardin"
+date: "9/21/2021"
+output: html_document
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, 
+                      warning = FALSE, cache = TRUE,
+                      fig.width=10, eval.after = 'fig.cap')
+library(tidyverse)
+library(infer)
+library(broom)
+library(tidymodels)
+library(lubridate)
+library(dotwhisker)
+library(janitor)
+library(geofacet)
+library(kernlab)
+library(viridis)
+library(patchwork)
+library(ggupset)
+library(knitr)
+library(skimr)
+library(ggstream)
+
+library(praise)
+set.seed(4747)
+```
+
+
+### The Data
+
+The data this week comes from [emmys.com](https://www.emmys.com/awards/nominations/award-search).
+
+The [Emmy Award](https://en.wikipedia.org/wiki/Emmy_Awards): 
+
+> An Emmy Award, or simply Emmy, is a trophy presented at one of the numerous annual American events or competitions that each recognize achievements in a particular sector of the television industry. The Emmy is considered one of the four major entertainment awards in the United States, the others being the Grammy (for music), the Oscar (Academy Award) (for film), and the Tony (for theatre). The two events that receive the most media coverage are the Primetime Emmy Awards and the Daytime Emmy Awards, which recognize outstanding work in American primetime and daytime entertainment programming, respectively.
+
+```{r}
+nominees <- read_csv("nominees.csv")
+```
+
+### Wrangling
+
+I'm following [some code](https://github.com/kevinkoegel/tidytuesday) written by @kevinkoegel which plots distributors over time.  
+
+```{r}
+nominees <- nominees %>%
+  mutate(Distributor = case_when(
+    distributor == 'Netflix' ~ distributor,
+    distributor == 'Hulu' ~ distributor,
+    distributor == 'A&E' ~ distributor,
+    grepl('Amazon', distributor) | distributor == 'Prime Video' ~ 'Amazon',
+    grepl('Apple', distributor) ~ 'Apple',
+    #grepl('Sci Fi', distributor) ~ 'Sci Fi',
+    grepl('You Tube', distributor) ~ 'You Tube',
+    grepl('ABC', distributor) ~ 'ABC',
+    #grepl('AMC', distributor) ~ 'AMC',
+    grepl('CBS', distributor) ~ 'CBS',
+    grepl('CNN', distributor) ~ 'CNN',
+    grepl('NBC', distributor) ~ 'NBC',
+    grepl('disney', distributor) | grepl('Disney', distributor) ~ 'Disney',
+    grepl('Facebook', distributor) ~ 'Facebook',
+    grepl('FOX', distributor) | grepl('Fox', distributor) ~ 'Fox',
+    #grepl('FX', distributor) ~ 'FX',
+    grepl('HBO', distributor) ~ 'HBO',
+    grepl('PBS', distributor) ~ 'PBS',
+    TRUE ~ 'Other'
+  ))
+
+```
+
+
+## Visualizing
+
+```{r fig.cap = "Stream plot of change in distributor for Emmy nominated shows over time.", fig.alt = "A stream plot to break out the main distributors of Emmy nominated shows over time.  Although difficult to discern the colors perfectly, it seems as though the streaming platforms have more of the nominees in recent years."}
+nominees %>%
+  filter(year > 2011) %>%
+  filter(type == "Nominee") %>%
+  select(year,category,title,Distributor) %>%
+  unique() %>%
+  group_by(year, Distributor) %>%
+  count() %>%
+  ggplot(aes(x = year, y = n, fill = Distributor)) +
+  geom_stream(type = 'proportional') +
+  scale_x_continuous(limits = c(2012,2021),
+                     breaks = c(2012,2013,2014,2015,2016,2017,2018,2019,2020,2021),
+                     expand = c(0,0)) +
+  theme(axis.ticks = element_blank(),
+        axis.text.x = element_text(size = 9, vjust = 9),
+        axis.text.y = element_blank(),
+        axis.title.x = element_blank(),
+        axis.title.y = element_text(angle = 0, vjust = .5, size = 9, color = 'gray20'),
+        panel.background = element_blank(),
+        plot.title = element_text(face = 'bold', size = 12),
+        plot.title.position = 'plot',
+        plot.caption = element_text(size = 8, hjust = 1.5),
+        legend.position = "top") +
+  labs(title = 'Changes in distributors over the past 10 years \nfor Emmy nominations',
+       y = 'Share \nof all Emmy \nnominations',
+       caption = 'SOURCE: emmys.com')  + 
+  #scale_fill_viridis_d() +
+  guides(fill = guide_legend(nrow = 3))
+```
+
+```{r fig.cap = "Stream plot of change in distributor for Emmy winning shows over time.", fig.alt = "A stream plot to break out the main distributors of Emmy winning shows over time.  Although difficult to discern the colors perfectly, it seems as though the streaming platforms have more of the winners in recent years."}
+nominees %>%
+  filter(year > 2011) %>%
+  filter(type == "Winner") %>%
+  select(year,category,title,Distributor) %>%
+  unique() %>%
+  group_by(year, Distributor) %>%
+  count() %>%
+  ggplot(aes(x = year, y = n, fill = Distributor)) +
+  geom_stream(type = 'proportional') +
+  scale_x_continuous(limits = c(2012,2021),
+                     breaks = c(2012,2013,2014,2015,2016,2017,2018,2019,2020,2021),
+                     expand = c(0,0)) +
+  theme(axis.ticks = element_blank(),
+        axis.text.x = element_text(size = 9, vjust = 9),
+        axis.text.y = element_blank(),
+        axis.title.x = element_blank(),
+        axis.title.y = element_text(angle = 0, vjust = .5, size = 9, color = 'gray20'),
+        panel.background = element_blank(),
+        plot.title = element_text(face = 'bold', size = 12),
+        plot.title.position = 'plot',
+        plot.caption = element_text(size = 8, hjust = 1.5),
+        legend.position = "top") +
+  labs(title = 'Changes in distributors over the past 10 years \nfor Emmy winners',
+       y = 'Share \nof all Emmy \nnominations',
+       caption = 'SOURCE: emmys.com')  + 
+  scale_fill_viridis_d() +
+  guides(fill = guide_legend(nrow = 3))
+```
+
+
+```{r}
+praise()
+```
+
