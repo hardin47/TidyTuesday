@@ -25,6 +25,7 @@ library(ggupset)
 library(knitr)
 library(skimr)
 library(ggstream)
+library(openintro)
 
 library(praise)
 set.seed(4747)
@@ -102,7 +103,7 @@ nominees %>%
   labs(title = 'Changes in distributors over the past 10 years \nfor Emmy nominations',
        y = 'Share \nof all Emmy \nnominations',
        caption = 'SOURCE: emmys.com')  + 
-  #scale_fill_viridis_d() +
+  scale_fill_manual(values = colorRampPalette(RColorBrewer::brewer.pal(16, "Paired"))(16)) +
   guides(fill = guide_legend(nrow = 3))
 ```
 
@@ -132,7 +133,7 @@ nominees %>%
   labs(title = 'Changes in distributors over the past 10 years \nfor Emmy winners',
        y = 'Share \nof all Emmy \nnominations',
        caption = 'SOURCE: emmys.com')  + 
-  scale_fill_viridis_d() +
+  scale_fill_manual(values = colorRampPalette(RColorBrewer::brewer.pal(15, "Paired"))(15)) +
   guides(fill = guide_legend(nrow = 3))
 ```
 
