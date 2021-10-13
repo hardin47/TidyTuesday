@@ -4,6 +4,8 @@ My Tidy Tuesday adventures: [https://hardin47.github.io/TidyTuesday/](https://ha
 
 ### Tidy Tuesday Analyses
 
+* 2021-10-05 [TidyTuesday Nursing in the US](https://hardin47.github.io/TidyTuesday/2021-10-05/nurses.html)
+
 * 2021-09-21 [TidyTuesday The Emmy Awards](https://hardin47.github.io/TidyTuesday/2021-09-21/emmys.html)
 
 * 2021-09-14 [TidyTuesday Top 100 Billboard Music](https://hardin47.github.io/TidyTuesday/2021-09-14/music.html)

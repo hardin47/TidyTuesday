@@ -1,0 +1,143 @@
+---
+title: "Nursing in the US"
+author: "Jo Hardin"
+date: "10/5/2021"
+output: html_document
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, 
+                      warning = FALSE, cache = TRUE,
+                      fig.width=10, eval.after = 'fig.cap')
+library(tidyverse)
+library(infer)
+library(broom)
+library(tidymodels)
+library(lubridate)
+library(dotwhisker)
+library(janitor)
+library(geofacet)
+library(kernlab)
+library(viridis)
+library(patchwork)
+library(ggupset)
+library(knitr)
+library(skimr)
+library(ggstream)
+library(openintro)
+library(biscale)
+library(cowplot)
+library(plotly)
+library(gganimate)
+library(magick)
+
+library(praise)
+set.seed(4747)
+```
+
+
+## The Data
+
+The data on registered Nurses comes from [Data.World](https://data.world/zendoll27/registered-nursing-labor-stats-1998-2020).
+
+```{r}
+nurses <- read_csv("nurses.csv") %>%
+  janitor::clean_names() %>%
+  mutate(st = state.abb[match(state, state.name)]) %>%
+  mutate(st = ifelse(state == "District of Columbia", "DC", st)) %>%
+  drop_na(st) %>%
+  bi_class(x=hourly_wage_median, y=total_employed_rn, style="quantile",dim=3) 
+```
+
+## Wrangling
+
+```{r}
+nurses %>%
+  filter(year == 2004) %>%
+  ggplot() + 
+  geom_histogram(aes(x = annual_salary_median))
+```
+
+```{r}
+nurses %>%
+  ggplot() + 
+  geom_histogram(aes(x = annual_salary_median)) +
+  facet_wrap(~year)
+  
+```
+
+
+## Data Viz
+
+I'm going to try to make a US plot that is colored by two variables and changes over time.  The main plot is due entirely to @leeolney3  at https://gist.github.com/leeolney3/7ff6c982d7928a554ad70fc8a367cea8 and https://twitter.com/leeolney3/status/1445196349889290241?s=20.
+
+I can't get the map and the legend to show up as part of the same gif, so the legend is plotted in the chunk below the US map.  The coloring isn't as descriptive as I'd like because number of nurses going up is probably a proxy for population numbers going up.  And hourly wage is likely due to inflation.
+
+```{r fig.cap = "Heatmap colored by two variables: number of nurses in the state and hourly wage.",  fig.alt = "The US map shows that over time, hourly wage has gone up and number of nurses in the state has also gone up."}
+nurses %>%
+  #filter(year == "2020") %>%
+  mutate(x = 1) %>% 
+  mutate(label_y = .5) %>%  
+  mutate(label_x = 1) %>% 
+  ggplot() +
+  geom_bar(mapping=aes(x=x, fill=bi_class, frame = year), width=.4)  +
+    facet_geo(~ st, grid="us_state_grid1") +
+    labs(title=paste(), subtitle=, caption="") +
+    geom_text(aes(x=label_x, y=label_y, label=st, color=bi_class),
+              size=3, show.legend=F, family="sans") +
+  bi_scale_fill(pal="DkCyan",dim=3, guide="none") +
+  scale_color_manual(values=c("grey10","grey10","white","white","white","white","white","white","white")) +
+  theme_void(base_size=10, base_family = "sans") + 
+  transition_states(year) +
+  theme(strip.text.x = element_blank(),
+        plot.margin = unit(c(.5,4,.5,2), "cm"),
+        plot.title=element_text(size=14, face="bold", color="#012a4a"),
+        plot.subtitle=ggtext::element_markdown(size=8, color="#011c31", margin=margin(t=5,b=18)),
+        legend.title=element_text(size=9),
+        plot.caption = ggtext::element_markdown(size=5.6, color="#011c31",margin=margin(t=30), lineheight=1.5, hjust=0)) + 
+  guides(fill = guide_colorbar(title="Count",
+                              title.position = "top", 
+                              barwidth = unit(.5, "lines"), 
+                              barheight = unit(10, "lines"))) +
+  labs(title = "Number of nurses and hourly wage over time",
+       subtitle = "{closest_state}")
+
+#p1_gif <- animate(p1, renderer = magick_renderer())
+#p1_mgif <- image_read(p1_gif)
+
+
+# legend                              
+bi_legend(pal = "DkCyan", 
+            dim = 3,
+            ylab = "Total employed",
+            xlab = "Median hourly wage",
+            size = 2.5) + 
+  theme(panel.border = element_blank(),
+        axis.text = element_blank(),
+        axis.title.x = element_text(size = 6, family="sans",
+                                    color = "#011c31", margin=margin(t=-5)),
+        axis.title.y = element_text(size = 6, family="sans",
+                                    color = "#011c31", margin=margin(r=-5)),
+        legend.text = element_text(size = 6),
+        plot.background = element_blank(),
+        legend.text.align = 0)
+
+
+```
+
+
+This chunk doesn't work.
+```{r eval = FALSE}
+new_gif <- image_append(c(p1_gif[1], p2))
+for(i in 2:23){
+  combined <- image_append(c(p1_gif[i], p2))
+  new_gif <- c(new_gif, combined)
+}
+```
+
+
+
+```{r}
+
+praise()
+```
+
