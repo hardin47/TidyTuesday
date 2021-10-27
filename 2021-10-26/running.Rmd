@@ -1,0 +1,160 @@
+---
+title: "Ultra Trail Running"
+author: "Jo Hardin"
+date: "10/26/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, 
+                      warning = FALSE, cache = TRUE,
+                      fig.width=10, eval.after = 'fig.cap')
+library(tidyverse)
+library(infer)
+library(broom)
+library(tidymodels)
+library(lubridate)
+library(countrycode)
+library(janitor)
+library(geofacet)
+library(kernlab)
+library(viridis)
+library(patchwork)
+library(ggupset)
+library(knitr)
+library(skimr)
+library(ggstream)
+library(openintro)
+library(biscale)
+library(cowplot)
+library(plotly)
+library(gganimate)
+library(magick)
+
+library(praise)
+set.seed(4747)
+```
+
+
+## The Data
+
+The data this week comes from [Benjamin Nowak](https://twitter.com/BjnNowak) by way of [International Trail Running Association (ITRA)](https://itra.run/Races/FindRaceResults). Their original repo is available on [GitHub](https://github.com/BjnNowak/UltraTrailRunning).
+
+
+```{r}
+race <- read_csv("race.csv") %>%
+  mutate(country_code = 
+           countrycode(country, 'country.name', 'iso3c')) %>%
+  mutate(participation = ifelse(participation == "Solo", "solo", participation)) %>%
+  filter(participation == "solo")
+
+
+ultra_rankings <- read_csv("ultra_rankings.csv")
+```
+
+
+## Home Field Advantage?
+
+```{r}
+ultra_rankings <- ultra_rankings %>%
+  left_join(race, by = "race_year_id")
+```
+
+
+```{r}
+country_ranks <- ultra_rankings %>%
+  mutate(advantage = ifelse(country_code == nationality, "home", "away")) %>%
+  group_by(country_code, advantage, gender) %>%
+  summarize(ave_rank = mean(rank, na.rm = TRUE),
+            top_rank = min(rank, na.rm = TRUE),
+            n_group = n()) %>%
+  filter(!is.na(country_code)) %>%
+  filter(!is.na(gender)) %>%
+  pivot_wider(id_cols = c(country_code, gender),
+              names_from = advantage,
+              values_from = c(ave_rank, top_rank, n_group))
+```
+
+
+```{r}
+library(ggalt)
+country_ranks %>%
+  filter(!is.na(n_group_away) & !is.na(n_group_home)) %>%
+  filter(n_group_away > 50 & n_group_home > 50) %>%
+  mutate(home_adv = ifelse(ave_rank_home < ave_rank_away, "yes", "no")) %>%
+  ggplot() + 
+  geom_dumbbell(aes(y = country_code, 
+                    x=ave_rank_away,
+                    xend = ave_rank_home,
+                    colour = home_adv),
+                    colour_xend = "green",
+                    colour_x = "purple") + 
+  facet_wrap(~gender)
+```
+
+
+```{r}
+country_ranks %>%
+  filter(!is.na(n_group_away) & !is.na(n_group_home)) %>%
+  filter(n_group_away > 50 & n_group_home > 50) %>%
+  mutate(home_adv = ifelse(top_rank_home < top_rank_away, "yes", "no")) %>%
+  ggplot() + 
+  geom_dumbbell(aes(y = country_code, 
+                    x=top_rank_away,
+                    xend = top_rank_home,
+                    colour = home_adv),
+                    colour_xend = "green",
+                    colour_x = "purple") + 
+  facet_wrap(~gender)
+```
+
+
+###  Home 
+
+What proportion of winners are from the race's country?
+
+```{r}
+country_wins <- ultra_rankings %>%
+#  mutate(advantage = ifelse(country_code == nationality, "home", "away")) %>%
+  filter(rank == 1) %>%
+  group_by(country_code) %>%
+  mutate(n_runs = n()) %>%
+  ungroup() %>%  
+  group_by(country_code, gender) %>%
+  summarize(prop_win = mean(nationality == country_code, na.rm = TRUE),
+            n_group = n(),
+            n_runs = sample(n_runs, 1)) %>%
+  filter(!is.na(country_code)) %>%
+  filter(!is.na(gender)) #%>%
+  #pivot_wider(id_cols = c(country_code, gender),
+  #           names_from = advantage,
+  #            values_from = c(prop_win, n_group))
+```
+
+
+
+```{r fig.cap = "How often is the ultra trail run won by a runner whose nationality is the same as the location of the race?", fig.alt = "Broken down by country, a bar plot measuring how often the race is won by a runner whose nationality is the same as the location of the race.  The majority of the races are won by a resident well over 50% of the time."}
+library(forcats)
+
+country_wins %>%
+  mutate(prop_loss = 1 - prop_win) %>%
+  mutate(home_adv = ifelse(prop_win < 0.5, "no", "yes")) %>%
+  filter(n_runs > 10) %>%
+  ggplot() + 
+  geom_col(aes(y = country_code, 
+               x = prop_win, color = home_adv),
+           fill = "lightgrey") + 
+  facet_wrap(~gender) +
+  scale_color_manual("Home Advantage?", values = c("#5c1a33", "Dodgerblue"), label = c("no", "yes")) +
+  labs( x = "",
+        y = "",
+        title = "Proportion of Wins by Resident Runner",
+        caption = "Tidy Tuesday Plot: @hardin47 | Data: Ultra Trail Running",
+        legend = "Home Advantage?")
+```
+
+
+
+
+
+
