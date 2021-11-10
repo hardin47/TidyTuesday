@@ -1,0 +1,131 @@
+---
+title: "afrimapr"
+author: "Jo Hardin"
+date: "11/9/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, 
+                      warning = FALSE, cache = TRUE,
+                      fig.width=10, eval.after = 'fig.cap')
+library(tidyverse)
+library(tidymodels)
+library(janitor)
+library(viridis)
+library(patchwork)
+library(knitr)
+library(skimr)
+
+library(praise)
+set.seed(4747)
+```
+
+
+This week we get some really fantastic plots.  **However**, they are all created using the built in data and functionality.  So there was very little wrangling or learning how to use new functions.  We did, however, apply **rayshader** to one of the ggplot2 objects to see it in three dimensions.  I can't get a figure caption or alt text on the rayshader.
+
+## The Data
+
+
+The data this week comes from the [`afrimapr` team](https://github.com/afrimapr) and the learning/teaching of spatial techniques with the [`afrilearndata`](https://afrimapr.github.io/afrilearndata/) package.
+
+
+```{r}
+#remotes::install_github("afrimapr/afrilearndata")
+#remotes::install_github("afrimapr/afrihealthsites")
+library(afrilearndata)
+library(afrihealthsites)
+library(sf)
+```
+
+
+# Built in plots
+
+The package has many very cool built in plotting functionality.  For example: 
+
+```{r}
+afrihealthsites("kenya", datasource='who', plot='mapview')
+```
+
+and
+
+```{r}
+# install.packages("tmap") # if not already installed
+library(tmap)
+
+# tmap_mode("view") to set to tmap interactive viewing mode
+
+tm_shape(afripop2020) +
+    tm_raster(palette = rev(viridisLite::magma(5)), breaks=c(0,2,20,200,2000,25000)) +
+tm_shape(africountries) +
+    tm_borders("white", lwd = .5) +
+tm_shape(afrihighway) +
+    tm_lines(col = "red") + 
+tm_shape(africapitals) +
+    tm_symbols(col = "blue", alpha=0.4, scale = .6 )+
+tm_legend(show = FALSE)
+
+```
+
+```{r}
+# install.packages("mapview") # if not already installed
+
+library(mapview)
+mapview::mapview(africountries, zcol="name")
+#here to show all airports on the continent
+mapview(afriairports, zcol='type', label='name', cex=2)
+```
+
+
+
+
+## **rayshader** 
+
+The **rayshader** package takes a **ggplot2** object and makes it three dimensional.  So first we need to make a plot. Code from https://github.com/ronycoelho/tidytuesday2021.
+
+```{r}
+afripop_gg <- africountries %>% 
+  ggplot(aes(fill = pop_est))+
+  geom_sf()+
+  #geom_sf_text(aes(label = name), size = 1)+ 
+  coord_sf()+
+  scale_fill_distiller(direction = 1, na.value = "gray50", palette = 3,
+                      label = scales::label_number(big.mark = "."))+
+  theme_light() +
+  theme(legend.position = c(.2, .3),
+        legend.background = element_rect(fill = "transparent"))+
+  guides(fill = guide_colorsteps())+
+  labs(title = "Estimated Population", fill = "")
+
+afripop_gg
+```
+```{r}
+library(rayshader)
+library(knitr)
+library(rgl)
+knit_hooks$set(rgl=hook_rgl)
+```
+
+
+```{r rgl = TRUE}
+rayshader::plot_gg(afripop_gg, 
+                   soliddepth = - 100,
+                   multicore = T,
+                   pointcontract = .7,
+                   offset_edges = T
+)
+render_snapshot()
+rgl::rgl.close() 
+```
+
+
+```{r}
+praise()
+```
+
+
+
+
+
+
+

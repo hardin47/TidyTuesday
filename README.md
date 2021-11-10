@@ -4,6 +4,8 @@ My Tidy Tuesday adventures: [https://hardin47.github.io/TidyTuesday/](https://ha
 
 ### Tidy Tuesday Analyses
 
+* 2021-11-09 [TidyTuesday afrimapr](https://hardin47.github.io/TidyTuesday/2021-11-09/afrimapr.html)
+
 * 2021-10-26 [TidyTuesday Ultra Trail  Running](https://hardin47.github.io/TidyTuesday/2021-10-26/running.html)
 
 * 2021-10-05 [TidyTuesday Nursing in the US](https://hardin47.github.io/TidyTuesday/2021-10-05/nurses.html)
