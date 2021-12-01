@@ -26,7 +26,6 @@ This week we get some really fantastic plots.  **However**, they are all created
 
 ## The Data
 
-
 The data this week comes from the [`afrimapr` team](https://github.com/afrimapr) and the learning/teaching of spatial techniques with the [`afrilearndata`](https://afrimapr.github.io/afrilearndata/) package.
 
 

@@ -1,0 +1,76 @@
+---
+title: "Cricket"
+author: "Jo Hardin"
+date: "11/30/2021"
+output: html_document
+---
+
+
+Plugging along, but the plots I made today really aren't particularly meaningful because they don't have good comparisons (as compared to what?).  Alas, not enough time.
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, 
+                      warning = FALSE, cache = TRUE,
+                      fig.width=10, eval.after = 'fig.cap')
+library(tidyverse)
+library(tidymodels)
+library(janitor)
+library(viridis)
+library(patchwork)
+library(knitr)
+library(skimr)
+
+library(praise)
+set.seed(4747)
+```
+
+## The Data
+
+The data this week comes from [ESPN Cricinfo](https://www.espncricinfo.com/) by way of [Hassanasir](https://github.com/hassannasir).
+
+```{r}
+cricket <- read_csv("matches.csv") %>%
+  mutate(toss_score = ifelse(team1 == toss, score_team1, score_team2),
+         home_score = ifelse(
+           team1_away_or_home == "home", score_team1,
+           ifelse(team2_home_away == "home",score_team2, NA
+         )),
+          home_team = ifelse(
+           team1_away_or_home == "home", team1,
+           ifelse(team2_home_away == "home", team2, NA
+         ))) %>%
+ mutate(match_date = as.Date(match_date, format = "%b %d, %Y"),
+        match_date = case_when(is.na(match_date) ~ as.Date(match_date, format = "%b %d-%d, %Y"),
+                                TRUE ~ match_date)) %>%
+  mutate(year = lubridate::year(match_date))
+```
+
+
+## Plotting
+
+```{r}
+cricket %>%
+  ggplot() +
+  geom_boxplot(aes(y = toss_score, x = toss, color = toss)) + 
+  facet_wrap(~toss_decision) +
+  coord_flip() +
+  ggtitle("Score when country won the toss")
+```
+
+
+```{r}
+cricket %>%
+  filter(!is.na(home_team)) %>%
+  ggplot() +
+  geom_boxplot(aes(y = home_score, x = home_team, color = home_team)) + 
+  coord_flip() +
+  ggtitle("Score when country was home")
+```
+
+
+
+```{r}
+praise()
+```
+
