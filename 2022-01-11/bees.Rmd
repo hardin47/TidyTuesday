@@ -1,0 +1,84 @@
+---
+title: "Bee Colonies"
+author: "Jo Hardin"
+date: "1/11/2022"
+output: html_document
+---
+
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, 
+                      warning = FALSE, cache = TRUE,
+                      eval.after = 'fig.cap', fig.width = 10, fig.height = 15)
+library(tidyverse)
+library(tidymodels)
+library(janitor)
+library(viridis)
+library(patchwork)
+library(knitr)
+library(skimr)
+
+library(praise)
+set.seed(4747)
+```
+
+## The Data
+
+The data this week comes from the [USDA](https://usda.library.cornell.edu/concern/publications/rn301137d?locale=en), hat tip to [Georgios Karamanis](https://github.com/rfordatascience/tidytuesday/issues/404).
+
+```{r}
+colony <- read_csv("colony.csv") %>%
+    mutate(state_abb = state.abb[match(state,state.name)]) 
+stressor <- read_csv("stressor.csv")
+```
+
+
+I wanted to make a plot to describe the change in lost and added colonies over time, per state.  The base of the plot was reasonably straightforward to make, but the legend took forever to get right!  It's hard to make legends for barbell plots.
+
+
+```{r fig.alt = "Barbell plot showing number of colonies lost and number of colonies added on each end of the barbell.  There is also a point showing the number of colonies total.  Each point and barbell is given for a state-year combination (state on the y-axis, faceted by year).  We see that in 2015 there was more loss of colonies than added colonies.  By 2021 the reverse is true, more colonies have been added than lost in most states.",  fig.cap = "In 2021 more colonies have been added than lost as compared to 2015 where more colonies were lost than added. The states with more colonies are also the states with more gain and more loss."}
+
+colony %>%
+  filter(year != "2019") %>%
+  filter(!(state %in% c("Other States", "United States"))) %>%
+  group_by(year, state_abb) %>%
+  summarize(colony_n_yr = sum(colony_n),
+            colony_lost_yr = sum(colony_lost),
+            colony_add_yr = sum(colony_added)) %>%
+  ungroup() %>%
+  mutate(state_abb_srt = fct_reorder(state_abb, colony_lost_yr)) %>%
+  mutate(change = ifelse(colony_lost_yr < colony_add_yr, "growth", "loss")) %>%
+  mutate(temp = ifelse(colony_lost_yr <= 1000, "lost", ifelse(colony_lost_yr <= 2000, "added", "total"))) %>%
+  ggplot() +
+  geom_segment(aes(x = colony_lost_yr, xend = colony_add_yr,
+                   y = state_abb_srt, yend = state_abb_srt, alpha = change)) +
+  geom_point(aes(x = colony_lost_yr, y = state_abb_srt, color = temp)) +
+  geom_point(aes(x = colony_lost_yr, y = state_abb_srt), color = "#edae52") +
+  geom_point(aes(x = colony_add_yr, y = state_abb_srt), color = "yellow") +
+  geom_point(aes(x = colony_n_yr, y = state_abb_srt), color = "blue") +
+  facet_wrap(~year) + 
+  scale_x_continuous(trans = "log10") + 
+  scale_alpha_manual(values = c(1, 0.5), na.translate = FALSE) +
+  scale_color_manual(name = "colonies",
+                        values = c( "yellow", "#edae52","blue")) +
+  labs(
+    title = "Bee colony loss/added as compared to colony size (log10 scale), \nover state and year",
+    caption = "Tidy Tuesday Plot: @hardin47 | Data: Bee Colonies from USDA, contributor Georgios Karamanis") +
+    xlab("colony, on log10 scale")+
+    ylab("")
+```
+
+
+
+
+
+```{r}
+praise()
+```
+
+
+
+
+
+
