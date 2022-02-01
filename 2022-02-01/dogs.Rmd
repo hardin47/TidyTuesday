@@ -1,0 +1,90 @@
+---
+title: "Dog Breeds"
+author: "Jo Hardin"
+date: "2/1/2022"
+output: html_document
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, 
+                      warning = FALSE, cache = TRUE,
+                      eval.after = 'fig.cap', fig.width = 8, fig.height = 6)
+library(tidyverse)
+library(tidymodels)
+library(janitor)
+library(viridis)
+library(patchwork)
+library(knitr)
+library(skimr)
+library(ggrepel)
+
+library(praise)
+set.seed(4747)
+```
+
+## The Data
+
+The data this week comes from the American Kennel Club courtesy of [KKakey](https://github.com/kkakey/dog_traits_AKC/blob/main/README.md) - thanks!
+
+
+
+```{r}
+breed_rank <- read_csv("breed_rank.csv")
+breed_traits <- read_csv("breed_traits.csv")
+trait_descr <- read_csv("trait_description.csv")
+```
+
+
+
+
+##  Some plots
+
+My first challenge today is to be able to put the `Breed` variable on the right side of the line plot which describes `year` (x-axis) and `rank` (y-axis).  First, the data will need to `pivot_longer()` to create a tidy format that will be easier to use.
+
+```{r}
+rank <- breed_rank %>%
+  pivot_longer(`2013 Rank`:`2020 Rank`, names_to = "year", values_to = "rank") %>%
+  mutate(year = parse_number(year))
+```
+
+
+```{r fig.alt = "Line plot with breed rank on the y-axis and year on the x-axis.  Labrador Retrievers have ranked number 1 since 2013.  Other reliably popular breeds include French Bulldogs, German Shepherds, Golden Retrievers, Bulldogs, Poodles, and Beagles.", fig.align='center'}
+rank %>%
+  filter(rank <= 10) %>%
+  mutate(breed = ifelse(year == 2020, Breed, NA)) %>%
+  ggplot(aes(x = year, y = rank, color = Breed)) +
+  geom_line()  +
+  geom_point() +
+  geom_label(aes(label = breed),
+                   nudge_x = 1,
+                   na.rm = TRUE) +
+  theme(legend.position = "none")  +
+  scale_y_continuous(breaks= c(1:10), trans = "reverse") +
+  scale_x_continuous(breaks= c(2013:2020)) +
+  ylab("") +
+  xlab("") +
+  xlim(c(2013,2022)) +
+  scale_color_viridis(discrete = TRUE) +
+  labs(
+    title = "Popularity Rank of Breed\nbased on AKH registration",
+    caption = "Tidy Tuesday Plot: @hardin47 | Data: Dog Breeds from AKH, contributor @KKakey") 
+```
+
+
+```{r}
+praise()
+```
+
+
+## Practicing...
+
+```{r}
+breed_traits %>%
+  ggplot(aes(x = `Drooling Level`, y = `Affectionate With Family`)) + 
+  geom_jitter(alpha = 0.2, width = 0.1, height = 0.1)
+```
+
+
+
+

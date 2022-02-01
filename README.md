@@ -4,7 +4,9 @@ My Tidy Tuesday adventures: [https://hardin47.github.io/TidyTuesday/](https://ha
 
 ### Tidy Tuesday Analyses
 
-* 2022-01-11[TidyTuesday Bee Colonies](https://hardin47.github.io/TidyTuesday/2022-01-11/bees.html)
+* 2022-02-01 [TidyTuesday Dog Traits](https://hardin47.github.io/TidyTuesday/2022-02-01/dogs.html)
+
+* 2022-01-11 [TidyTuesday Bee Colonies](https://hardin47.github.io/TidyTuesday/2022-01-11/bees.html)
 
 * 2021-11-30 [TidyTuesday Cricket](https://hardin47.github.io/TidyTuesday/2021-11-30/cricket.html)
 
