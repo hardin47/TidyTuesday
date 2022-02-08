@@ -1,0 +1,76 @@
+---
+title: "Tuskegee Airmen"
+author: "Jo Hardin"
+date: "2/8/2022"
+output: html_document
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, 
+                      warning = FALSE, cache = TRUE,
+                      eval.after = 'fig.cap', fig.width = 10, fig.height = 6)
+library(tidyverse)
+library(tidymodels)
+library(janitor)
+library(viridis)
+library(patchwork)
+library(knitr)
+library(skimr)
+library(ggrepel)
+library(lubridate)
+
+library(praise)
+set.seed(4747)
+```
+
+## The Data
+
+The data this week comes from the [Tuskegee Airmen Challenge](https://github.com/lang1023/Tuskegee-Airman-Challenge/blob/main/Tuskegee%20Airmen%20Challenge.xlsx) as part of the [Veterans Advocacy Tableau User Group](https://usergroups.tableau.com/airmenchallegekickoff) with data sourced from the CAF (Commemorative Air Force) [CAF](https://commemorativeairforce.org/). This dataset is released in honor of Black History Month and honors the sacrifices and challenges that these African American pilots faced in WWII and beyond. 
+
+```{r}
+airmen <- read_csv("airmen.csv") %>%
+  mutate(grad_year = year(graduation_date)) %>%
+  mutate(pilot_type = case_when(
+    pilot_type == "Liason pilot" ~ "Liaison pilot",
+    TRUE ~ pilot_type
+  )) %>%
+  mutate(rank_at_graduation = case_when(
+    rank_at_graduation == "Capt" ~ "Captain",
+    rank_at_graduation == "N/A" ~ NA_character_,
+    rank_at_graduation == "Unk" ~ NA_character_,
+    TRUE ~ rank_at_graduation
+  ))
+```
+
+
+## Plotting
+
+```{r fig.cap = "Most of the pilots graduated in 1943 and 1944 as 2nd Lt; most of the pilots were flying single engine airplanes.  In 1943 and 1944 the single pilots seemed to have a higher rate of aerial victories than in other years.", fig.alt = "Scatterplot with rank at graduation on the x-axis and pilot type on the y-axis.  The size of the point is given by the number of aerial victories (ranging from 1 to 4), and the color of the point is given by the year the pilot graduated."}
+airmen %>%
+  select(pilot_type, rank_at_graduation, grad_year, number_of_aerial_victory_credits) %>%
+  drop_na() %>%
+  ggplot(aes(x = rank_at_graduation, y = pilot_type)) + 
+  geom_jitter(aes(color = as.factor(grad_year), size = number_of_aerial_victory_credits),
+              alpha = 0.5) +
+  scale_color_brewer(palette = "Dark2") +
+  labs(
+    title = "Type of Pilot",
+    caption = "Tidy Tuesday Plot: @hardin47 | Data: Tuskegee Airmen Challenge",
+    color = "grad year",
+    size = "aerial victories",
+    x = "rank at graduation",
+    y = "") +
+  facet_wrap(~grad_year)
+```
+
+
+
+
+```{r}
+praise()
+```
+
+
+
+
