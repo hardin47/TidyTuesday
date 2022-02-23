@@ -1,0 +1,159 @@
+---
+title: "Democracy"
+author: "Jo Hardin"
+date: "2/22/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, 
+                      warning = FALSE, cache = TRUE,
+                      eval.after = 'fig.cap', fig.width = 10, fig.height = 6)
+library(tidyverse)
+library(tidymodels)
+library(janitor)
+library(viridis)
+library(patchwork)
+library(knitr)
+library(skimr)
+library(ggrepel)
+library(lubridate)
+
+library(praise)
+set.seed(4747)
+```
+
+
+## The Data
+
+The data this week comes from [Freedom House](https://freedomhouse.org/reports/publication-archives) and the [United Nations](https://unstats.un.org/unsd/methodology/m49/overview/) by way of [Arthur Cheib](https://github.com/ArthurCheib/analytical-politics-project/blob/main/data/tidy-data-fh-un.csv).
+
+
+```{r}
+freedom <- read_csv("freedom.csv") %>%
+  mutate(country = case_when(
+    country == "CÃƒÂ´te dÃ¢â‚¬â„¢Ivoire" ~ "Cote d'Ivoire",
+    TRUE ~ country
+  ))
+
+```
+
+### Data Dictionary
+
+##### `freedom.csv`
+
+Score of 7 for `CL` and `PR` means fewer liberties / rights
+
+|variable    |class     |description |
+|:-----------|:---------|:-----------|
+|country     |character | Country Name |
+|year        |double    | Year |
+|CL          |double    | Civil Liberties 0-7 |
+|PR          |double    | Political rights 0-7 |
+|Status      |character | Status (Free `F`, Not Free `NF`, Partially Free `PF`) |
+|Region_Code |double    | UN Region code |
+|Region_Name |character | UN Region Name |
+|is_ldc      |double    | Is a least developed country (binary 0/1) |
+
+
+
+##  Measuring Freedom Increase / Decrease
+
+```{r fig.cap = "The trajectory of change in political rights is plotted across time for countries who have a change in political rights of more than 2, faceted by region  Note that no country in the Americas had a change in political rights (year over year) of more than 2 in the time frame given.", fig.alt = "Line graph with change in political rights on the y-axis and year on the x-axis (1995 to 2020).  The countries displayed are Congo, Figi, Haiti, Liberia, Libya, Mali, Niger, Pakistan, Sierra Leone, Solomon Islands, Thailand, ad Tunisia."}
+freedom_chng_PR <- freedom %>%
+  group_by(country) %>%
+  mutate(CL_chng = lag(CL) - CL, PR_chng = lag(PR) - PR)  %>%
+  mutate(max_PR = max(PR_chng, na.rm = TRUE), 
+         min_PR = min(PR_chng, na.rm = TRUE)) %>%
+  mutate(change = case_when(
+    max_PR > 2 ~ "big",
+    min_PR < -2 ~ "big",
+    TRUE ~ "small"
+  )) %>%
+  ungroup() 
+
+
+freedom_chng_PR %>%
+  filter(change == "big") %>%
+  #group_by(year, PR_chng, Region_Name) %>%
+  #summarise(tot_PR = n()) %>%
+  ggplot() +
+  geom_hline(yintercept = 0, color = "grey") + 
+  geom_point(aes(x = year, y = PR_chng, color = Region_Name)) +
+  facet_wrap(~ Region_Name) +
+  geom_line(aes(x = year, y = PR_chng, 
+                color = Region_Name, linetype = country)) +
+  scale_y_continuous(breaks= c(-5:5)) +
+  ylab("") +
+  ggtitle("Change over year in Political Rights, per country")
+ 
+```
+
+
+```{r fig.cap = "The trajectory of change in civil liberties is plotted across time for countries who have a change in civil liberties of more than 1, faceted by region  Note that no country in the Americas had a change in civil liberties (year over year) of more than 1 in the time frame given.", fig.alt = "Line graph with change in civil liberties on the y-axis and year on the x-axis (1995 to 2020).  The countries displayed are Central African Republic, Cote d'Ivoire, Iraq, Liberia, Mali, Nigeria, and Slovakia."}
+freedom_chng_CL <- freedom %>%
+  group_by(country) %>%
+  mutate(CL_chng = lag(CL) - CL, PR_chng = lag(PR) - PR)  %>%
+  mutate(max_CL = max(CL_chng, na.rm = TRUE), 
+         min_CL = min(CL_chng, na.rm = TRUE)) %>%
+  mutate(change = case_when(
+    max_CL > 1 ~ "big",
+    min_CL < -1 ~ "big",
+    TRUE ~ "small"
+  )) %>%
+  ungroup() 
+
+freedom_chng_CL %>%
+  filter(change == "big") %>%
+  #group_by(year, PR_chng, Region_Name) %>%
+  #summarise(tot_PR = n()) %>%
+  ggplot() +
+  geom_hline(yintercept = 0, color = "grey") + 
+  geom_point(aes(x = year, y = CL_chng, color = Region_Name)) +
+  facet_wrap(~ Region_Name) +
+  geom_line(aes(x = year, y = CL_chng, 
+                color = Region_Name, linetype = country)) +
+  scale_y_continuous(breaks= c(-5:5)) +
+  ylab("") +
+  ggtitle("Change over year in Civil Liberties, per country")
+ 
+```
+
+## Practicing
+
+```{r}
+freedom_chng <- freedom %>%
+  group_by(country) %>%
+  mutate(CL_chng = lag(CL) - CL, PR_chng = lag(PR) - PR) 
+
+freedom_chng %>%
+  group_by(year, PR_chng, Region_Name) %>%
+  summarise(tot_PR = n()) %>%
+  ggplot() +
+  #geom_hline(yintercept = 0, color = "black") + 
+  geom_point(aes(x = year, y = PR_chng, size = tot_PR, color = Region_Name)) +
+  geom_line(data = ~filter(freedom_chng, abs(PR_chng) > 1), 
+            mapping = aes(x = year, y = PR_chng,
+                          color = country)) +
+  facet_wrap( ~ Region_Name) +
+  theme(legend.position = "none")
+```
+
+```{r}
+freedom %>%
+  filter(year == 2020) %>%
+  ggplot(aes(x = Region_Name, fill = Status)) + 
+  geom_bar()
+
+freedom %>%
+  filter(year == 1995) %>%
+  ggplot(aes(x = Region_Name, fill = Status)) + 
+  geom_bar()
+```
+
+
+
+```{r}
+praise()
+```
+
