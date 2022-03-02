@@ -1,6 +1,6 @@
 
 
-* 2022-02-15[[TidyTuesday DuBois Challenge 2022](https://hardin47.github.io/TidyTuesday/2022-02-15/DuBois2022.html)
+* 2022-02-15 [TidyTuesday DuBois Challenge 2022](https://hardin47.github.io/TidyTuesday/2022-02-15/DuBois2022.html)
 
 
 

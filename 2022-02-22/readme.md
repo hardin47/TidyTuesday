@@ -1,4 +1,4 @@
-* 2022-02-15[[TidyTuesday Freedom & Democracy](https://hardin47.github.io/TidyTuesday/2022-02-22/freedom.html)
+* 2022-02-22 [TidyTuesday Freedom & Democracy](https://hardin47.github.io/TidyTuesday/2022-02-22/freedom.html)
 
 
 ### Please add alt text to your posts

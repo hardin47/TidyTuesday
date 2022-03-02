@@ -1,0 +1,91 @@
+---
+title: "Alternative Fuel Stations"
+author: "Jo Hardin"
+date: "3/1/2022"
+output: html_document
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, 
+                      warning = FALSE, cache = TRUE,
+                      eval.after = 'fig.cap', fig.width = 10, fig.height = 6)
+library(tidyverse)
+library(tidymodels)
+library(janitor)
+library(viridis)
+library(patchwork)
+library(knitr)
+library(skimr)
+library(ggrepel)
+library(lubridate)
+library(plotly)
+
+library(praise)
+set.seed(4747)
+```
+
+
+## The Data
+
+The data this week comes from [US DOT](https://data-usdot.opendata.arcgis.com/datasets/usdot::alternative-fueling-stations/about). An interactive map can be used at [https://www.arcgis.com/home/webmap/viewer.html?panel=gallery&layers=cc51698ab9d94d67b4ec5dc5b8d97f34](https://www.arcgis.com/home/webmap/viewer.html?panel=gallery&layers=cc51698ab9d94d67b4ec5dc5b8d97f34) with a short article from the [EIA](https://www.eia.gov/todayinenergy/detail.php?id=6050#:~:text=In%20aggregate%2C%20there%20are%20currently,gasoline%20stations%20in%20the%20country.).
+
+Hattip to [Data is Plural](https://www.data-is-plural.com/archive/2021-09-08-edition/) for sharing this resource.
+
+
+```{r}
+stations <- read_csv("stations.csv") %>%
+  janitor::clean_names() %>%
+  mutate(year = lubridate::year(as.Date(open_date))) %>%
+  mutate(decade = (year%/%10)*10)
+```
+
+```{r}
+text <- c("BD: Biodiesel (B20 and above)",
+"CNG: Compressed Natural Gas",
+"ELEC: Electric",
+"E85: Ethanol",
+"HY: Hydrogen",
+"LNG: Liquefied Natural Gas",
+"LPG: Propane")
+text <- paste0(text, collapse = "\n")
+text.df <- data.frame(text)
+```
+
+
+## EDA
+
+```{r}
+stations %>%
+  filter(!(state %in% c("AK", "HI", "ON", "PR"))) %>%
+  filter(!is.na(state)) %>%
+  filter(status_code == "E") %>%   # station is available
+  filter(latdd > 22) %>%  # seems like there are some outliers
+  ggplot(aes(color = fuel_type_code)) + 
+  geom_point(aes(x = longdd, y = latdd), size = .5) +
+  facet_wrap(~fuel_type_code) +
+  gganimate::transition_time(decade, range = c(1970, 2020)) + 
+  gganimate::shadow_mark(past = T, future = F, alpha = 0.6) +
+  theme_void() +
+  theme(legend.position="none") +
+  labs(
+    title = "Evolution of alternative fuel stations over time",
+    caption = "Tidy Tuesday Plot: @hardin47 | Data: US DOT via Data is Plural") 
+  grid::grid.text(
+    x = .5,
+    y = .2,
+    label = text,
+    gp = grid::gpar(fontsize = 18, fontface = "bold", 
+                    fontfamily="mono")
+  )
+
+```
+
+
+
+
+
+
+
+
+
