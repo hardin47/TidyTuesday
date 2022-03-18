@@ -4,6 +4,8 @@ My Tidy Tuesday adventures: [https://hardin47.github.io/TidyTuesday/](https://ha
 
 ### Tidy Tuesday Analyses
 
+* 2022-03-08 [TidyTuesday Erasmus](https://hardin47.github.io/TidyTuesday/2022-03-08/erasmus.html)
+
 * 2022-03-01 [TidyTuesday Alternative Fuel Stations](https://hardin47.github.io/TidyTuesday/2022-03-01/altfuel.html)
 
 * 2022-02-22 [TidyTuesday Freedom & Democracy](https://hardin47.github.io/TidyTuesday/2022-02-22/freedom.html)
