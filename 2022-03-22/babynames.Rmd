@@ -1,0 +1,143 @@
+---
+title: "Babynames"
+author: "Jo Hardin"
+date: "3/22/2022"
+output: html_document
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, 
+                      warning = FALSE, cache = TRUE,
+                      eval.after = 'fig.cap', fig.width = 10, fig.height = 6)
+library(tidyverse)
+library(tidymodels)
+library(janitor)
+library(viridis)
+library(patchwork)
+library(knitr)
+library(skimr)
+library(ggrepel)
+library(lubridate)
+library(plotly)
+library(countrycode)
+
+library(praise)
+set.seed(4747)
+```
+
+
+## The Data
+
+The data this week comes from [`babynames`](http://hadley.github.io/babynames/) R package from Hadley Wickham. Note that other datasets exist, like the [`nzbabynames`](https://github.com/ekothe/nzbabynames) package from Emily Kothe.
+
+
+```{r}
+babynames <- read_csv("babynames.csv") %>%
+  janitor::clean_names()
+
+nz_baby <- read_csv("nz_names.csv") %>%
+  janitor::clean_names() %>%
+  mutate(sex = case_when(
+    sex == "Female" ~ "F",
+    sex == "Male" ~ "M",
+    TRUE ~ sex
+  ))
+
+maori_baby <- read_csv("maorinames.csv") %>%
+  janitor::clean_names() %>%
+  mutate(sex = case_when(
+    sex == "Female" ~ "F",
+    sex == "Male" ~ "M",
+    TRUE ~ sex
+  ))
+
+
+all_names <- babynames %>% 
+  inner_join(nz_baby, by = c("name" = "name", "sex" = "sex", "year" = "year")) %>%
+  mutate(nz_count = count, us_count = n)
+
+pop_nz_names_F <- nz_baby %>%
+  filter(sex == "F") %>%
+  group_by(name) %>%
+  summarize(nz_count = sum(count)) %>%
+  arrange(nz_count) %>%
+  top_n(10) %>% 
+  select(name) %>%
+  pull()
+
+pop_nz_names_M <- nz_baby %>%
+  filter(sex == "M") %>%
+  group_by(name) %>%
+  summarize(nz_count = sum(count)) %>%
+  arrange(nz_count) %>%
+  top_n(10) %>% 
+  select(name) %>%
+  pull()
+```
+
+
+
+## Wrangling
+
+The most poisoned baby name in history, [read this](https://hilaryparker.com/2013/01/30/hilary-the-most-poisoned-baby-name-in-us-history/).
+
+```{r}
+babynames %>%
+  filter(name == "Hilary") %>%
+  filter(sex == "F") %>%
+  ggplot() + 
+  geom_line(aes(x = year, y = n)) + 
+  geom_vline(xintercept = 1992)
+```
+
+
+
+
+```{r}
+all_names %>%
+  filter(name %in% pop_nz_names_F) %>%
+  filter(sex == "F") %>%
+  ggplot(aes(x = year)) + 
+  geom_line(aes(y = nz_count*100, color = "NZ")) + 
+  geom_line(aes(y = us_count, color = "US")) + 
+  scale_y_continuous(sec.axis = sec_axis(~./100, name = "Name Count in NZ") ) +
+  scale_color_manual(values = c("#52854C", "#CC79A7")) + 
+  labs(y = "Name Count in US",
+       x = "",
+       color = "Country",
+       title = "Comparison of female name popularity",
+       subtitle = "top 10 most popular NZ female names over all years") + 
+  facet_wrap(~name)
+```
+
+
+```{r}
+all_names %>%
+  filter(name %in% pop_nz_names_M) %>%
+  filter(sex == "M") %>%
+  ggplot(aes(x = year)) + 
+  geom_line(aes(y = nz_count*100, color = "NZ")) + 
+  geom_line(aes(y = us_count, color = "US")) + 
+  scale_y_continuous(sec.axis = sec_axis(~./100, name = "Name Count in NZ") ) +
+  scale_color_manual(values = c("#52854C", "#CC79A7")) + 
+  labs(y = "Name Count in US",
+       x = "",
+       color = "Country",
+       title = "Comparison of male name popularity",
+       subtitle = "top 10 most popular NZ male names over all years") + 
+  facet_wrap(~name)
+```
+
+
+
+
+
+```{r}
+all_names %>%
+  filter(year == 2017) %>%
+  ggplot() + 
+  geom_point(aes(x = us_count, y = nz_count, color = sex)) +
+  coord_trans(x = "log10", y = "log10")
+```
+
