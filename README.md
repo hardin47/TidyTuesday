@@ -4,6 +4,14 @@ My Tidy Tuesday adventures: [https://hardin47.github.io/TidyTuesday/](https://ha
 
 ### Tidy Tuesday Analyses
 
+* 2022-04-12 [TidyTuesday Wind Turbines](https://hardin47.github.io/TidyTuesday/2022-05-03/wind-turbines.html)
+
+* 2022-04-12 [TidyTuesday Indoor Pollution](https://hardin47.github.io/TidyTuesday/2022-04-12/indoor_pollution.html)
+
+* 2022-04-05 [TidyTuesday News Organizations](https://hardin47.github.io/TidyTuesday/2022-04-05/news.html)
+
+* 2022-03-29 [TidyTuesday NCAA Spending](https://hardin47.github.io/TidyTuesday/2022-03-29/ncaa.html)
+
 * 2022-03-22 [TidyTuesday Babynames](https://hardin47.github.io/TidyTuesday/2022-03-22/babynames.html)
 
 * 2022-03-08 [TidyTuesday Erasmus](https://hardin47.github.io/TidyTuesday/2022-03-08/erasmus.html)

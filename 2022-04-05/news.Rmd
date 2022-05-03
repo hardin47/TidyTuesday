@@ -1,0 +1,42 @@
+---
+title: "News"
+author: "Jo Hardin"
+date: "4/5/2022"
+output: html_document
+---
+
+
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, 
+                      warning = FALSE, cache = TRUE,
+                      eval.after = 'fig.cap', fig.width = 10, fig.height = 6)
+library(tidyverse)
+library(tidymodels)
+library(janitor)
+library(viridis)
+library(patchwork)
+library(knitr)
+library(skimr)
+library(ggrepel)
+library(lubridate)
+library(plotly)
+library(countrycode)
+
+library(praise)
+set.seed(4747)
+```
+
+
+## The Data
+
+The data this week comes from [Project Oasis](https://www.projectnewsoasis.com/publications) by way of [Data is Plural](https://www.data-is-plural.com/archive/2022-03-30-edition/).
+
+
+```{r}
+news_orgs <- read_csv("news_orgs.csv")
+publications <- read_csv("publications.csv")
+```
+
+

@@ -1,0 +1,67 @@
+---
+title: "Indoor Pollution"
+author: "Jo Hardin"
+date: "4/12/2022"
+output: html_document
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, 
+                      warning = FALSE, cache = TRUE,
+                      eval.after = 'fig.cap', fig.width = 10, fig.height = 6)
+library(tidyverse)
+library(tidymodels)
+library(janitor)
+library(viridis)
+library(patchwork)
+library(knitr)
+library(skimr)
+library(ggrepel)
+library(lubridate)
+library(plotly)
+library(countrycode)
+
+library(praise)
+set.seed(4747)
+```
+
+
+## The Data
+
+The data this week comes from [Our World in Data](https://ourworldindata.org/indoor-air-pollution).
+
+> Indoor air pollution is caused by burning solid fuel sources – such as firewood, crop waste, and dung – for cooking and heating.
+>
+> The burning of such fuels, particularly in poor households, results in air pollution that leads to respiratory diseases which can result in premature death. The WHO calls indoor air pollution “the world’s largest single environmental health risk.”
+
+
+```{r}
+fuel_gdp <- read_csv("fuel_gdp.csv") %>%
+  select(-Continent) %>%
+  clean_names() %>%
+  rename(access_clean = access_to_clean_fuels_and_technologies_for_cooking_percent_of_population) %>%
+  rename(population = population_historical_estimates)
+death_fuel <- read_csv("death_fuel.csv") %>%
+  clean_names() %>%
+  rename(indoor_deaths = deaths_cause_all_causes_risk_household_air_pollution_from_solid_fuels_sex_both_age_all_ages_number_4)
+
+pollution <- inner_join(fuel_gdp, death_fuel, by = c("code" = "code", "year" = "year_3")) %>%
+  drop_na(access_clean)
+```
+
+
+```{r}
+pollution %>%
+  filter(access_clean == 100) %>%
+  select(entity.x, code, year, access_clean, population, indoor_deaths)
+```
+
+
+```{r}
+pollution %>%
+  filter(year == 2016) %>%
+  ggplot(aes(x = access_clean, y = indoor_deaths / population *100000)) + 
+  geom_point()
+```
+

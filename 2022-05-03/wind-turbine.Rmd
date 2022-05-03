@@ -1,0 +1,77 @@
+---
+title: "Wind Turbines"
+author: "Jo Hardin"
+date: "5/03/2022"
+output: html_document
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, 
+                      warning = FALSE, cache = TRUE,
+                      eval.after = 'fig.cap', fig.width = 10, fig.height = 6)
+library(tidyverse)
+library(tidymodels)
+library(janitor)
+library(viridis)
+library(patchwork)
+library(knitr)
+library(skimr)
+library(ggrepel)
+library(lubridate)
+library(plotly)
+library(countrycode)
+
+library(praise)
+set.seed(4747)
+```
+
+
+## The Data
+
+The data this week comes from the [Berkeley Lab](https://emp.lbl.gov/utility-scale-solar). See the technical brief on the [emp.lbl.gov site](https://emp.lbl.gov/sites/default/files/utility-scale_solar_2021_technical_brief.pdf).
+
+
+```{r}
+wind <- read_csv("wind.csv") %>%
+  rename(mwh = wind_mwh, capacity = wind_capacity) %>%
+  mutate(power = "wind")
+solar <- read_csv("solar.csv") %>%
+  rename(mwh = solar_mwh, capacity = solar_capacity) %>%
+  mutate(power = "solar")
+capacity <- read_csv("capacity.csv")
+
+```
+
+
+
+## EDA
+
+
+```{r}
+energy <- wind %>%
+  bind_rows(solar)
+```
+
+
+```{r}
+cbp2 <- c("#000000", "#E69F00", "#56B4E9", "#009E73",
+          "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+
+energy %>%
+  pivot_longer(cols = mwh:capacity, names_to = "measure", values_to = "value") %>%
+  ggplot(aes(x = date, y = value, color = power)) + 
+  geom_point(aes(shape = measure), alpha = 0.4) + ylab("") +
+  scale_x_date(date_breaks = "years", date_labels = "%Y") + 
+  geom_smooth(se = FALSE, span = .2, aes(linetype = measure)) + 
+  guides(linetype = guide_legend(override.aes = 
+                                   list(alpha = 1,
+                                        color = "black"))) + 
+  ggtitle("Changes in solar and wind over time") +
+  scale_color_manual(values = cbp2[c(4,8)])
+
+```
+
+
+
+

@@ -1,0 +1,95 @@
+---
+title: "Spending in NCAA"
+author: "Jo Hardin"
+date: "3/29/2022"
+output: html_document
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, 
+                      warning = FALSE, cache = TRUE,
+                      eval.after = 'fig.cap', fig.width = 10, fig.height = 6)
+library(tidyverse)
+library(tidymodels)
+library(janitor)
+library(viridis)
+library(patchwork)
+library(knitr)
+library(skimr)
+library(ggrepel)
+library(lubridate)
+library(plotly)
+library(countrycode)
+
+library(praise)
+set.seed(4747)
+```
+
+
+## The Data
+
+The data this week comes from [Equity in Athletics Data Analysis](https://ope.ed.gov/athletics/#/datafile/list), hattip to [Data is Plural](https://www.data-is-plural.com/archive/2020-10-21-edition/).
+
+
+```{r}
+sport_rev <- read_csv("sports.csv") %>%
+  drop_na(total_rev_menwomen) %>%
+  mutate(division = case_when(
+    str_detect(classification_name, "Division I") ~ "div_1",
+    str_detect(classification_name, "Division II") ~ "div_2",
+    str_detect(classification_name, "Division II") ~ "div_3",
+    TRUE ~ "other"
+  ))
+```
+
+## Tidymodeling
+
+```{r}
+set.seed(4774)
+sport_split <- initial_split(sport_rev, prop = 2/3)
+sport_train <- training(sport_split)
+sport_test <- testing(sport_split)
+```
+
+
+```{r}
+sport_spec <- rand_forest() %>%
+  set_mode("regression") %>%
+  set_engine("randomForest") 
+  
+sport_rec <- recipe(
+  total_exp_menwomen ~ year + ef_male_count + ef_female_count + sum_partic_men + sum_partic_women + rev_men + rev_women + sports + institution_name + division,
+  data = sport_train
+) %>%
+  update_role(sports, new_role = "ID") %>%
+  update_role(institution_name, new_role = "ID") %>%
+  step_dummy(all_nominal_predictors())
+```
+
+
+```{r}
+sport_wf <- workflow() %>%
+  add_recipe(sport_rec) %>%
+  add_model(sport_spec)
+```
+
+
+```{r}
+set.seed(47)
+sport_fold <- vfold_cv(sport_train)
+set.seed(470)
+rf_grid <- grid_regular(
+  mtry(range = c(1,5)),
+  min_n(range = c(2,8)),
+  levels = 5
+)
+tune_sport <- tune_grid(
+  sport_wf,
+  resamples = sport_fold,
+  grid = rf_grid
+)
+```
+
+
+

@@ -1,0 +1,41 @@
+---
+title: "News"
+author: "Jo Hardin"
+date: "4/11/2022"
+output: html_document
+---
+
+
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, 
+                      warning = FALSE, cache = TRUE,
+                      eval.after = 'fig.cap', fig.width = 10, fig.height = 6)
+library(tidyverse)
+library(tidymodels)
+library(janitor)
+library(viridis)
+library(patchwork)
+library(knitr)
+library(skimr)
+library(ggrepel)
+library(lubridate)
+library(plotly)
+library(countrycode)
+
+library(praise)
+set.seed(4747)
+```
+
+
+## The Data
+
+Data this week comes from the USDA (United States Department of Agriculture)! The raw datasets (Excel Sheets) can be found [here](https://www.ers.usda.gov/data-products/dairy-data/documentation/#Loc3). There is even more data at the source if you are interested, much of which requires a LOT of `fun` Excel sheet data munging.
+
+
+
+```{r}
+production <- read_csv("milkcow_facts.csv")
+```
+
