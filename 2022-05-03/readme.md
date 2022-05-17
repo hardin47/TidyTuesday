@@ -1,4 +1,4 @@
-* 2022-04-12 [TidyTuesday Wind Turbines](https://hardin47.github.io/TidyTuesday/2022-05-03/wind-turbines.html)
+* 2022-05-03 [TidyTuesday Wind Turbines](https://hardin47.github.io/TidyTuesday/2022-05-03/wind-turbines.html)
 
 ### Please add alt text to your posts
 

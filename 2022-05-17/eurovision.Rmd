@@ -1,0 +1,96 @@
+---
+title: "Eurovision"
+author: "Jo Hardin"
+date: "5/17/2022"
+output: html_document
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, 
+                      warning = FALSE, cache = TRUE,
+                      eval.after = 'fig.cap', fig.width = 10, fig.height = 6)
+library(tidyverse)
+library(tidymodels)
+library(janitor)
+library(viridis)
+library(patchwork)
+library(knitr)
+library(skimr)
+library(ggrepel)
+library(lubridate)
+library(plotly)
+library(countrycode)
+
+library(praise)
+set.seed(4747)
+```
+
+
+## The Data
+
+The data this week comes from [Eurovision](https://eurovision.tv/). Hattip to [Tanya Shapiro](https://github.com/tashapiro/eurovision-contest/blob/main/code/eurovision_scraping.R#L97-L98) and [Bob Rudis](https://twitter.com/hrbrmstr/status/1526299494811422721?s=20&t=1ShDVK93h06QEmNZvGmK0Q) for sharing some methods to cleaning/scraping this data.
+
+The country to country voting data comes from [Data.World](https://data.world/datagraver/eurovision-song-contest-scores-1975-2019)
+
+The code is silly, but the `emo` package got confused by the following countries (e.g., is it the Netherlands or the Carribean Netherlands?).
+So I removed the confusing countries by mapping them to countries I knew wouldn't be in the database.
+Fortunately, none of the confusing countries were in the top group.
+
+
+```{r}
+eurovision <- read_csv("eurovision.csv") %>%
+  mutate(artist_country = case_when(
+    artist_country == "Netherlands" ~ "Mexico", 
+    artist_country == "Czech Republic" ~ "Guyana",
+    artist_country == "North Macedonia" ~ "Cuba",
+    artist_country == "Georgia" ~ "Brazil",
+    artist_country == "Serbia & Montenegro" ~ "Haiti",
+    artist_country == "Yugoslavia" ~ "Guatemala",
+    TRUE ~ artist_country))
+```
+
+
+##  Top Countries **with flags**
+
+
+```{r fig.cap = "After filtering for countries which were ranked at least 12 times and placed first at least once since 2000, we see the rankings of the top seven home countries of the Eurovision winners.", fig.alt = "Line plot from 2000 to 2020 of the ranking for the country's finalist.  The top seven countries displayed are Azerbaijan, Germany, Greece, Norway, Russia, Sweden, and Ukraine."}
+library(ggimage)
+temp <- eurovision$artist_country %>% map(emo::flag)
+
+temp2 <- temp %>% map(attr, which = "data") %>%
+  map_df(dplyr::select, runes) %>%
+  mutate(runes = str_replace(runes, "\\s", "-") )
+  
+  
+emojis <- temp2 %>% # data built into package
+  mutate(emoji_url = paste0("https://abs.twimg.com/emoji/v2/72x72/", 
+                            tolower(runes), ".png")) 
+
+eurovision %>%
+  bind_cols(emojis) %>%
+  filter(section == "grand-final") %>%
+  #filter(year = 2022) %>%
+  group_by(artist_country) %>%
+  filter(sum(!is.na(rank)) > 12) %>%
+  filter(year >=2000) %>%
+  filter(min(rank, na.rm = TRUE) == 1) %>%
+  mutate(country = ifelse(year == 2022 | (artist_country == "Russia" & year == 2021), emoji_url, NA)) %>%
+  ggplot(aes(x = year, y = rank)) + 
+  geom_image(aes(x = year + 2, image = country)) +
+  ggbump::geom_bump(aes(color = artist_country)) + 
+  scale_color_brewer(palette = "Set1") + 
+  scale_y_reverse()
+```
+
+
+
+Getting the flags onto the plot was a huge endeavor.  
+
+```{r}
+praise()
+```
+
+
+
+
