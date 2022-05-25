@@ -1,0 +1,129 @@
+---
+title: "Women's Rugby"
+format:
+  html:
+    theme: default
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, 
+                      warning = FALSE, cache = TRUE,
+                      eval.after = 'fig.cap', fig.width = 10, fig.height = 6)
+library(tidyverse)
+library(tidymodels)
+library(janitor)
+library(viridis)
+library(patchwork)
+library(knitr)
+library(skimr)
+library(ggrepel)
+library(lubridate)
+library(plotly)
+library(countrycode)
+
+library(praise)
+set.seed(4747)
+```
+
+
+
+
+## The Data
+
+The data on Women's Rugby comes from [ScrumQueens](https://www.scrumqueens.com/page/results-dashboard) by way of [Jacquie Tran](https://github.com/rfordatascience/tidytuesday/issues/439).
+
+
+```{r}
+fifteens <- read_csv("fifteens.csv")
+sevens <- read_csv("sevens.csv")
+```
+
+
+## Over time
+
+Are some countries better at sevens than fifteens?  Does it change over time?
+
+
+```{r}
+sevens_win <- sevens %>%
+  mutate(year = year(date)) %>%
+  mutate(decade = floor(year/10)*10) %>%
+  group_by(decade, winner) %>%
+  summarize(no_wins_7 = n()) %>%
+  rename(country = winner)
+
+sevens_loss <- sevens %>%
+  mutate(year = year(date)) %>%
+  mutate(decade = floor(year/10)*10) %>%
+  group_by(decade, loser) %>%
+  summarize(no_loss_7 = n()) %>%
+  rename(country = loser)
+
+sevens_win_loss <- sevens_win %>%
+  full_join(sevens_loss, by = c("decade", "country")) %>%
+  mutate(prop_win_7 = no_wins_7 / (no_wins_7 + no_loss_7))
+  
+```
+
+
+```{r}
+fifteens_win <- fifteens %>%
+  mutate(year = year(date)) %>%
+  mutate(decade = floor(year/10)*10) %>%
+  group_by(decade, winner) %>%
+  summarize(no_wins_15 = n()) %>%
+  rename(country = winner)
+
+fifteens_loss <- fifteens %>%
+  mutate(year = year(date)) %>%
+  mutate(decade = floor(year/10)*10) %>%
+  group_by(decade, loser) %>%
+  summarize(no_loss_15 = n()) %>%
+  rename(country = loser)
+
+fifteens_win_loss <- fifteens_win %>%
+  full_join(fifteens_loss, by = c("decade", "country")) %>%
+  mutate(prop_win_15 = no_wins_15 / (no_wins_15 + no_loss_15))
+  
+```
+
+```{r}
+win_loss <- fifteens_win_loss %>%
+  full_join(sevens_win_loss, by = c("decade", "country")) %>%
+  drop_na(prop_win_15, prop_win_7)
+```
+
+
+```{r}
+win_loss %>%
+  group_by(country) %>%
+  mutate(count = n()) %>%
+  ungroup() %>%
+  filter(count >= 3) %>%
+  ggplot(aes(x = prop_win_7, y = prop_win_15, color = country)) + 
+  geom_point() + 
+  geom_abline(intercept = 0, slope = 1) + 
+  scale_color_viridis_d() +
+  ggrepel::geom_label_repel(aes(label = country)) +
+  ggtitle("Proportion of Wins for Fifteens vs Sevens") + 
+  xlab("sevens") + 
+  ylab("fifteens")
+
+win_loss %>%
+  group_by(country) %>%
+  mutate(count = n()) %>%
+  ungroup() %>%
+  filter(count >= 3) %>% 
+  plotly::plot_ly(
+    x = ~prop_win_7,
+    y = ~prop_win_15,
+    color = ~country,
+    hoverinfo = 'text',
+    text = ~paste(country, '</br><br>', decade)
+  ) %>%
+  plotly::layout(title="Proportion of Wins for Fifteens vs Sevens",
+             xaxis = list(title = "sevens"),
+             yaxis = list(title = "fifteens"))
+```
+
