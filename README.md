@@ -4,7 +4,9 @@ My Tidy Tuesday adventures: [https://hardin47.github.io/TidyTuesday/](https://ha
 
 ### Tidy Tuesday Analyses
 
-* 2022-05-17 [TidyTuesday Women's Rugby](https://hardin47.github.io/TidyTuesday/2022-05-24/womensrugby.html)
+* 2022-05-31 [TidyTuesday Brand Reputation](https://hardin47.github.io/TidyTuesday/2022-05-31/reputation.html)
+
+* 2022-05-24 [TidyTuesday Women's Rugby](https://hardin47.github.io/TidyTuesday/2022-05-24/womensrugby.html)
 
 * 2022-05-17 [TidyTuesday Eurovision](https://hardin47.github.io/TidyTuesday/2022-05-17/eurovision.html)
 

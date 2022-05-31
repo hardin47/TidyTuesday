@@ -1,5 +1,5 @@
 
-* 2022-05-17 [TidyTuesday Women's Rugby](https://hardin47.github.io/TidyTuesday/2022-05-24/womensrugby.html)
+* 2022-05-24 [TidyTuesday Women's Rugby](https://hardin47.github.io/TidyTuesday/2022-05-24/womensrugby.html)
 
 
 ### Please add alt text to your posts

@@ -1,0 +1,82 @@
+---
+title: "Brand Reputation"
+author: "Jo Hardin"
+date: "5/31/2022"
+format:
+  html:
+    theme: default
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, 
+                      warning = FALSE,
+                      eval.after = 'fig.cap', 
+                      fig.width = 10, fig.height = 6)
+library(tidyverse)
+library(tidymodels)
+library(janitor)
+library(viridis)
+library(patchwork)
+library(knitr)
+library(skimr)
+library(ggrepel)
+library(lubridate)
+library(plotly)
+library(countrycode)
+
+library(praise)
+set.seed(4747)
+```
+
+
+
+
+## The Data
+
+The data this week comes from [Axios and Harris Poll](https://www.axios.com/2022/05/24/2022-axios-harris-poll-100-rankings). Also see [The Harris Poll overview for more details](https://theharrispoll.com/partners/media/axios-harrispoll-100/).
+
+
+```{r}
+# I think poll and axios are the same
+axios <- read_csv("axios.csv")
+reputation <- read_csv("reputation.csv")
+poll <- read_csv("poll.csv")
+```
+
+
+## 
+
+```{r fig.height=20, fig.cap = "Interactive plot demonstrating each company's rating for a variety of categories.  P&S is for products and services. Hover on the line to see the score for a company at a particular category.", fig.alt = "Line plot describing the score of the company for citizenship, culture, ethics, growth, products and services, trust, and vision. Hovering on the line tells you the score for that company in that category.  The line plots are broken down by Tech Companies, Retail, and Food & Beverage."}
+library(plotly)
+library(RColorBrewer)
+library(paletteer)
+
+# Define the number of colors you want
+n_cols <- 48
+my_colors <- colorRampPalette(paletteer_d("colorBlindness::paletteMartin"))(n_cols)
+
+p <- reputation %>%
+  #filter(industry == "Retail") %>%
+  filter(industry %in% c("Retail", "Food & Beverage", "Tech")) %>%
+  ggplot(aes(x = name, y = score, group = company, color = company,
+             text = paste("Company: ", company,
+                         "<br>Category:", name,
+                         "<br>Score:", score))) + 
+  geom_line() + 
+  theme(legend.position="none") + 
+  facet_wrap(~ industry, ncol = 1) +
+  xlab("Category of Score") + 
+  ylab("") + 
+  ggtitle("Score across different categories \nbroken down by industry") +
+  scale_color_manual(values = my_colors)
+  #paletteer::scale_color_paletteer_d("colorBlindness::paletteMartin")
+
+ggplotly(p, tooltip = "text")
+```
+
+
+```{r}
+praise()
+```
+
