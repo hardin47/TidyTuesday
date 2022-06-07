@@ -4,6 +4,8 @@ My Tidy Tuesday adventures: [https://hardin47.github.io/TidyTuesday/](https://ha
 
 ### Tidy Tuesday Analyses
 
+* 2022-06-07 [TidyTuesday Pride Donations](https://hardin47.github.io/TidyTuesday/2022-06-07/pride.html)
+
 * 2022-05-31 [TidyTuesday Brand Reputation](https://hardin47.github.io/TidyTuesday/2022-05-31/reputation.html)
 
 * 2022-05-24 [TidyTuesday Women's Rugby](https://hardin47.github.io/TidyTuesday/2022-05-24/womensrugby.html)
