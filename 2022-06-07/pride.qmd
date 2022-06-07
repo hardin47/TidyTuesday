@@ -99,8 +99,8 @@ ggplot() +
     title = "Support for anti-LGBTQ+ politicians",
     subtitle = "number of politicians + $ spent",
     x = "Company",
-    y = ""
-  ) +
+    y = "",
+    caption = "Tidy Tuesday Plot: @hardin47 | Data: Data for Progress") +
   theme_minimal() +
   theme(panel.grid = element_blank(), axis.ticks.y = element_line()) +
   guides(fill = guide_legend(reverse = TRUE))
