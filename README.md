@@ -4,6 +4,8 @@ My Tidy Tuesday adventures: [https://hardin47.github.io/TidyTuesday/](https://ha
 
 ### Tidy Tuesday Analyses
 
+* 2022-06-21 [Tidy Tuesday Celebrating Juneteenth](https://hardin47.github.io/TidyTuesday/2022-06-21/juneteenth.html)
+
 * 2022-06-14 [TidyTuesday Drought](https://hardin47.github.io/TidyTuesday/2022-06-14/drought.html)
 
 * 2022-06-07 [TidyTuesday Pride Donations](https://hardin47.github.io/TidyTuesday/2022-06-07/pride.html)

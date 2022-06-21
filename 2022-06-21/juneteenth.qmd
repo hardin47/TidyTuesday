@@ -1,0 +1,101 @@
+---
+title: "Celebrating Juneteenth"
+format:
+  html:
+    theme: default
+---
+
+
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, 
+                      warning = FALSE,
+                      eval.after = 'fig.cap', 
+                      fig.width = 16, fig.height = 14)
+library(tidyverse)
+library(tidymodels)
+library(janitor)
+library(viridis)
+library(patchwork)
+library(knitr)
+library(ggrepel)
+library(lubridate)
+library(tidytext)
+library(tokenizers)
+
+library(praise)
+set.seed(4747)
+```
+
+
+## Data
+
+[BlackPast.org](https://www.blackpast.org/african-american-history/juneteenth-birth-african-american-holiday-2/) and  [Vox](https://www.vox.com/identities/2018/6/19/17476482/juneteenth-holiday-emancipation-african-american-celebration-history) has an article about the importance of Juneteenth as a moment and what the holiday commemorates.
+
+> BlackPast is dedicated to providing a global audience with reliable and accurate information on the history of African America and of people of African ancestry around the world. We aim to promote greater understanding through this knowledge to generate constructive change in our society.
+
+
+```{r}
+blackpast <- read_csv("blackpast.csv") %>%
+  group_by(subject) %>%
+  mutate(count = n()) %>%
+  ungroup() %>%
+  filter(dense_rank(-count) < 6)
+```
+
+
+## Events
+
+Using the **tidytext**, I'll investigate bi-grams (pairs of words) in the `events` column of the `blackpast.csv` dataframe on African American and those with African ancestry around the world.
+
+
+```{r}
+black_bigrams <- blackpast %>%
+  dplyr::select(events, subject) %>%
+  group_by(subject) %>%
+  unnest_tokens(bigram, events, token = "ngrams", n = 2, to_lower = TRUE) 
+
+bigrams_sep <- black_bigrams %>%
+  separate(bigram, c("word1", "word2"), sep = " ")
+
+bigrams_filtered <- bigrams_sep %>%
+  dplyr::filter(!word1 %in% stop_words$word) %>%
+  dplyr::filter(!word2 %in% stop_words$word)
+
+bigram_counts <- bigrams_filtered %>%
+  count(word1, word2, sort = TRUE)
+
+bigram_counts
+```
+
+
+
+```{r}
+#| fig.cap: Bar plots showing bigram tendencies across the events with the most instances.  Unsurprisingly "African American" is a common bigram for most of the event types.
+#| fig.alt: Bar plot with count being the number of occurrences of particular bigrams.  The plots are faceted by event type including African American Athletes, Art & Leisure, Black Education, Black Organizations, Black Politics, and Racial Violence.
+
+
+bigrams_united <- bigrams_filtered %>%
+  unite(bigram, word1, word2, sep = " ")
+
+sorted_bigrams <- bigrams_united %>%
+  count(subject, bigram, sort = TRUE) %>%
+  top_n(10) %>%
+  group_by(subject) %>%
+  arrange(subject, n) %>%
+  unite("subj_bigram", subject, bigram, sep = "_", remove = FALSE) %>%
+  data.frame() %>%
+  mutate(subj_bigram = factor(subj_bigram, levels = subj_bigram))
+  
+sorted_bigrams %>%  
+  group_by(subject) %>%
+  ggplot(aes(x = subj_bigram, y = n, fill = subject)) + 
+  geom_col(show.legend = FALSE) + 
+  labs(x = NULL, y = "bigram count") + 
+  coord_flip() + 
+  scale_x_discrete(breaks = sorted_bigrams$subj_bigram,
+                   labels = sorted_bigrams$bigram ) + 
+  facet_wrap(~subject, ncol = 2, scales = "free") 
+```
+
