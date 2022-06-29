@@ -1,0 +1,200 @@
+---
+title: "Gender Pay Gap in the UK"
+date: "June 28, 2022"
+format:
+  html:
+    theme: default
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, 
+                      warning = FALSE,
+                      eval.after = 'fig.cap', 
+                      fig.width = 16, fig.height = 14)
+library(tidyverse)
+library(tidymodels)
+library(janitor)
+library(viridis)
+library(patchwork)
+library(knitr)
+library(ggrepel)
+library(lubridate)
+library(plotly)
+
+library(praise)
+set.seed(4747)
+```
+
+
+## Data
+
+The data this week comes from [gender-pay-gap.service.gov.uk](https://gender-pay-gap.service.gov.uk/viewing/download). The online [tool](https://www.ons.gov.uk/employmentandlabourmarket/peopleinwork/earningsandworkinghours/articles/findoutthegenderpaygapforyourjob/2016-12-09) reports by gender and occupation.
+
+
+```{r}
+paygap17 <- read_csv("UK Gender Pay Gap Data - 2017 to 2018.csv") |>
+  mutate(year = 2017)
+paygap18 <- read_csv("UK Gender Pay Gap Data - 2018 to 2019.csv") |>
+  mutate(year = 2018)
+paygap19 <- read_csv("UK Gender Pay Gap Data - 2019 to 2020.csv") |>
+  mutate(year = 2019)
+paygap20 <- read_csv("UK Gender Pay Gap Data - 2020 to 2021.csv") |>
+  mutate(year = 2020)
+paygap21 <- read_csv("UK Gender Pay Gap Data - 2021 to 2022.csv") |>
+  mutate(year = 2021)
+paygap22 <- read_csv("UK Gender Pay Gap Data - 2022 to 2023.csv") |>
+  mutate(year = 2022)
+
+paygap <- rbind(paygap17, paygap18, paygap19, paygap20, paygap21, paygap22) |>
+  data.frame() |>
+  mutate(coSize = case_when(
+    EmployerSize == "1000 to 4999" ~ 1000,
+    EmployerSize == "20,000 or more" ~ 20000,
+    EmployerSize == "250 to 499" ~ 250,
+    EmployerSize == "500 to 999" ~ 500,
+    EmployerSize == "5000 to 19,999" ~ 5000,
+    EmployerSize == "Less than 250" ~ 100,
+    EmployerSize == "Not Provided" ~ NA_real_,
+    TRUE ~ NA_real_
+  ))
+
+```
+
+
+##  3D plots
+
+For my research project, I'm practicing plotting (scatterplots) data in 3D.  Maybe even 4D with colors and 5D with colors and faceting!
+
+Admittedly terrible, I'm less concerned with the content of today's data, and I'm focused on the plotting.  Apologies for not being 
+more careful about repeated measures, correlated variables, and units.  The topic is important and deserves careful consideration!
+
+After a huge amount of time trying to use `subplot()` on `scatter3d`, I was finally able to show the relationship across years.  It isn't perfect, but it seems like it could be useful for trying to understand relationships between (in this case) 5 different quantitative variables.
+
+```{r}
+#| fig.alt: four different three dimensional scatterplots (for the four years 2017, 2018, 2019, 2020).  in the three dimensional scatterplots, the following three variables are displayed -- difference in average hourly payment as a percent, size of the company, and female bonus percent.  additionally, the points are colored along the gradient of the variable measuring the percentage of females in the lower hourly pay quarter.
+
+plots <- list()
+
+# custom grid style
+axx <- list(
+  gridcolor='rgb(255, 255, 255)',
+  zerolinecolor='rgb(255, 255, 255)',
+  showbackground=TRUE,
+  backgroundcolor='rgb(230, 230,230)'
+)
+
+for (i in 1:length(unique(paygap$year))){
+  
+plots[[i]] = paygap |>
+  filter(year == unique(paygap$year)[i]) |>
+  plot_ly(x = ~DiffMeanHourlyPercent,
+          y = ~coSize,
+          z = ~FemaleBonusPercent,
+          mode = "markers",
+          type = "scatter3d",
+          color = ~FemaleLowerQuartile,
+          #color = ~as.factor(year),
+          #colors = c("red", "green", "blue", "black")[i],
+          scene = paste("scene",i,sep="")) %>%
+  add_annotations(
+    text = unique(paygap$year)[i],  # hard coded to work for 4 years
+    x = c(0.5, 1, 0, 1)[i],
+    y = c(1, 1, 0.5, 0.5)[i],
+    yref = "paper",
+    xref = "paper",
+    #xanchor = "middle",
+    #yanchor = "top",
+    showarrow = FALSE,
+    font = list(size = 15)
+  )
+}
+
+
+fig <- subplot(plots[[1]],
+               plots[[2]],
+               plots[[3]],
+               plots[[4]]) %>%
+  plotly::layout(title = "3D Scatterplots",
+         scene = list(domain=list(x=c(0,0.5),y=c(0.5,1)),  #needs to be scene and not scene1
+                      #xaxis=axx, yaxis=axx, zaxis=axx,
+                      aspectmode='cube'),
+         scene2 = list(domain=list(x=c(0.5,1),y=c(0.5,1)),
+                       #xaxis=axx, yaxis=axx, zaxis=axx,
+                       aspectmode='cube'),
+         scene3 = list(domain=list(x=c(0, 0.5),y=c(0,0.5)),
+                       #xaxis=axx, yaxis=axx, zaxis=axx,
+                       aspectmode='cube'),
+         scene4 = list(domain=list(x=c(0.5,1),y=c(0, 0.5)),
+                       #xaxis=axx, yaxis=axx, zaxis=axx,
+                       aspectmode='cube'))
+
+fig
+  
+```
+
+
+
+```{r}
+#| fig.alt: four different three dimensional scatterplots (for the four years 2017, 2018, 2019, 2020).  in the three dimensional scatterplots, the following three variables are displayed -- difference in average hourly payment as a percent, size of the company, and female bonus percent.
+
+plots <- list()
+
+# custom grid style
+axx <- list(
+  gridcolor='rgb(255, 255, 255)',
+  zerolinecolor='rgb(255, 255, 255)',
+  showbackground=TRUE,
+  backgroundcolor='rgb(230, 230,230)'
+)
+
+for (i in 1:length(unique(paygap$year))){
+  
+plots[[i]] = paygap |>
+  filter(year == unique(paygap$year)[i]) |>
+  plot_ly(x = ~DiffMeanHourlyPercent,
+          y = ~coSize,
+          z = ~FemaleBonusPercent,
+          mode = "markers",
+          type = "scatter3d",
+          color = ~as.factor(year),
+          colors = c("red", "green", "blue", "black")[i],
+          scene = paste("scene",i,sep="")) %>%
+  add_annotations(
+    text = unique(paygap$year)[i],  # hard coded to work for 4 years
+    x = c(0.5, 1, 0, 1)[i],
+    y = c(1, 1, 0.5, 0.5)[i],
+    yref = "paper",
+    xref = "paper",
+    #xanchor = "middle",
+    #yanchor = "top",
+    showarrow = FALSE,
+    font = list(size = 15)
+  )
+}
+
+
+fig <- subplot(plots[[1]],
+               plots[[2]],
+               plots[[3]],
+               plots[[4]]) %>%
+  plotly::layout(title = "3D Scatterplots",
+         scene = list(domain=list(x=c(0,0.5),y=c(0.5,1)),  #needs to be scene and not scene1
+                      #xaxis=axx, yaxis=axx, zaxis=axx,
+                      aspectmode='cube'),
+         scene2 = list(domain=list(x=c(0.5,1),y=c(0.5,1)),
+                       #xaxis=axx, yaxis=axx, zaxis=axx,
+                       aspectmode='cube'),
+         scene3 = list(domain=list(x=c(0, 0.5),y=c(0,0.5)),
+                       #xaxis=axx, yaxis=axx, zaxis=axx,
+                       aspectmode='cube'),
+         scene4 = list(domain=list(x=c(0.5,1),y=c(0, 0.5)),
+                       #xaxis=axx, yaxis=axx, zaxis=axx,
+                       aspectmode='cube'))
+
+fig
+  
+```
+
+
+
