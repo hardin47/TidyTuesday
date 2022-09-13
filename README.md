@@ -4,6 +4,8 @@ My Tidy Tuesday adventures: [https://hardin47.github.io/TidyTuesday/](https://ha
 
 ### Tidy Tuesday Analyses
 
+* 2022-09-13 [Tidy Tuesday Bigfoot](https://hardin47.github.io/TidyTuesday/2022-09-13/bigfoot.html)
+
 * 2022-09-06 [Tidy Tuesday Legos](https://hardin47.github.io/TidyTuesday/2022-09-06/legos.html)
 
 * 2022-06-28 [Tidy Tuesday Gender Pay Gap](https://hardin47.github.io/TidyTuesday/2022-06-28/paygap.html)

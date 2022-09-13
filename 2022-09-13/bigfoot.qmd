@@ -1,0 +1,140 @@
+---
+title: "Bigfoot"
+author: "Jo Hardin"
+date: "9/13/2022"
+format: html
+execute:
+  warning: false
+  message: false
+---
+
+Today's analysis is much due to Julia Silge's screencast on [chocolate ratings](https://juliasilge.com/blog/chocolate-ratings/).
+
+```{r}
+#| echo: false
+library(tidyverse)
+library(tidytext)
+```
+
+
+
+```{r}
+bigfoot <- read_csv("bigfoot.csv") %>%
+  filter(classification != "Class C")
+```
+
+## Tokenizing Words
+
+Using only the Class A and Class B records, we work to build a model which can distinguish between the two types of records using the `observed` text column.
+
+```{r}
+tidy_bf <- bigfoot %>%
+  drop_na(observed) %>%
+  unnest_tokens(word, observed) %>%
+  filter(!word %in% stop_words$word)
+
+tidy_bf %>%
+  group_by(classification) %>%
+  count(word, sort = TRUE) 
+```
+
+Do the words differentiate across the two classes?  Maybe... hard to know from just the top 10 words in each group.
+
+```{r}
+tidy_bf %>%
+  group_by(classification) %>%
+  count(word, sort = TRUE) %>%
+  slice_max(order_by = n, n = 10) %>%
+  ggplot(aes(x = n, y = word, fill = classification)) + 
+  geom_bar(stat = "identity", position = position_dodge(preserve = "single"))
+```
+
+
+### Creating model
+
+```{r}
+library(tidymodels)
+library(textrecipes)
+set.seed(47)
+
+bf_split <- initial_split(bigfoot)
+bf_test <- testing(bf_split)
+bf_train <- training(bf_split)
+
+bf_folds <- vfold_cv(bf_train)
+```
+
+
+```{r}
+bf_rec <- recipe(classification ~ observed, data = bf_train) %>%
+  step_tokenize(observed) %>%
+  step_stopwords(observed) %>%
+  step_tokenfilter(observed, max_tokens = 100) %>%
+  step_tfidf(observed)
+```
+
+
+```{r}
+log_spec <- logistic_reg(mode = "classification") 
+
+log_wf <- workflow(bf_rec, log_spec)
+```
+
+### Running model
+
+```{r}
+doParallel::registerDoParallel()
+contrl_preds <- control_resamples(save_pred = TRUE)
+
+
+log_rs <- fit_resamples(
+  log_wf,
+  resamples = bf_folds,
+  control = contrl_preds
+)
+```
+
+Accuracy based on the cross-validation folds:
+
+```{r}
+collect_metrics(log_rs)
+```
+
+
+```{r}
+collect_predictions(log_rs) %>%
+  ggplot(aes(y = `.pred_Class A`, color =.pred_class, x = classification)) +
+  geom_jitter(width = 0.5, alpha = 0.5) +
+  xlab("Original class label")
+```
+
+```{r}
+final_fitted <- last_fit(log_wf, bf_split)
+
+extract_workflow(final_fitted) %>% tidy()
+```
+
+
+Accuracy based on the testing data:
+
+```{r}
+collect_metrics(final_fitted)
+```
+
+Plot the words with the largest and smallest (i.e., big negative) coefficients.
+
+```{r}
+extract_workflow(final_fitted) %>%
+  tidy() %>%
+  filter(term != "(Intercept)") %>%
+  group_by(estimate > 0) %>%
+  slice_max(abs(estimate), n = 10) %>%
+  ungroup() %>%
+  mutate(term = str_remove(term, "tfidf_observed_")) %>%
+  ggplot(aes(estimate, fct_reorder(term, estimate), fill = estimate > 0)) +
+  geom_col(alpha = 0.8) +
+  scale_fill_discrete(labels = c("Class A", "Class B")) +
+  labs(y = NULL, fill = "More from...")
+```
+
+The plot aligns with the first bar plot, which showed the most common words from each class.  One observation is that the Class A words are more specific (hair, tail, turned, ran, head, ...) than the Class B words (anything, something, ...).

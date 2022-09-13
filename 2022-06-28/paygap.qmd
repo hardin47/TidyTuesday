@@ -1,5 +1,6 @@
 ---
 title: "Gender Pay Gap in the UK"
+author: "Jo Hardin"
 date: "June 28, 2022"
 format:
   html:
