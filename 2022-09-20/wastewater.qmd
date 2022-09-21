@@ -76,7 +76,7 @@ df_fill <- left_join(country_df, world, by = c("cntry_iso" = "iso_a3"))
 ggplot(world) + 
   geom_sf(data = df_fill, aes(geometry = geometry, fill = df_extent),
           size = 0.1) + 
-  geom_point(data = filter(wwtp, df < 10), size = .5, 
+  geom_point(data = filter(wwtp, df < 10), size = .1, 
              aes(x = lon_out, y = lat_out, color = df)) +
   scale_fill_gradient(low='white', high='blue') + 
   scale_color_gradient(low="#00AFBB", high='darkred') + 
