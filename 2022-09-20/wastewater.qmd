@@ -86,7 +86,7 @@ ggplot(world) +
                                  title = "Dilution Factor"))+
   cowplot::theme_cowplot() +
   labs(title = "Waterwaste Treatment Plants colored by dilution factor (DF)",
-       subtitle = "Points only for those WWTP with DF < 10, \ncountry colored by the proportion of WWTP which have DF < 10",
+       subtitle = "Points are only those WWTP with DF < 10, \ncountry colored by the proportion of WWTP which have DF < 10",
        x = "longitude",
        y = "latitude",
        caption = "Tidy Tuesday Plot: @hardin47 | Data: Wastewater Plants via Macedo et al, 2022")
