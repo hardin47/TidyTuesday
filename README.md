@@ -4,6 +4,8 @@ My Tidy Tuesday adventures: [https://hardin47.github.io/TidyTuesday/](https://ha
 
 ### Tidy Tuesday Analyses
 
+* 2022-09-27 [Tidy Tuesday Artists](https://hardin47.github.io/TidyTuesday/2022-09-27/artists.html)
+
 * 2022-09-20 [Tidy Tuesday Wastewater](https://hardin47.github.io/TidyTuesday/2022-09-20/wastewater.html)
 
 * 2022-09-13 [Tidy Tuesday Bigfoot](https://hardin47.github.io/TidyTuesday/2022-09-13/bigfoot.html)
