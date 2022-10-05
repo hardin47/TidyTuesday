@@ -1,4 +1,4 @@
-* 2022-10-04 [Tidy Tuesday Artists](https://hardin47.github.io/TidyTuesday/2022-10-04/product_hunt.html)
+* 2022-10-04 [Tidy Tuesday Product Hunt](https://hardin47.github.io/TidyTuesday/2022-10-04/product_hunt.html)
 
 
 ### Please add alt text to your posts
