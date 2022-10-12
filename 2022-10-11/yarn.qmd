@@ -1,0 +1,205 @@
+---
+title: "Yarn"
+author: "Jo Hardin"
+date: "10/11/2022"
+format: html
+execute:
+  warning: false
+  message: false
+  cache: true
+---
+
+
+
+```{r}
+#| echo: false
+library(tidyverse)
+library(janitor)
+library(xgboost)
+```
+
+## The Data
+
+The data this week comes from [ravelry.com](https://www.ravelry.com/yarns/) by way of [Alice Walsh](https://github.com/awalsh17).
+
+```{r}
+yarn <- read_csv("yarn.csv") %>%
+  mutate(gauge = sapply(strsplit(yarn_weight_knit_gauge, 
+                                 split = "-", fixed = TRUE), function(k) mean(as.numeric(k)))) %>%
+  mutate(weight_wpi = sapply(strsplit(yarn_weight_wpi, 
+                                 split = "-", fixed = TRUE), function(k) mean(as.numeric(k)))) %>%
+  separate(texture_clean, into = "texture1", 
+           sep = ",", extra = "drop", remove = FALSE) %>%
+  mutate(texture_tidy = forcats::fct_lump_n(texture1, 10))
+```
+
+## Predicting ratings
+
+The analysis is extensively derived from Julia Silge's [blog predicting ratings of board games](https://juliasilge.com/blog/board-games/).
+
+```{r}
+yarn %>%
+  ggplot(aes(x = rating_average)) + 
+  geom_histogram()
+```
+
+
+Are the ratings related to the `yarn_weight_knit_gauge`?  Seems like there is a relationship, hopefully the model will pick it up.
+
+```{r}
+yarn %>%
+  filter(!is.na(gauge)) %>%
+  mutate(gauge = cut_number(gauge, 4)) %>%
+  ggplot(aes(x=gauge, y=rating_average, fill = gauge)) +
+  geom_boxplot(alpha = 0.2, show.legend = FALSE)
+```
+
+
+## Tune an xgboost model
+
+
+```{r}
+library(tidymodels)
+
+set.seed(123)
+yarn_split <-
+  yarn %>%
+  select(permalink, rating_average, grams, yardage, #texture_tidy, 
+         yarn_weight_ply, weight_wpi, gauge) %>%
+  na.omit() %>%
+  initial_split()
+yarn_train <- training(yarn_split)
+yarn_test <- testing(yarn_split)
+
+set.seed(234)
+yarn_folds <- vfold_cv(yarn_train)
+yarn_folds
+```
+
+#### Feature engineering
+
+It doesn't seem like we need to do much feature engineering.  The variables are mostly numeric, and the texture is already a factor variable.
+
+```{r}
+yarn_rec <-
+  recipe(rating_average ~ ., data = yarn_train) %>%
+  update_role(permalink, new_role = "id")
+
+## just to make sure this works as expected
+yarn_prep <- prep(yarn_rec)
+bake(yarn_prep, new_data = NULL) %>% str()
+```
+
+#### Create xgboost model
+
+In the `xgboost` model we'll train the number of `trees`, `mtry`, and `min_n`, the smallest number of observations that will lead to a node being split.
+
+```{r}
+xgb_spec <-
+  boost_tree(
+    trees = tune(),
+    mtry = tune(),
+    min_n = tune(),
+    learn_rate = 0.01
+  ) %>%
+  set_engine("xgboost") %>%
+  set_mode("regression")
+
+xgb_wf <- workflow(yarn_rec, xgb_spec)
+xgb_wf
+```
+
+
+I don't think we really need it because we don't have too many parameters, but to follow Julia's structure, we can use the `tune_race_anova()` function to eliminate parameter combinations that don't predict well.
+
+```{r}
+library(finetune)
+doParallel::registerDoParallel()
+
+set.seed(234)
+xgb_yarn_rs <-
+  finetune::tune_race_anova(
+    xgb_wf,
+    yarn_folds,
+    grid = 10,
+    control = control_race(verbose_elim = TRUE)
+  )
+
+xgb_yarn_rs
+```
+```{r}
+plot_race(xgb_yarn_rs)
+```
+
+```{r}
+show_best(xgb_yarn_rs)
+```
+Let’s use last_fit() to fit one final time to the **training** data and evaluate one final **time** on the testing data.
+
+```{r}
+xgb_last <- 
+  xgb_wf %>%
+  finalize_workflow(select_best(xgb_yarn_rs, "rmse")) %>%
+  last_fit(yarn_split)
+
+xgb_last
+```
+
+An xgboost model is not directly interpretable but we have several options for understanding why the model makes the predictions it does. Check out [Chapter 18 of Tidy Modeling with R](https://www.tmwr.org/explain.html) for more on model interpretability with tidymodels.
+
+Let’s start with model-based variable importance using the [vip package](https://koalaverse.github.io/vip/).
+
+```{r}
+library(vip)
+
+xgb_fit <- extract_fit_parsnip(xgb_last)
+vip(xgb_fit, geom = "point", num_features = 12)
+
+```
+
+
+`grams` and `yardage` are the most important predictors driving the predicted yarn rating.
+
+We can also use a model-agnostic approach like Shapley Additive Explanations, where the average contributions of features are computed under different combinations or “coalitions” of feature orderings. The [SHAPforxgboost](https://liuyanguu.github.io/SHAPforxgboost/) package makes setting this up for an `xgboost` model particularly nice.
+
+We start by computing what we need for SHAP values, with the underlying `xgboost` engine fit and the predictors in a matrix format.
+
+
+```{r}
+library(SHAPforxgboost)
+
+yarn_shap <-
+  shap.prep(
+    xgb_model = extract_fit_engine(xgb_fit),
+    X_train = bake(yarn_prep,
+      has_role("predictor"),
+      new_data = NULL,
+      composition = "matrix"
+    )
+  )
+```
+
+
+
+Now we can make visualizations! We can look at an overall summary:
+
+```{r}
+shap.plot.summary(yarn_shap)
+```
+
+Or create partial dependence plots for specific variables:
+
+```{r}
+shap.plot.dependence(
+  yarn_shap,
+  x = "grams",
+  color_feature = "yardage",
+  size0 = 1.2,
+  smooth = FALSE, add_hist = TRUE
+)
+```
+
+
+I don't really know what the plots show, but I think the big idea is that there aren't clean linear relationships between the variables.  `xgboost` is good at modeling complicated relationships.
+
+

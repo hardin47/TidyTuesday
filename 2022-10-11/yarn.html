@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.1.60">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Jo Hardin">
+<meta name="dcterms.date" content="2022-10-11">
+
+<title>Yarn</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: 1;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1.6em;
+  vertical-align: middle;
+}
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { color: #008000; } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { color: #008000; font-weight: bold; } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+</style>
+
+
+<script src="yarn_files/libs/clipboard/clipboard.min.js"></script>
+<script src="yarn_files/libs/quarto-html/quarto.js"></script>
+<script src="yarn_files/libs/quarto-html/popper.min.js"></script>
+<script src="yarn_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="yarn_files/libs/quarto-html/anchor.min.js"></script>
+<link href="yarn_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="yarn_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="yarn_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="yarn_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="yarn_files/libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+
+
+</head>
+
+<body class="fullcontent">
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Yarn</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Jo Hardin </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">October 11, 2022</p>
+    </div>
+  </div>
+    
+  </div>
+  
+
+</header>
+
+<div class="cell" data-hash="yarn_cache/html/unnamed-chunk-1_bc34229ca4e1644966f07cf82abf868a">
+
+</div>
+<section id="the-data" class="level2">
+<h2 class="anchored" data-anchor-id="the-data">The Data</h2>
+<p>The data this week comes from <a href="https://www.ravelry.com/yarns/">ravelry.com</a> by way of <a href="https://github.com/awalsh17">Alice Walsh</a>.</p>
+<div class="cell" data-hash="yarn_cache/html/unnamed-chunk-2_e98ec6431e8f2a50a4f976566f23339f">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>yarn <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"yarn.csv"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">gauge =</span> <span class="fu">sapply</span>(<span class="fu">strsplit</span>(yarn_weight_knit_gauge, </span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>                                 <span class="at">split =</span> <span class="st">"-"</span>, <span class="at">fixed =</span> <span class="cn">TRUE</span>), <span class="cf">function</span>(k) <span class="fu">mean</span>(<span class="fu">as.numeric</span>(k)))) <span class="sc">%&gt;%</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">weight_wpi =</span> <span class="fu">sapply</span>(<span class="fu">strsplit</span>(yarn_weight_wpi, </span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>                                 <span class="at">split =</span> <span class="st">"-"</span>, <span class="at">fixed =</span> <span class="cn">TRUE</span>), <span class="cf">function</span>(k) <span class="fu">mean</span>(<span class="fu">as.numeric</span>(k)))) <span class="sc">%&gt;%</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">separate</span>(texture_clean, <span class="at">into =</span> <span class="st">"texture1"</span>, </span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>           <span class="at">sep =</span> <span class="st">","</span>, <span class="at">extra =</span> <span class="st">"drop"</span>, <span class="at">remove =</span> <span class="cn">FALSE</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">texture_tidy =</span> forcats<span class="sc">::</span><span class="fu">fct_lump_n</span>(texture1, <span class="dv">10</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="predicting-ratings" class="level2">
+<h2 class="anchored" data-anchor-id="predicting-ratings">Predicting ratings</h2>
+<p>The analysis is extensively derived from Julia Silge’s <a href="https://juliasilge.com/blog/board-games/">blog predicting ratings of board games</a>.</p>
+<div class="cell" data-hash="yarn_cache/html/unnamed-chunk-3_22c7732cb8681398b5de0e35303c9af8">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>yarn <span class="sc">%&gt;%</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> rating_average)) <span class="sc">+</span> </span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_histogram</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="yarn_files/figure-html/unnamed-chunk-3-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>Are the ratings related to the <code>yarn_weight_knit_gauge</code>? Seems like there is a relationship, hopefully the model will pick it up.</p>
+<div class="cell" data-hash="yarn_cache/html/unnamed-chunk-4_843776d8ac8d36538c275b455f803f6b">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>yarn <span class="sc">%&gt;%</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(gauge)) <span class="sc">%&gt;%</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">gauge =</span> <span class="fu">cut_number</span>(gauge, <span class="dv">4</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x=</span>gauge, <span class="at">y=</span>rating_average, <span class="at">fill =</span> gauge)) <span class="sc">+</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_boxplot</span>(<span class="at">alpha =</span> <span class="fl">0.2</span>, <span class="at">show.legend =</span> <span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="yarn_files/figure-html/unnamed-chunk-4-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+</section>
+<section id="tune-an-xgboost-model" class="level2">
+<h2 class="anchored" data-anchor-id="tune-an-xgboost-model">Tune an xgboost model</h2>
+<div class="cell" data-hash="yarn_cache/html/unnamed-chunk-5_bb09048440cd475476c3cabcb733a7d7">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidymodels)</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>yarn_split <span class="ot">&lt;-</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  yarn <span class="sc">%&gt;%</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(permalink, rating_average, grams, yardage, <span class="co">#texture_tidy, </span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>         yarn_weight_ply, weight_wpi, gauge) <span class="sc">%&gt;%</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">na.omit</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">initial_split</span>()</span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>yarn_train <span class="ot">&lt;-</span> <span class="fu">training</span>(yarn_split)</span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>yarn_test <span class="ot">&lt;-</span> <span class="fu">testing</span>(yarn_split)</span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">234</span>)</span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>yarn_folds <span class="ot">&lt;-</span> <span class="fu">vfold_cv</span>(yarn_train)</span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>yarn_folds</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>#  10-fold cross-validation 
+# A tibble: 10 × 2
+   splits               id    
+   &lt;list&gt;               &lt;chr&gt; 
+ 1 &lt;split [43978/4887]&gt; Fold01
+ 2 &lt;split [43978/4887]&gt; Fold02
+ 3 &lt;split [43978/4887]&gt; Fold03
+ 4 &lt;split [43978/4887]&gt; Fold04
+ 5 &lt;split [43978/4887]&gt; Fold05
+ 6 &lt;split [43979/4886]&gt; Fold06
+ 7 &lt;split [43979/4886]&gt; Fold07
+ 8 &lt;split [43979/4886]&gt; Fold08
+ 9 &lt;split [43979/4886]&gt; Fold09
+10 &lt;split [43979/4886]&gt; Fold10</code></pre>
+</div>
+</div>
+<section id="feature-engineering" class="level4">
+<h4 class="anchored" data-anchor-id="feature-engineering">Feature engineering</h4>
+<p>It doesn’t seem like we need to do much feature engineering. The variables are mostly numeric, and the texture is already a factor variable.</p>
+<div class="cell" data-hash="yarn_cache/html/unnamed-chunk-6_81c89662244c1bdf1faa21148967870e">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>yarn_rec <span class="ot">&lt;-</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">recipe</span>(rating_average <span class="sc">~</span> ., <span class="at">data =</span> yarn_train) <span class="sc">%&gt;%</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">update_role</span>(permalink, <span class="at">new_role =</span> <span class="st">"id"</span>)</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="do">## just to make sure this works as expected</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>yarn_prep <span class="ot">&lt;-</span> <span class="fu">prep</span>(yarn_rec)</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a><span class="fu">bake</span>(yarn_prep, <span class="at">new_data =</span> <span class="cn">NULL</span>) <span class="sc">%&gt;%</span> <span class="fu">str</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>tibble [48,865 × 7] (S3: tbl_df/tbl/data.frame)
+ $ permalink      : Factor w/ 48865 levels "--coton-cable",..: 41723 28626 40466 13968 11276 6018 39308 6676 21038 41583 ...
+ $ grams          : num [1:48865] 100 100 150 50 50 100 100 50 100 50 ...
+ $ yardage        : num [1:48865] 437 401 500 219 113 186 463 136 437 98 ...
+ $ yarn_weight_ply: num [1:48865] 4 4 4 4 10 10 4 4 4 10 ...
+ $ weight_wpi     : num [1:48865] 14 14 14 14 9 8 14 14 14 8 ...
+ $ gauge          : num [1:48865] 28 28 28 28 20 18 28 28 28 18 ...
+ $ rating_average : num [1:48865] 3.33 5 4.88 4 3.13 4 5 5 4.56 4 ...
+ - attr(*, "na.action")= 'omit' Named int [1:34846] 9 10 15 16 28 41 46 49 65 66 ...
+  ..- attr(*, "names")= chr [1:34846] "9" "10" "15" "16" ...</code></pre>
+</div>
+</div>
+</section>
+<section id="create-xgboost-model" class="level4">
+<h4 class="anchored" data-anchor-id="create-xgboost-model">Create xgboost model</h4>
+<p>In the <code>xgboost</code> model we’ll train the number of <code>trees</code>, <code>mtry</code>, and <code>min_n</code>, the smallest number of observations that will lead to a node being split.</p>
+<div class="cell" data-hash="yarn_cache/html/unnamed-chunk-7_52d96b51030c8da3c052976d143b17ec">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>xgb_spec <span class="ot">&lt;-</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">boost_tree</span>(</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">trees =</span> <span class="fu">tune</span>(),</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">mtry =</span> <span class="fu">tune</span>(),</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">min_n =</span> <span class="fu">tune</span>(),</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">learn_rate =</span> <span class="fl">0.01</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">%&gt;%</span></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">set_engine</span>(<span class="st">"xgboost"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">set_mode</span>(<span class="st">"regression"</span>)</span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>xgb_wf <span class="ot">&lt;-</span> <span class="fu">workflow</span>(yarn_rec, xgb_spec)</span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>xgb_wf</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>══ Workflow ════════════════════════════════════════════════════════════════════
+Preprocessor: Recipe
+Model: boost_tree()
+
+── Preprocessor ────────────────────────────────────────────────────────────────
+0 Recipe Steps
+
+── Model ───────────────────────────────────────────────────────────────────────
+Boosted Tree Model Specification (regression)
+
+Main Arguments:
+  mtry = tune()
+  trees = tune()
+  min_n = tune()
+  learn_rate = 0.01
+
+Computational engine: xgboost </code></pre>
+</div>
+</div>
+<p>I don’t think we really need it because we don’t have too many parameters, but to follow Julia’s structure, we can use the <code>tune_race_anova()</code> function to eliminate parameter combinations that don’t predict well.</p>
+<div class="cell" data-hash="yarn_cache/html/unnamed-chunk-8_6b5bb4a128777a845d1ef03a1011d03b">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(finetune)</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>doParallel<span class="sc">::</span><span class="fu">registerDoParallel</span>()</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">234</span>)</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>xgb_yarn_rs <span class="ot">&lt;-</span></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>  finetune<span class="sc">::</span><span class="fu">tune_race_anova</span>(</span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>    xgb_wf,</span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>    yarn_folds,</span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">grid =</span> <span class="dv">10</span>,</span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">control =</span> <span class="fu">control_race</span>(<span class="at">verbose_elim =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a>xgb_yarn_rs</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># Tuning results
+# 10-fold cross-validation 
+# A tibble: 10 × 5
+   splits               id     .order .metrics          .notes          
+   &lt;list&gt;               &lt;chr&gt;   &lt;int&gt; &lt;list&gt;            &lt;list&gt;          
+ 1 &lt;split [43978/4887]&gt; Fold03      1 &lt;tibble [20 × 7]&gt; &lt;tibble [0 × 3]&gt;
+ 2 &lt;split [43978/4887]&gt; Fold05      2 &lt;tibble [20 × 7]&gt; &lt;tibble [0 × 3]&gt;
+ 3 &lt;split [43979/4886]&gt; Fold10      3 &lt;tibble [20 × 7]&gt; &lt;tibble [0 × 3]&gt;
+ 4 &lt;split [43979/4886]&gt; Fold06      4 &lt;tibble [14 × 7]&gt; &lt;tibble [0 × 3]&gt;
+ 5 &lt;split [43979/4886]&gt; Fold08      5 &lt;tibble [6 × 7]&gt;  &lt;tibble [0 × 3]&gt;
+ 6 &lt;split [43978/4887]&gt; Fold01      6 &lt;tibble [2 × 7]&gt;  &lt;tibble [0 × 3]&gt;
+ 7 &lt;split [43978/4887]&gt; Fold02      8 &lt;tibble [2 × 7]&gt;  &lt;tibble [0 × 3]&gt;
+ 8 &lt;split [43978/4887]&gt; Fold04      7 &lt;tibble [2 × 7]&gt;  &lt;tibble [0 × 3]&gt;
+ 9 &lt;split [43979/4886]&gt; Fold07     10 &lt;tibble [2 × 7]&gt;  &lt;tibble [0 × 3]&gt;
+10 &lt;split [43979/4886]&gt; Fold09      9 &lt;tibble [2 × 7]&gt;  &lt;tibble [0 × 3]&gt;</code></pre>
+</div>
+</div>
+<div class="cell" data-hash="yarn_cache/html/unnamed-chunk-9_e4913812a567de328943c4518663284e">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot_race</span>(xgb_yarn_rs)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="yarn_files/figure-html/unnamed-chunk-9-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<div class="cell" data-hash="yarn_cache/html/unnamed-chunk-10_e376d9db651dfa1c3722ccac1ce9cf21">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">show_best</span>(xgb_yarn_rs)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 5 × 10
+  .order  mtry trees min_n .metric .estimator  mean     n std_err .config       
+   &lt;int&gt; &lt;int&gt; &lt;int&gt; &lt;int&gt; &lt;chr&gt;   &lt;chr&gt;      &lt;dbl&gt; &lt;int&gt;   &lt;dbl&gt; &lt;chr&gt;         
+1      9     4  1828    38 rmse    standard   0.535     1      NA Preprocessor1…
+2      6     4  1828    38 rmse    standard   0.538     1      NA Preprocessor1…
+3      4     3  1362    20 rmse    standard   0.539     1      NA Preprocessor1…
+4      4     4  1828    38 rmse    standard   0.539     1      NA Preprocessor1…
+5      4     3  1766     3 rmse    standard   0.539     1      NA Preprocessor1…</code></pre>
+</div>
+</div>
+<p>Let’s use last_fit() to fit one final time to the <strong>training</strong> data and evaluate one final <strong>time</strong> on the testing data.</p>
+<div class="cell" data-hash="yarn_cache/html/unnamed-chunk-11_8ae348c9d16c99efcae1b8e2a7c09824">
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>xgb_last <span class="ot">&lt;-</span> </span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>  xgb_wf <span class="sc">%&gt;%</span></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">finalize_workflow</span>(<span class="fu">select_best</span>(xgb_yarn_rs, <span class="st">"rmse"</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">last_fit</span>(yarn_split)</span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>xgb_last</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># Resampling results
+# Manual resampling 
+# A tibble: 1 × 6
+  splits                id               .metrics .notes   .predict…¹ .workflow 
+  &lt;list&gt;                &lt;chr&gt;            &lt;list&gt;   &lt;list&gt;   &lt;list&gt;     &lt;list&gt;    
+1 &lt;split [48865/16289]&gt; train/test split &lt;tibble&gt; &lt;tibble&gt; &lt;tibble&gt;   &lt;workflow&gt;
+# … with abbreviated variable name ¹​.predictions</code></pre>
+</div>
+</div>
+<p>An xgboost model is not directly interpretable but we have several options for understanding why the model makes the predictions it does. Check out <a href="https://www.tmwr.org/explain.html">Chapter 18 of Tidy Modeling with R</a> for more on model interpretability with tidymodels.</p>
+<p>Let’s start with model-based variable importance using the <a href="https://koalaverse.github.io/vip/">vip package</a>.</p>
+<div class="cell" data-hash="yarn_cache/html/unnamed-chunk-12_c6c73f8b5c13608e208ca11295c454fc">
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(vip)</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>xgb_fit <span class="ot">&lt;-</span> <span class="fu">extract_fit_parsnip</span>(xgb_last)</span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a><span class="fu">vip</span>(xgb_fit, <span class="at">geom =</span> <span class="st">"point"</span>, <span class="at">num_features =</span> <span class="dv">12</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="yarn_files/figure-html/unnamed-chunk-12-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p><code>grams</code> and <code>yardage</code> are the most important predictors driving the predicted yarn rating.</p>
+<p>We can also use a model-agnostic approach like Shapley Additive Explanations, where the average contributions of features are computed under different combinations or “coalitions” of feature orderings. The <a href="https://liuyanguu.github.io/SHAPforxgboost/">SHAPforxgboost</a> package makes setting this up for an <code>xgboost</code> model particularly nice.</p>
+<p>We start by computing what we need for SHAP values, with the underlying <code>xgboost</code> engine fit and the predictors in a matrix format.</p>
+<div class="cell" data-hash="yarn_cache/html/unnamed-chunk-13_587b83ac628711fefb84c2380f875099">
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(SHAPforxgboost)</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>yarn_shap <span class="ot">&lt;-</span></span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">shap.prep</span>(</span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">xgb_model =</span> <span class="fu">extract_fit_engine</span>(xgb_fit),</span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">X_train =</span> <span class="fu">bake</span>(yarn_prep,</span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>      <span class="fu">has_role</span>(<span class="st">"predictor"</span>),</span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a>      <span class="at">new_data =</span> <span class="cn">NULL</span>,</span>
+<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a>      <span class="at">composition =</span> <span class="st">"matrix"</span></span>
+<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb18-11"><a href="#cb18-11" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Now we can make visualizations! We can look at an overall summary:</p>
+<div class="cell" data-hash="yarn_cache/html/unnamed-chunk-14_0f0afbc5f6231dffb2a39fe721336d82">
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="fu">shap.plot.summary</span>(yarn_shap)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="yarn_files/figure-html/unnamed-chunk-14-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>Or create partial dependence plots for specific variables:</p>
+<div class="cell" data-hash="yarn_cache/html/unnamed-chunk-15_dfd5f667aac9b1c1d449dbb88cf852d1">
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="fu">shap.plot.dependence</span>(</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>  yarn_shap,</span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">x =</span> <span class="st">"grams"</span>,</span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">color_feature =</span> <span class="st">"yardage"</span>,</span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">size0 =</span> <span class="fl">1.2</span>,</span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">smooth =</span> <span class="cn">FALSE</span>, <span class="at">add_hist =</span> <span class="cn">TRUE</span></span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="yarn_files/figure-html/unnamed-chunk-15-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>I don’t really know what the plots show, but I think the big idea is that there aren’t clean linear relationships between the variables. <code>xgboost</code> is good at modeling complicated relationships.</p>
+</section>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    target: function(trigger) {
+      return trigger.previousElementSibling;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    setTimeout(function() {
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const cites = ref.parentNode.getAttribute('data-cites').split(' ');
+    tippyHover(ref, function() {
+      var popup = window.document.createElement('div');
+      cites.forEach(function(cite) {
+        var citeDiv = window.document.createElement('div');
+        citeDiv.classList.add('hanging-indent');
+        citeDiv.classList.add('csl-entry');
+        var biblioDiv = window.document.getElementById('ref-' + cite);
+        if (biblioDiv) {
+          citeDiv.innerHTML = biblioDiv.innerHTML;
+        }
+        popup.appendChild(citeDiv);
+      });
+      return popup.innerHTML;
+    });
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+</body></html>
