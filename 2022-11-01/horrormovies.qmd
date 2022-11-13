@@ -1,0 +1,225 @@
+---
+title: "Horror Movies"
+author: "Jo Hardin"
+date: "11/01/2022"
+format: html
+server: shiny
+execute:
+  warning: false
+  message: false
+---
+
+all functions need to be in context: setup
+all data needs to be in context: data
+widgets: https://shiny.rstudio.com/articles/action-buttons.html
+panel: sidebar is like ui and shouldn't have much code at all.
+
+
+```{r}
+#| context: setup
+library(tidyverse)
+library(udpipe)
+```
+
+
+## The Data
+
+Data set was extracted from **[The Movie Datbase](https://www.themoviedb.org)** via the tmdb API using R <code>httr</code>.
+
+
+```{r}
+#| context: setup
+movies <- read_csv("horror_movies.csv")
+
+titles <- movies |> 
+  mutate(title_lower = tolower(title)) |> 
+  filter(original_language == "en")
+```
+
+## New Movie Titles   
+
+Once again, imitation is the most sincere form of flatery.  I'm building on [the analysis](https://twitter.com/c_borstell/status/1587430369422462977) by @c_borstell.  Most of the code is taken directly from their [GitHub post](https://github.com/borstell/tidytuesday/tree/main/2022/2022-11-01).  
+
+
+```{r}
+#| context: setup
+# Download UD model for tagging
+ud_eng_dl   <- udpipe::udpipe_download_model(language = "english-ewt")
+# Load model
+ud_eng <- udpipe::udpipe_load_model("english-ewt-ud-2.5-191206.udpipe")
+
+# Analyze the horror movie titles and pipe to tibble format
+ud_horror <- udpipe::udpipe_annotate(ud_eng, x = titles$title_lower) |> 
+  as_tibble()
+```
+
+```{r}
+#| context: setup
+# Function to make horror movie titles
+# random=TRUE (default) means random possible words are selected
+# random=FALSE means the most frequent words per type are selected
+make_title <- function(random=T){
+  nouns <- ud_horror |> 
+    filter(upos=="NOUN")
+  adjs <- ud_horror |> 
+    filter(upos=="ADJ")
+  adps <- ud_horror |> 
+    filter(upos=="ADP")
+  dets <- ud_horror |> 
+    filter(upos=="DET")
+  if(random){
+    ns <- sample(nouns$token, 2)
+    n1 <- ns[1]
+    n2 <- ns[2]
+    a <- sample(adjs$token, 1)
+    d <- sample(dets$token, 1)
+    p <- sample(adps$token, 1)
+  }
+  else{
+    ns <- nouns |> 
+      count(token, sort=T)
+    n1 <- ns[1,]$token
+    n2 <- ns[2,]$token
+    a <- adjs |> 
+      count(token, sort=T) |> 
+      slice_max(n = 1, order_by = n) |> 
+      select(token)
+    d <- dets |> 
+      count(token, sort=T) |> 
+      slice_max(n = 1, order_by = n) |> 
+      select(token)
+    p <- adps |> 
+      count(token, sort=T) |> 
+      slice_max(n = 1, order_by = n) |> 
+      select(token)
+  }
+  return(paste("The", str_to_title(n1), p, d, str_to_title(a), str_to_title(n2), sep = " "))
+}
+
+# Function to make horror movie taglines
+# random=TRUE (default) means random possible words are selected
+# random=FALSE means the most frequent words per type are selected
+make_tagline <- function(random=T){
+  subjects <- ud_horror |> 
+    filter(xpos %in% c("PRP","NNP")) |> 
+    filter(!is.na(feats)) |> 
+    filter(gsub("Case=Acc","",feats)==feats)
+  ings <- ud_horror |> 
+    filter(feats=="VerbForm=Ger")
+  if(random){
+    subject <- subjects[sample(1:nrow(subjects), 1),]
+    ing <- sample(ings$token, 1)
+  }
+  else{
+    subject <- subjects |> 
+      count(feats, token, sort=T) |> 
+      slice_max(n = 1, order_by = n)
+    ing <- ings |> 
+      count(token, sort=T) |> 
+      slice_max(n = 1, order_by = n) |> 
+      select(token)
+  }
+  s <- subject$token
+  s_feats <- subject$feats
+  verb <- sample(c("is","was","will be"),1)
+  if(gsub("Number=Sing","",s_feats)==s_feats){
+    verb <- sample(c("are", "were", "will be"),1)
+  }
+  if(s=="i"){
+    verb <- sample(c("am","was","will be"),1)
+  }
+  return(paste(str_to_title(s), verb, ing, "...", sep = " "))
+}
+
+
+#make_title()
+#make_tagline()
+```
+
+```{r}
+#| context: setup
+# Fonts
+# https://fonts.google.com/specimen/Rubik+Glitch
+# https://fonts.google.com/specimen/Rubik+Wet+Paint
+
+library(sysfonts)
+sysfonts::font_add("Rubik Glitch", "RubikGlitch-Regular.ttf")
+showtext::showtext_auto()
+sysfonts::font_add("Rubik Wet Paint Regular", "RubikWetPaint-Regular.ttf")
+showtext::showtext_auto()
+sysfonts::font_add("Copperplate", "Copperplate.ttf")
+showtext::showtext_auto()
+```
+
+```{r}
+#| context: setup
+# Function to make horror movie poster
+make_poster <- function(tagline=T, random=T){
+  title_text <- make_title(random = random)
+  tagline_text <- ""
+  if(tagline){
+    tagline_text <- make_tagline(random = random)
+  }
+  ggplot() +
+    geom_text(aes(x=3, y=0, label="Coming November 1st"), size=7, color="grey80", family="Copperplate") +
+    labs(title=title_text,
+         subtitle=tagline_text,
+         caption="Visualization: @c_borstell\nData: TMDB (via Tanya Shapiro & TidyTuesday)\nPackages: {tidyverse,udpipe}") +
+    coord_fixed(9/16) +
+    theme_void() +
+    theme(plot.background = element_rect(color=NA, fill="grey10"),
+          plot.title = element_text(family="sans", size=16, hjust=.5, color="red", vjust=-1),
+          plot.subtitle = element_text(family="sans", size=8, hjust=.8, color="red3", vjust=-10),
+          plot.caption = element_text(family="sans", size=5, hjust=.5, color="grey80", vjust=240),
+          #          plot.title = element_text(family="Rubik Wet Paint Regular", size=16, hjust=.5, color="red", vjust=-1),
+          #          plot.subtitle = element_text(family="Rubik Glitch", size=8, hjust=.8, color="red3", vjust=-10),
+          #          plot.caption = element_text(family="Copperplate", size=5, hjust=.5, color="grey80", vjust=240),
+          #plot.margin = margin(0,0,-2,0, unit="in")
+          )
+}
+
+# Example of calling the function and saving
+#make_poster()
+#make_poster(random = F)
+
+# Suggested dimensions for saving
+#ggsave(width=16, height=9, units="cm", dpi=600)
+
+
+
+
+# Loop 100x and make posters with random titles and taglines
+#for(n in 1:100){
+#  make_poster()
+#  ggsave(paste(path,"/poster_",str_pad(n, 3, pad="0"),".jpg"), width=16, height=9, units="cm", dpi=600)
+#}
+```
+
+
+```{r}
+#| panel: sidebar
+
+#numericInput('seed', 'Random Seed', 47)
+#submitButton("Update View", icon("refresh"))
+actionButton('seed', "Refresh")
+# or put an action button, ui widget that will re-render a plot
+```
+
+```{r}
+#| panel: fill
+plotOutput("HorrorMovie")
+```
+
+
+```{r}
+#| context: server
+
+#p <- eventReactive(
+#  input$seed,
+#  {runif(4)})
+
+output$HorrorMovie <- renderPlot({
+#    set.seed(p())
+    make_poster()
+  })
+```

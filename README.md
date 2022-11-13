@@ -4,6 +4,8 @@ My Tidy Tuesday adventures: [https://hardin47.github.io/TidyTuesday/](https://ha
 
 ### Tidy Tuesday Analyses
 
+* 2022-10-18 [Tidy Tuesday Stranger Things](https://hardin47.github.io/TidyTuesday/2022-10-18/strangerthings.html)
+
 * 2022-10-11 [Tidy Tuesday Yarn](https://hardin47.github.io/TidyTuesday/2022-10-11/yarn.html)
 
 * 2022-10-04 [Tidy Tuesday Product Hunt](https://hardin47.github.io/TidyTuesday/2022-10-04/product_hunt.html)
