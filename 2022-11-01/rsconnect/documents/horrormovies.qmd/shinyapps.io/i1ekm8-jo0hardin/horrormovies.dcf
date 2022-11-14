@@ -5,12 +5,12 @@ account: i1ekm8-jo0hardin
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 7608856
-bundleId: 6509174
+bundleId: 6509192
 url: https://hardin47.shinyapps.io/horrormovies/
-when: 1668365166.2565
-lastSyncTime: 1668365166.25653
+when: 1668365566.40709
+lastSyncTime: 1668365566.4071
 quarto_version: 1.2.256
 quarto_engines: knitr
 asMultiple: FALSE
 asStatic: FALSE
-ignoredFiles: Copperplate.ttf|pic1.png|pic2.png|plotHorror.R|readme.md|RubikGlitch-Regular.ttf|RubikWetPaint-Regular.ttf
+ignoredFiles: Copperplate.ttf|pic1.png|pic2.png|readme.md|RubikGlitch-Regular.ttf|RubikWetPaint-Regular.ttf
