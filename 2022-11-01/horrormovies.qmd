@@ -1,7 +1,7 @@
 ---
 title: "Horror Movies"
 author: "Jo Hardin"
-date: "11/01/2022"
+date: "11/30/2022"
 format: html
 server: shiny
 execute:
@@ -9,11 +9,15 @@ execute:
   message: false
 ---
 
-all functions need to be in context: setup
-all data needs to be in context: data
-widgets: https://shiny.rstudio.com/articles/action-buttons.html
-panel: sidebar is like ui and shouldn't have much code at all.
+```{r}
+# notes to myself to remember how to use Shiny
 
+#all functions need to be in `context: setup`  
+#all data needs to be in `context: data`  
+#widgets: https://shiny.rstudio.com/articles/action-buttons.html  
+#`panel: sidebar` is like ui and shouldn't have much code at all. 
+#`context: server` is the equivalent of the old server function
+```
 
 ```{r}
 #| context: setup
@@ -21,6 +25,9 @@ library(tidyverse)
 library(udpipe)
 ```
 
+## Quarto + Shiny
+
+Finally got the refresh to work!!!   The Shiny App is hosted at: https://hardin47.shinyapps.io/horrormovies/
 
 ## The Data
 
@@ -28,7 +35,7 @@ Data set was extracted from **[The Movie Datbase](https://www.themoviedb.org)** 
 
 
 ```{r}
-#| context: setup
+#| context: data
 movies <- read_csv("horror_movies.csv")
 
 titles <- movies |> 
@@ -38,11 +45,16 @@ titles <- movies |>
 
 ## New Movie Titles   
 
-Once again, imitation is the most sincere form of flatery.  I'm building on [the analysis](https://twitter.com/c_borstell/status/1587430369422462977) by @c_borstell.  Most of the code is taken directly from their [GitHub post](https://github.com/borstell/tidytuesday/tree/main/2022/2022-11-01).  
+Once again, imitation is the most sincere form of flattery.  I'm building on [the analysis](https://twitter.com/c_borstell/status/1587430369422462977) by @c_borstell.  Most of the code is taken directly from their [GitHub post](https://github.com/borstell/tidytuesday/tree/main/2022/2022-11-01).  
 
+The basic idea of @c_borstell is to take the horror movie titles and break them down into their parts of speech (nouns, adjectives, adverbs, etc.).  Then to create a new movie title, randomly select to put together a title which is:
+
+> The Noun1 Adposition Determiner Adjective Noun2
+
+The sentence structure breakdown is done using the package **udpipe**.
 
 ```{r}
-#| context: setup
+#| context: data
 # Download UD model for tagging
 ud_eng_dl   <- udpipe::udpipe_download_model(language = "english-ewt")
 # Load model
@@ -154,27 +166,24 @@ showtext::showtext_auto()
 ```{r}
 #| context: setup
 # Function to make horror movie poster
-make_poster <- function(tagline=T, random=T){
+make_poster <- function(tagline=T, random=T, seed = 47){
+  set.seed(seed)
   title_text <- make_title(random = random)
   tagline_text <- ""
   if(tagline){
     tagline_text <- make_tagline(random = random)
   }
   ggplot() +
-    geom_text(aes(x=3, y=0, label="Coming November 1st"), size=7, color="grey80", family="Copperplate") +
+    geom_text(aes(x=3, y=0, label="Coming October 31st"), size=18, color="grey80", family="Copperplate") +
     labs(title=title_text,
          subtitle=tagline_text,
-         caption="Visualization: @c_borstell\nData: TMDB (via Tanya Shapiro & TidyTuesday)\nPackages: {tidyverse,udpipe}") +
+         caption="Visualization: @c_borstell\nData: TMDB (via Tanya Shapiro & TidyTuesday)\nShiny App: https://github.com/hardin47") +
     coord_fixed(9/16) +
     theme_void() +
     theme(plot.background = element_rect(color=NA, fill="grey10"),
-          plot.title = element_text(family="sans", size=16, hjust=.5, color="red", vjust=-1),
-          plot.subtitle = element_text(family="sans", size=8, hjust=.8, color="red3", vjust=-10),
-          plot.caption = element_text(family="sans", size=5, hjust=.5, color="grey80", vjust=240),
-          #          plot.title = element_text(family="Rubik Wet Paint Regular", size=16, hjust=.5, color="red", vjust=-1),
-          #          plot.subtitle = element_text(family="Rubik Glitch", size=8, hjust=.8, color="red3", vjust=-10),
-          #          plot.caption = element_text(family="Copperplate", size=5, hjust=.5, color="grey80", vjust=240),
-          #plot.margin = margin(0,0,-2,0, unit="in")
+          plot.title = element_text(family="Rubik Wet Paint Regular", size=36, hjust=.5, color="red", vjust=-1),
+          plot.subtitle = element_text(family="Rubik Glitch", size=28, hjust=.8, color="red3", vjust=-10),
+          plot.caption = element_text(family="Copperplate", size=14, color="grey80", hjust = .5, vjust = 5)
           )
 }
 
@@ -196,6 +205,8 @@ make_poster <- function(tagline=T, random=T){
 ```
 
 
+## Movie Titles
+
 ```{r}
 #| panel: sidebar
 
@@ -203,10 +214,7 @@ make_poster <- function(tagline=T, random=T){
 #submitButton("Update View", icon("refresh"))
 actionButton('seed', "Refresh")
 # or put an action button, ui widget that will re-render a plot
-```
 
-```{r}
-#| panel: fill
 plotOutput("HorrorMovie")
 ```
 
@@ -214,12 +222,12 @@ plotOutput("HorrorMovie")
 ```{r}
 #| context: server
 
-#p <- eventReactive(
-#  input$seed,
-#  {runif(4)})
+p <- eventReactive(
+  input$seed,
+  {runif(10)}
+)
 
 output$HorrorMovie <- renderPlot({
-#    set.seed(p())
-    make_poster()
+    make_poster(seed = round(sum(p())*100000))
   })
 ```
