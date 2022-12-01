@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Jo Hardin">
-<meta name="dcterms.date" content="2022-11-01">
+<meta name="dcterms.date" content="2022-11-30">
 
 <title>Horror Movies</title>
 <style>
@@ -64,7 +64,7 @@ ul.task-list li input[type="checkbox"] {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">November 1, 2022</p>
+      <p class="date">November 30, 2022</p>
     </div>
   </div>
   
@@ -74,21 +74,32 @@ ul.task-list li input[type="checkbox"] {
 
 </header>
 
-<p>all functions need to be in context: setup all data needs to be in context: data widgets: https://shiny.rstudio.com/articles/action-buttons.html panel: sidebar is like ui and shouldn’t have much code at all.</p>
+<div class="cell">
+
+</div>
 <div class="cell" data-context="setup">
 
 </div>
+<section id="quarto-shiny" class="level2">
+<h2 class="anchored" data-anchor-id="quarto-shiny">Quarto + Shiny</h2>
+<p>Finally got the refresh to work!!! The Shiny App is hosted at: https://hardin47.shinyapps.io/horrormovies/</p>
+</section>
 <section id="the-data" class="level2">
 <h2 class="anchored" data-anchor-id="the-data">The Data</h2>
 <p>Data set was extracted from <strong><a href="https://www.themoviedb.org">The Movie Datbase</a></strong> via the tmdb API using R <code>httr</code>.</p>
-<div class="cell" data-context="setup">
+<div class="cell" data-context="data">
 
 </div>
 </section>
 <section id="new-movie-titles" class="level2">
 <h2 class="anchored" data-anchor-id="new-movie-titles">New Movie Titles</h2>
-<p>Once again, imitation is the most sincere form of flatery. I’m building on <a href="https://twitter.com/c_borstell/status/1587430369422462977">the analysis</a> by <span class="citation" data-cites="c_borstell">@c_borstell</span>. Most of the code is taken directly from their <a href="https://github.com/borstell/tidytuesday/tree/main/2022/2022-11-01">GitHub post</a>.</p>
-<div class="cell" data-context="setup">
+<p>Once again, imitation is the most sincere form of flattery. I’m building on <a href="https://twitter.com/c_borstell/status/1587430369422462977">the analysis</a> by <span class="citation" data-cites="c_borstell">@c_borstell</span>. Most of the code is taken directly from their <a href="https://github.com/borstell/tidytuesday/tree/main/2022/2022-11-01">GitHub post</a>.</p>
+<p>The basic idea of <span class="citation" data-cites="c_borstell">@c_borstell</span> is to take the horror movie titles and break them down into their parts of speech (nouns, adjectives, adverbs, etc.). Then to create a new movie title, randomly select to put together a title which is:</p>
+<blockquote class="blockquote">
+<p>The Noun1 Adposition Determiner Adjective Noun2</p>
+</blockquote>
+<p>The sentence structure breakdown is done using the package <strong>udpipe</strong>.</p>
+<div class="cell" data-context="data">
 
 </div>
 <div class="cell" data-context="setup">
@@ -100,20 +111,15 @@ ul.task-list li input[type="checkbox"] {
 <div class="cell" data-context="setup">
 
 </div>
-<div class="panel-grid layout-sidebar ms-md-0 layout-sidebar-left">
-<div class="cell panel-sidebar card bg-light p-2 g-col-24 g-col-lg-7">
+</section>
+<section id="movie-titles" class="level2">
+<h2 class="anchored" data-anchor-id="movie-titles">Movie Titles</h2>
+<div class="cell card bg-light p-2 g-col-24 g-col-lg-7">
 <div class="cell-output-display">
 <button id="seed" type="button" class="btn btn-default action-button">Refresh</button>
 </div>
-</div>
-<div class="panel-fill panel-grid g-col-24 g-col-lg-17 pt-3 pt-lg-0">
-<div class="g-col-24">
-<div class="cell panel-fill">
 <div class="cell-output-display">
 <div id="HorrorMovie" class="shiny-plot-output" style="width:100%;height:400px;"></div>
-</div>
-</div>
-</div>
 </div>
 </div>
 <div class="cell" data-context="server">
@@ -125,7 +131,7 @@ library(tidyverse)
 library(udpipe)
 </script>
  
-<script type="application/shiny-prerendered" data-context="server-start">
+<script type="application/shiny-prerendered" data-context="data">
 movies <- read_csv("horror_movies.csv")
 
 titles <- movies |> 
@@ -133,7 +139,7 @@ titles <- movies |>
   filter(original_language == "en")
 </script>
  
-<script type="application/shiny-prerendered" data-context="server-start">
+<script type="application/shiny-prerendered" data-context="data">
 # Download UD model for tagging
 ud_eng_dl   <- udpipe::udpipe_download_model(language = "english-ewt")
 # Load model
@@ -242,27 +248,24 @@ showtext::showtext_auto()
  
 <script type="application/shiny-prerendered" data-context="server-start">
 # Function to make horror movie poster
-make_poster <- function(tagline=T, random=T){
+make_poster <- function(tagline=T, random=T, seed = 47){
+  set.seed(seed)
   title_text <- make_title(random = random)
   tagline_text <- ""
   if(tagline){
     tagline_text <- make_tagline(random = random)
   }
   ggplot() +
-    geom_text(aes(x=3, y=0, label="Coming November 1st"), size=7, color="grey80", family="Copperplate") +
+    geom_text(aes(x=3, y=0, label="Coming October 31st"), size=18, color="grey80", family="Copperplate") +
     labs(title=title_text,
          subtitle=tagline_text,
-         caption="Visualization: @c_borstell\nData: TMDB (via Tanya Shapiro & TidyTuesday)\nPackages: {tidyverse,udpipe}") +
+         caption="Visualization: @c_borstell\nData: TMDB (via Tanya Shapiro & TidyTuesday)\nShiny App: https://github.com/hardin47") +
     coord_fixed(9/16) +
     theme_void() +
     theme(plot.background = element_rect(color=NA, fill="grey10"),
-          plot.title = element_text(family="sans", size=16, hjust=.5, color="red", vjust=-1),
-          plot.subtitle = element_text(family="sans", size=8, hjust=.8, color="red3", vjust=-10),
-          plot.caption = element_text(family="sans", size=5, hjust=.5, color="grey80", vjust=240),
-          #          plot.title = element_text(family="Rubik Wet Paint Regular", size=16, hjust=.5, color="red", vjust=-1),
-          #          plot.subtitle = element_text(family="Rubik Glitch", size=8, hjust=.8, color="red3", vjust=-10),
-          #          plot.caption = element_text(family="Copperplate", size=5, hjust=.5, color="grey80", vjust=240),
-          #plot.margin = margin(0,0,-2,0, unit="in")
+          plot.title = element_text(family="Rubik Wet Paint Regular", size=36, hjust=.5, color="red", vjust=-1),
+          plot.subtitle = element_text(family="Rubik Glitch", size=28, hjust=.8, color="red3", vjust=-10),
+          plot.caption = element_text(family="Copperplate", size=14, color="grey80", hjust = .5, vjust = 5)
           )
 }
 
@@ -284,13 +287,13 @@ make_poster <- function(tagline=T, random=T){
 </script>
  
 <script type="application/shiny-prerendered" data-context="server">
-#p <- eventReactive(
-#  input$seed,
-#  {runif(4)})
+p <- eventReactive(
+  input$seed,
+  {runif(10)}
+)
 
 output$HorrorMovie <- renderPlot({
-#    set.seed(p())
-    make_poster()
+    make_poster(seed = round(sum(p())*100000))
   })
 </script>
  

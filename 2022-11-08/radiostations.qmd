@@ -1,0 +1,295 @@
+---
+title: "Radio Stations"
+author: "Jo Hardin"
+date: "11/15/2022"
+format: html
+server: shiny
+execute:
+  warning: false
+  message: false
+---
+
+```{r}
+#| context: setup
+library(tidyverse)
+library(readr)
+library(rvest)
+library(purrr)
+library(janitor)
+library(ggmap)
+```
+
+
+## Shiny Practice
+
+Trying to build on my quarto practicing to get used to Shiny.  The following app works in Shiny, but it is too big to deploy for free on the Shiny server, so no link to connect too.  Next time I'm going to try something smaller!
+
+
+## The Data
+
+The data this week comes from [Wikipedia](https://en.wikipedia.org/wiki/Lists_of_radio_stations_in_the_United_States). 
+
+Today's analysis is based on [work](https://github.com/TorviciaND/TidyTuesday) from [@NdFest](https://twitter.com/NdFest/status/1591803647520018432).
+
+The goal is to recreate their map but then to change the circles using a Shiny App to switch from public radio to other types of radio (religious, pop, country, etc.)/
+
+```{r}
+#| context: data
+station_info <- read_csv("station_info.csv")
+state_stations <- read_csv("state_stations.csv") %>%
+  right_join(station_info, by = c("call_sign")) %>%
+  mutate(format = tolower(format))
+
+#This file needs to be downloaded to your computer and unzipped
+raw_contour <- read_delim("FM_service_contour_current.txt",  delim = "|")
+
+#Getting just the stations that include Public in their format
+public_stations <- state_stations %>% 
+  filter(grepl("public", format))
+
+country_stations <- state_stations %>%
+  filter(grepl("country", format))
+
+rock_stations <- state_stations %>%
+  filter(grepl("rock", format))
+
+religious_stations <- state_stations %>%
+  filter(grepl("religious", format) | grepl("worship", format) | grepl("christian", format))
+
+spanish_stations <- state_stations %>%
+  filter(grepl("spanish", format) | grepl("mexic", format))
+
+classic_stations <- state_stations %>%
+  filter(grepl("classic", format))
+
+top40_stations <- state_stations %>%
+  filter(grepl("40", format))
+```
+
+
+#### Countour cleaning
+
+Directly from the Tidy Tuesday website
+
+```{r}
+#| context: data
+#| cache: true
+all_states <- datasets::state.name
+all_states <- gsub(" ", "_", all_states)
+get_stations <- function(state){
+  root <- paste0("https://en.wikipedia.org/wiki/List_of_radio_stations_in_", state) 
+  tables <- read_html(root) %>% html_nodes("table")
+  stations <- tables[1] %>% # ideally all pages will have same format
+    html_table(header = TRUE) %>% 
+    do.call(rbind, .) %>% 
+    clean_names() %>% 
+    mutate(frequency = as.character(frequency)) %>%                    # handling Ohio special case (frequency / band split)
+    rename_if(startsWith(names(.), "city"), ~ ("city")) %>%            # handling naming issues, citation handler
+    rename_at(vars(matches("format")), ~ "format") %>%                 # handling naming issues, Oklahoma handler
+    rename_if(startsWith(names(.), "licensee"), ~ ("licensee")) %>%    # handling naming issues, citation handler
+    rename_if(startsWith(names(.), "owner"), ~ ("licensee")) %>%       # South Dakota handler
+    select(call_sign, frequency, city, licensee, format) %>% 
+    mutate(
+      state = state
+    )
+  return(stations)
+}
+
+conv_contour <- raw_contour |>
+  select(-last_col()) |>
+  set_names(nm = c(
+    "application_id", "service", "lms_application_id", "dts_site_number", "transmitter_site",
+    glue::glue("deg_{0:360}")
+  ))
+
+lng_contour <- conv_contour |>
+  separate(
+    transmitter_site, 
+    into = c("site_lat", "site_long"), 
+    sep = " ,") |>
+  pivot_longer(
+    names_to = "angle",
+    values_to = "values",
+    cols = deg_0:deg_360
+  ) |>
+  mutate(
+    angle = str_remove(angle, "deg_"),
+    angle = as.integer(angle)
+  ) |>
+  separate(
+    values,
+    into = c("deg_lat", "deg_lng"),
+    sep = " ,"
+  )
+
+lng_contour <- lng_contour %>%
+  mutate(application_id = as.numeric(application_id),
+         site_lat = as.numeric(site_lat),
+         site_long = as.numeric(site_long))
+
+```
+
+
+Getting info on the call signs of the individual radio stations.
+
+```{r}
+#| cache: true
+#| eval: false
+# used the file provided as applications_id.csv
+application_id <- unique(lng_contour$application_id)
+application_id <- data.frame(application_id)
+application_id$call_sign <- NA
+
+for(i in 1:length(application_id$application_id)){
+  #for(i in 1:length(application_id$application_id)){
+  Sys.sleep(sample(10, 1) * 0.025)
+  site <- paste("https://licensing.fcc.gov/cgi-bin/ws.exe/prod/cdbs/pubacc/prod/app_det.pl?Application_id=",application_id$application_id[i], sep="")
+  radiopage <- read_html(site)
+  temp <- radiopage %>%  html_nodes("td")
+  temp <- temp[20] %>% html_text()
+  temp <- gsub("\n", "", temp)
+  temp <- gsub("(^[[:space:]]*)|([[:space:]]*$)", "", temp)
+  application_id$call_sign[i] <- temp
+}
+```
+
+
+```{r}
+#| context: data
+application_id <- read_csv("application_id.csv")
+
+public_stations <- public_stations %>% 
+  left_join(application_id, by = "call_sign") %>%
+  left_join(lng_contour, by = "application_id") %>%
+  drop_na() %>%  
+  mutate(deg_lat = as.numeric(deg_lat),
+         deg_lng = as.numeric(deg_lng),
+         site_lat = as.numeric(site_lat),
+         site_long = as.numeric(site_long))
+
+country_stations <- country_stations %>% 
+  left_join(application_id, by = "call_sign") %>%
+  left_join(lng_contour, by = "application_id") %>%
+  drop_na() %>%  
+  mutate(deg_lat = as.numeric(deg_lat),
+         deg_lng = as.numeric(deg_lng),
+         site_lat = as.numeric(site_lat),
+         site_long = as.numeric(site_long))
+
+rock_stations <- rock_stations %>% 
+  left_join(application_id, by = "call_sign") %>%
+  left_join(lng_contour, by = "application_id") %>%
+  drop_na() %>%  
+  mutate(deg_lat = as.numeric(deg_lat),
+         deg_lng = as.numeric(deg_lng),
+         site_lat = as.numeric(site_lat),
+         site_long = as.numeric(site_long))
+
+religious_stations <- religious_stations %>% 
+  left_join(application_id, by = "call_sign") %>%
+  left_join(lng_contour, by = "application_id") %>%
+  drop_na() %>%  
+  mutate(deg_lat = as.numeric(deg_lat),
+         deg_lng = as.numeric(deg_lng),
+         site_lat = as.numeric(site_lat),
+         site_long = as.numeric(site_long))
+
+top40_stations <- top40_stations %>% 
+  left_join(application_id, by = "call_sign") %>%
+  left_join(lng_contour, by = "application_id") %>%
+  drop_na() %>%  
+  mutate(deg_lat = as.numeric(deg_lat),
+         deg_lng = as.numeric(deg_lng),
+         site_lat = as.numeric(site_lat),
+         site_long = as.numeric(site_long))
+
+spanish_stations <- spanish_stations %>% 
+  left_join(application_id, by = "call_sign") %>%
+  left_join(lng_contour, by = "application_id") %>%
+  drop_na() %>%  
+  mutate(deg_lat = as.numeric(deg_lat),
+         deg_lng = as.numeric(deg_lng),
+         site_lat = as.numeric(site_lat),
+         site_long = as.numeric(site_long))
+
+classic_stations <- classic_stations %>% 
+  left_join(application_id, by = "call_sign") %>%
+  left_join(lng_contour, by = "application_id") %>%
+  drop_na() %>%  
+  mutate(deg_lat = as.numeric(deg_lat),
+         deg_lng = as.numeric(deg_lng),
+         site_lat = as.numeric(site_lat),
+         site_long = as.numeric(site_long))
+
+my_map <- ggmap::get_stamenmap(bbox=c(left=-125,bottom=25,right=-67,top=49),
+                        zoom=3, maptype="toner-lite")
+
+```
+
+## Plotting
+
+
+```{r}
+ggmap(my_map)+
+  geom_point(data=public_stations,aes(x=as.numeric(deg_lng),y=as.numeric(deg_lat)),
+                        size=0.25,color="darkslategray3") +
+  labs(title = "Public Radio in the Continental United States", x = "", y = "") +
+  theme(plot.title = element_text(size = 13, hjust = 0.5),
+        axis.text = element_blank(),
+        axis.ticks = element_blank())
+```
+
+
+```{r}
+ggmap(my_map)+
+  geom_point(data=country_stations,aes(x = deg_lng, y = deg_lat),
+                        size=0.25,color="darkslategray3") +
+  labs(title = "Country Radio in the Continental United States", x = "", y = "") +
+  theme(plot.title = element_text(size = 13, hjust = 0.5),
+        axis.text = element_blank(),
+        axis.ticks = element_blank())
+```
+
+
+
+```{r}
+#| panel: sidebar
+selectInput("dataset",
+            "Choose dataset",
+            choices = c("public",
+                        "country",
+                        "rock",
+                        "religious",
+                        "Spanish",
+                        "classic",
+                        "top 40"))
+plotOutput("distPlot")
+```
+
+```{r}
+#| context: server
+
+radio_data <- reactive({
+  switch(input$dataset,
+         "public" = public_stations,
+         "country" = country_stations,
+         "rock" = rock_stations, 
+         "religious" = religious_stations, 
+         "Spanish" = spanish_stations, 
+         "classic" = classic_stations, 
+         "top 40" = top40_stations)
+})
+
+output$distPlot <- renderPlot({
+
+ggmap::ggmap(my_map)+
+  geom_point(data = radio_data(),
+             aes(x = deg_lng, y = deg_lat),
+             size=0.25,color="darkslategray3") +
+  labs(title = "Radio Stations in the Continental United States", 
+               x = "", y = "") +
+  theme(plot.title = element_text(size = 13, hjust = 0.5),
+        axis.text = element_blank(),
+        axis.ticks = element_blank())
+})
+```

@@ -1,3 +1,6 @@
+* 2022-11-01 [Tidy Tuesday Horror Movies](https://hardin47.github.io/TidyTuesday/2022-11-01/horrormovies.html)
+
+
 ### Please add alt text to your posts
 
 Please add alt text (alternative text) to all of your posted graphics for `#TidyTuesday`. 
