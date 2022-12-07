@@ -1,0 +1,134 @@
+---
+title: "Elevators in NYC"
+author: "Jo Hardin"
+date: "12/06/2022"
+format: html
+server: shiny
+execute:
+  warning: false
+  message: false
+---
+
+```{r}
+#| context: setup
+library(tidyverse)
+library(janitor)
+```
+
+## The Data
+
+The data this week comes from the [Elevators data package](https://emilhvitfeldt.github.io/elevators/).
+
+> This data package contains a data set of the registered elevator devices in New York City provided by the Department of Buildings in response to a September 2015 FOIL request.
+
+The resulting Shiny App is at: https://hardin47.shinyapps.io/elevators/
+
+```{r}
+#| context: data
+
+elevators <- read_csv("elevators.csv") |>
+  janitor::clean_names()
+```
+
+
+```{r}
+elevators |>
+  ggplot(aes(y = dv_capacity_lbs, x = device_type)) + 
+  geom_boxplot() + 
+  scale_y_log10() + 
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) +
+  labs(caption = "Tidy Tuesday Plot: @hardin47 | Data: Elevators",
+       x = "",
+       y = "",
+       subtitle = "Capacity in lbs") 
+```
+
+```{r}
+elevators |>
+  drop_na(longitude, latitude, borough) |>
+  dplyr::filter(longitude > -75 & latitude > 40.4) |>
+  ggplot(aes(x = longitude, y = latitude, color = borough)) + 
+  geom_point()
+```
+
+
+## Shiny App
+
+
+```{r}
+#| panel: sidebar
+
+titlePanel("Elevators in NYC")
+
+sidebarLayout(position = "left",
+              sidebarPanel("Filter for type and location:",
+checkboxGroupInput("dev", "Elevator Type:",
+                   c("Dumbwaiter" = "Dumbwaiter (D)",
+                     "Escalator" = "Escalator (E)",
+                     "Freight" = "Freight (F)",
+                     "Handicap Lift" = "Handicap Lift (H)",
+                     "Manlift" = "Manlift (M)",
+                     "Passenger Elevator" = "Passenger Elevator (P)",
+                     "Private Elevator" = "Private Elevator (T)",
+                     "Public Elevator" = "Public Elevator (L)",
+                     "Sidewalk" = "Sidewalk (S)")),
+checkboxGroupInput("bor", "NYC Borough",
+                   c("Bronx" = "Bronx",
+                     "Brooklyn" = "Brooklyn",
+                     "Manhattan" = "Manhattan",
+                     "Queens" = "Queens",
+                     "Staten Island" = "Staten Island"))),
+              
+              mainPanel("Elevators weight and location",
+                        fluidRow(
+                          splitLayout(cellWidths = c("35%", "65%"), plotOutput("plotgraph1"), plotOutput("plotgraph2"))
+                        )
+              )
+)
+```
+
+```{r}
+#| context: server
+
+filtered_elev <- reactive({
+  #if no levels are selected
+  if(is.null(input$dev)){
+    return(NULL)
+  }
+  elevators |>
+    dplyr::filter(device_type %in% input$dev) |>
+    dplyr::filter(borough %in% input$bor)
+})
+
+pt1 <- reactive({
+  if(is.null(filtered_elev())){
+    return()
+  }
+  filtered_elev() |>
+    ggplot(aes(y = dv_capacity_lbs, x = device_type)) + 
+    geom_boxplot() + 
+    scale_y_log10() + 
+    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) +
+    labs(x = "",
+         y = "",
+         subtitle = "Capacity in lbs") 
+})
+
+pt2 <- reactive({
+  if(is.null(filtered_elev())){
+    return()
+  }
+  filtered_elev() |>
+    drop_na(longitude, latitude, borough) |>
+    dplyr::filter(longitude > -75 & latitude > 40.4) |>
+    ggplot(aes(x = longitude, y = latitude, color = borough)) + 
+    geom_point(alpha = 0.75) +
+    labs(caption = "Tidy Tuesday Plot: @hardin47 | Data: Elevators",
+         x = "",
+         y = "",
+         subtitle = "Individual elevators") 
+})
+
+output$plotgraph1 = renderPlot({pt1()})
+output$plotgraph2 = renderPlot({pt2()})
+```

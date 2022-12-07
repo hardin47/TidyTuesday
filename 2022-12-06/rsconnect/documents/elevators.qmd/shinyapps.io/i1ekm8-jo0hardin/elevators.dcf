@@ -1,0 +1,15 @@
+name: elevators
+title: elevators
+username:
+account: i1ekm8-jo0hardin
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 7834416
+bundleId: 6602413
+url: https://hardin47.shinyapps.io/elevators/
+when: 1670383927.24804
+lastSyncTime: 1670383927.24806
+quarto_version: 1.2.256
+quarto_engines: knitr
+asMultiple: FALSE
+asStatic: FALSE
