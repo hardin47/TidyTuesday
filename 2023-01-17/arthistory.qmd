@@ -1,0 +1,95 @@
+---
+title: "Art History"
+author: "Jo Hardin"
+date: "1/17/2023"
+format: html
+server: shiny
+execute:
+  warning: false
+  message: false
+---
+
+```{r}
+#| context: setup
+library(tidyverse)
+library(janitor)
+library(arthistory)
+library(praise)
+```
+
+
+## The Data
+
+The data this week comes from the [arthistory data package](https://saralemus7.github.io/arthistory/)
+
+> This dataset contains data that was used for Holland Stam’s thesis work, titled [Quantifying art historical narratives](https://research.repository.duke.edu/concern/datasets/q811kk70n?locale=en). The data was collected to assess the demographic representation of artists through editions of Janson’s History of Art and Gardner’s Art Through the Ages, two of the most popular art history textbooks used in the American education system. In this package specifically, both artist-level and work-level data was collected along with variables regarding the artists’ demographics and numeric metrics for describing how much space they or their work took up in each edition of each textbook.
+
+> Lemus S, Stam H (2022). arthistory: Art History Textbook Data. https://github.com/saralemus7/arthistory, https://saralemus7.github.io/arthistory/.
+
+
+```{r}
+data("artists")
+data("worksgardner")
+data("worksjanson")
+```
+
+
+## Editions
+
+```{r}
+worksjanson %>%
+  group_by(edition_number) %>%
+  summarize(n())
+
+first <- worksjanson %>%
+  dplyr::filter(edition_number <= 4) 
+
+last <- worksjanson %>%
+  dplyr::filter(edition_number > 4) 
+
+first_and_last <- inner_join(first, select(last, title_of_work), by = c("title_of_work")) %>%
+  mutate(status = "both")
+first_not_last <- anti_join(first, last, by = c("title_of_work")) %>%
+  mutate(status = "first")
+not_first_but_last <- anti_join(last, first, by = c("title_of_work")) %>%
+  mutate(status = "last")
+
+edition <- rbind(first_and_last, first_not_last, not_first_but_last)
+
+```
+
+```{r}
+edition %>%
+  group_by(status) %>%
+  summarize(mean(artist_race == "White"), 
+            mean(artist_gender == "Female"), 
+            mean(artist_ethnicity == "Not Hispanic or Latinx"),
+            n())
+```
+
+I've broken the art pieces down into two groups:  those pieces that show up in the first half of the editions (editions 1 through 4) and those that show up in the second half of the editions (editions 5 through 8).  Then, each piece is labeled as showing up in the first set and the second set ("both"), in the first set and not the second set ("first"), or in the second set but not in the first set ("last").
+
+In terms of the updated editions, it seems as though the author has diversified the book by adding artists who are more diverse with respect to race and gender. Interestingly, the ethnicity seems more diverse in the seminal works that exist in both the first and last sets of editions. 
+
+```{r}
+edition %>%
+  ggplot(aes(x = status)) + 
+  geom_bar(aes(fill = artist_race), position = "fill")
+
+edition %>%
+  ggplot(aes(x = status)) + 
+  geom_bar(aes(fill = artist_ethnicity), position = "fill")
+
+edition %>%
+  ggplot(aes(x = status)) + 
+  geom_bar(aes(fill = artist_gender), position = "fill")
+```
+
+
+
+
+
+```{r}
+praise()
+```
+
