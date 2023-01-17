@@ -1,4 +1,4 @@
-* 2022-12-06 [Tidy Tuesday Radio Stations](https://hardin47.github.io/TidyTuesday/2022-12-06/elevators.html)
+* 2022-12-06 [Tidy Tuesday Elevators](https://hardin47.github.io/TidyTuesday/2022-12-06/elevators.html)
 
 ### Please add alt text to your posts
 
