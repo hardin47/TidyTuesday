@@ -4,6 +4,8 @@ My Tidy Tuesday adventures: [https://hardin47.github.io/TidyTuesday/](https://ha
 
 ### Tidy Tuesday Analyses
 
+* 2023-01-24 [Tidy Tuesday Alone TV](https://hardin47.github.io/TidyTuesday/2023-01-24/alone.html)
+
 * 2023-01-17 [Tidy Tuesday Art History](https://hardin47.github.io/TidyTuesday/2023-01-17/arthistory.html)
 
 * 2022-12-06 [Tidy Tuesday Elevators](https://hardin47.github.io/TidyTuesday/2022-12-06/elevators.html)

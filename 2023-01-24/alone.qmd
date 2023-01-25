@@ -1,0 +1,122 @@
+---
+title: "Alone TV"
+author: "Jo Hardin"
+date: "1/24/2023"
+format: html
+server: shiny
+execute:
+  warning: false
+  message: false
+---
+
+```{r}
+#| context: setup
+library(tidyverse)
+library(janitor)
+library(arthistory)
+library(praise)
+```
+
+## The Data
+
+The data this week comes from the [Alone data package](https://github.com/doehm/alone) by Dan Oehm.
+
+
+```{r}
+survivalists <- read_csv("survivalists.csv")
+loadouts <- read_csv("loadouts.csv")
+```
+
+
+## Less common items
+
+There are certain items which are very popular.  When you look at the participants who used the less common items, which of those less common items are more associated with longer survival?
+
+```{r}
+loadouts %>%
+  select(item) %>%
+  group_by(item) %>%
+  summarize(count = n()) %>%
+  arrange(desc(count))
+```
+
+```{r}
+loadouts %>%
+  select(item) %>%
+  filter(!(item %in% c("Pot", "Fishing gear", "Sleeping bag", "Axe", "Saw",
+                       "Ferro rod", "Rations", "Bow and arrows", "Paracord",
+                       "Knife", "Multitool", "Trapping wire", "Gillnet"))) %>%
+  group_by(item) %>%
+  summarize(count = n()) %>%
+  arrange(desc(count))
+```
+
+Forty-seven contestants (out of the 94 original survivalists) chose to bring one or more of the less common items?
+
+```{r}
+loadouts %>%
+  select(item, name) %>%
+  filter(!(item %in% c("Pot", "Fishing gear", "Sleeping bag", "Axe", "Saw",
+                       "Ferro rod", "Rations", "Bow and arrows", "Paracord",
+                       "Knife", "Multitool", "Trapping wire", "Gillnet"))) %>%
+  group_by(name) %>%
+  summarize(count = n()) %>%
+  arrange(desc(count))
+```
+
+
+To find out which less common items are associated with longer survival, we need to join the `loadouts` data with the `survivalists` data.  Much of the image is copied from code due to @martijnvanbloois@fosstodon.org.
+
+```{r}
+#| fig-cap: Huge variability is seen int he survival time of the participants who took the less common items.  That is, there were no uncommon items which were good predictors of days lasted.
+#| fig-alt: For paticipants who took each of the 14 least common items (like slingshot, ope, salt, and canteen), a boxplot is given for the number of days lasted.  Dots representing the individual participant number of days lasted are overlayed on the boxplot for further information.  There are no strong trends seen between item and days lasted.
+
+linecolor <- "#424242"
+textcolor <- "#666666"
+st <- "Alone is a survival TV series where 10 survivalists are dropped in an extremely\nremote area and must fend for themselves."
+
+loadouts %>%
+  select(item, name) %>%
+  filter(!(item %in% c("Pot", "Fishing gear", "Sleeping bag", "Axe", "Saw",
+                       "Ferro rod", "Rations", "Bow and arrows", "Paracord",
+                       "Knife", "Multitool", "Trapping wire", "Gillnet"))) %>%
+  left_join(survivalists, by = "name") %>%
+  group_by(item) %>%
+  mutate(median_days = median(days_lasted),
+         num = n()) %>%
+  ggplot(aes(y = days_lasted, x = fct_reorder(item, median_days), fill = item)) + 
+  ggdist::stat_dots(side = "right",
+    justification = -0.2) + 
+  guides(fill = "none") +
+  geom_text(aes(y = -1, label = num),
+            size = 4,
+            colour = textcolor,
+            hjust = "right",
+            vjust = -0.29) +
+  geom_boxplot(width = 0.2,
+               color = linecolor,
+               alpha = 0.7,
+               outlier.colour = NA) + 
+  coord_flip() +
+  theme_minimal() +
+  labs(x = "",
+       y = "Days lasted",
+       title = "Uncommon items and survival",
+       subtitle = st,
+       caption = "Data: {alone}") +
+    
+  geom_text(aes(x = 16, 
+                y = 4, label = "# of survivalists"),
+            size = 4,
+            colour = textcolor,
+            hjust = .5,
+            vjust = 1.4) 
+```
+
+
+
+```{r}
+praise()
+```
+
+
