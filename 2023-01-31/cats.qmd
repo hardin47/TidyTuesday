@@ -1,0 +1,99 @@
+---
+title: "Cats in the UK"
+author: "Jo Hardin"
+date: "1/31/2023"
+format: html
+execute:
+  warning: false
+  message: false
+---
+
+```{r}
+library(tidyverse)
+library(janitor)
+library(praise)
+library(leaflet)
+```
+
+## The Data
+
+The data this week comes from the [Movebank for Animal Tracking Data](https://www.datarepository.movebank.org/handle/10255/move.882) via [Data is Plural](https://themarkup.org/data-is-plural/2023/01/25/from-jazz-solos-to-cats-on-the-move#:~:text=Giuseppe%20Sollazzo%5D-,Cats%20on%20the%20move,-.%20Between%202013). Thanks @jthomasmock for the suggestion!
+
+
+
+```{r}
+cats <- read_csv("cats_uk.csv")
+cats_ref <- read_csv("cats_uk_reference.csv")
+```
+
+
+
+```{r}
+cats %>%
+  group_by(tag_id) %>%
+  summarize(count = n()) %>%
+  arrange(desc(count))
+
+cat_names <- cats %>%
+  select(tag_id) %>%
+  summarize(name = unique(tag_id)) %>%
+  arrange(name)
+
+
+barney <- cats %>%
+  filter(tag_id == "Barney-Tag") %>%
+  mutate(start = min(timestamp)) %>%
+  mutate(time_out = (lubridate::minute(timestamp) - lubridate::minute(start))/60) 
+
+  
+```
+
+
+## Where did Barney go?
+
+I'd like to color of the lines to change over time, but there doesn't seem to be a default way to do it using **leaflet**.
+
+```{r}
+gradientFunction <- colorRampPalette(c("white", "black"))
+time_col = gradientFunction(dim(barney)[1])
+
+
+barney <- barney %>%
+  mutate(nextLat = lead(location_lat),
+         nextLong = lead(location_long),
+         color = time_col)
+```
+
+
+```{r}
+cat_map <- leaflet(barney) %>%
+  addTiles() %>%
+  addPolylines(lng = ~location_long, lat = ~location_lat, opacity = 0.5) %>%
+  addCircles(lng = ~location_long, lat = ~location_lat, color = time_col, opacity = 0.1)
+
+cat_map
+```
+
+
+Instead, I'll follow this <a href = "https://stackoverflow.com/questions/50806293/add-gradient-color-to-polyline-in-leaflet-r" target = "_blank">stack overflow post</a> which uses for loops.
+
+```{r}
+#| fig-cap: Movement of Barney the cat around his neighborhood in July of 2017.
+#| fig-alt: The base layer is a map of a neighborhood in the UK.  On top of the map are line segments designating where Barney went over time.  The lines get darker over time.
+
+cat_map2 <- leaflet(barney) %>%
+  addTiles() 
+
+for(i in 1:nrow(barney)) {
+  cat_map2 <- cat_map2 %>%
+    addPolylines(lng = as.numeric(barney[i,c("location_long", "nextLong")]),
+                 lat = as.numeric(barney[i, c("location_lat", "nextLat")]),
+                 color = as.character(barney[i, c("color")]))
+}
+
+cat_map2
+```
+
+
+
+
