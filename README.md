@@ -4,6 +4,8 @@ My Tidy Tuesday adventures: [https://hardin47.github.io/TidyTuesday/](https://ha
 
 ### Tidy Tuesday Analyses
 
+* 2023-02-07 [Tidy Tuesday Big Tech Stock Prices](https://hardin47.github.io/TidyTuesday/2023-02-07/bigtech.html)
+
 * 2023-01-31 [Tidy Tuesday UK Cats](https://hardin47.github.io/TidyTuesday/2023-01-31/cats.html)
 
 * 2023-01-24 [Tidy Tuesday Alone TV](https://hardin47.github.io/TidyTuesday/2023-01-24/alone.html)
