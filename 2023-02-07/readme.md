@@ -1,4 +1,4 @@
-* 2023-02-07 [Tidy Tuesday Big Tech Stock Prices](https://hardin47.github.io/TidyTuesday/2023-02-07/bigtech.html)
+* 2023-02-07 [Tidy Tuesday Big Tech Stock Prices](https://hardin47.github.io/TidyTuesday/2023-02-07/techstock.html)
 
 
 ### Please add alt text to your posts
