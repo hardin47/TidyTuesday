@@ -1,0 +1,187 @@
+---
+title: "Hollywood Age Gaps"
+author: "Jo Hardin"
+date: "2/14/2023"
+format: html
+execute:
+  warning: false
+  message: false
+---
+
+```{r}
+library(tidyverse)
+library(viridis)
+library(RColorBrewer)
+library(praise)
+```
+
+## The Data
+
+The data this week comes from [Hollywood Age Gap](https://hollywoodagegap.com/) via [Data Is Plural](https://www.data-is-plural.com/archive/2018-02-07-edition/).
+
+```{r}
+age_gaps <- readr::read_csv("age_gaps.csv") |>
+  mutate(orientation = case_when(
+    character_1_gender == "man" & character_2_gender == "woman" ~ "old_man",
+    character_1_gender == "woman" & character_2_gender == "man" ~ "old_woman",
+    character_1_gender == "woman" & character_2_gender == "woman" ~ "lesbian",
+    character_1_gender == "man" & character_2_gender == "man" ~ "gay",
+    TRUE ~ "other"
+  ))
+
+age_gaps |> select(orientation) |> table()
+```
+
+
+```{r}
+age_gaps |>
+  ggplot(aes(y = release_year, color = orientation)) + 
+  geom_segment(aes(x = actor_1_age, xend = actor_2_age, yend = release_year)) + 
+  facet_wrap(~orientation)
+```
+
+```{r}
+range(age_gaps$release_year)
+```
+
+
+```{r}
+age_gaps |>
+  ggplot(aes(x = release_year, y = age_difference)) + 
+  geom_point() + 
+  geom_smooth(method = "loess", se = FALSE, span = .1) +
+  geom_smooth(method = "lm", se = FALSE, color = "red")
+
+```
+
+
+From @AbdoulMa on github: https://github.com/AbdoulMa/TidyTuesday/blob/main/2023/2023_w7/tidytuesday_2023_w7.R
+
+```{r}
+long_age_gaps <- age_gaps |>
+  pivot_longer(
+    cols = c("character_1_gender", "character_2_gender",
+             "actor_1_age", "actor_2_age"),
+    names_to = c(".value", "gender"),
+    names_pattern = "(.*)(\\d)") |>
+  rename(couple_order = gender) |>
+  rename(gender = character_, age = actor_)
+
+
+
+women <- long_age_gaps |>
+  filter(gender == "woman") |>
+  select(release_year, age) |>
+  mutate(
+    age = cut(age, breaks = c(-Inf, 24, 34, 49, Inf), labels = c("less than 25", "25 to 34", "35 to 49", "50 or more"), include.lowest = T),
+    release_decade = paste0((release_year %/% 10) * 10, "s")
+  ) |>
+  count(release_decade, age, name = "nb_women", .drop = T) |>
+  complete(release_decade, age, fill = list(nb_women = 0)) |>
+  group_by(release_decade) |>
+  mutate(
+    prop = prop.table(nb_women)
+  ) |>
+  ungroup() |>
+  arrange(release_decade)
+
+men <- long_age_gaps |>
+  filter(gender == "man") |>
+  select(release_year, age) |>
+  mutate(
+    age = cut(age, breaks = c(-Inf, 24, 34, 49, Inf), labels = c("less than 25", "25 to 34", "35 to 49", "50 or more"), include.lowest = T),
+    release_decade = paste0((release_year %/% 10) * 10, "s")
+  ) |>
+  count(release_decade, age, name = "nb_men", .drop = T) |>
+  complete(release_decade, age, fill = list(nb_men = 0)) |>
+  group_by(release_decade) |>
+  mutate(
+    prop = prop.table(nb_men)
+  ) |>
+  ungroup() |>
+  arrange(release_decade)
+```
+
+
+
+```{r}
+library(prismatic)
+p1 <- women |>
+  ggplot(aes(fill = age)) +
+  annotate(geom = "rect", xmin = 0, xmax = .75, ymin = -.15, ymax = .15, fill = "#cecece", alpha = .75) +
+  geom_rect(aes(xmax = prop), xmin = 0, ymin = -.15, ymax = .15) +
+  geom_text(
+    data = filter(women, prop != 0), 
+    aes(x = .1, y = 0, color = after_scale(prismatic::best_contrast(fill)), 
+        label = glue::glue("{round(prop*100, 0)}%")), 
+    size = 4, hjust = 0
+  ) +
+  facet_grid(release_decade ~ age, switch = "y") +
+  coord_equal() +
+  scale_fill_manual(
+    values = c("#54AC5E", "#5B43CD", "#F5D04E", "#C9439A"),
+    guide = "none"
+  ) +
+  labs(subtitle = "Share of women by age groups playing romantic\nroles in Hollywood between 1935 & 2022") +
+  theme_minimal() +
+  theme(
+    axis.text = element_blank(),
+    axis.title = element_blank(),
+    panel.grid = element_blank(),
+    plot.title.position = "plot",
+    strip.text.x = element_text(hjust = 1, size = rel(.75)),
+    strip.text.y.left = element_text(angle = 0, size = rel(1.5)),
+    plot.background = element_rect(fill = "#FFFFFF", color = NA),
+    plot.margin = margin(t = .75, r = 0, b =.75, l = .25, unit = "cm"))
+
+
+```
+
+
+```{r}
+p2 <- men |>
+  ggplot(aes(fill = age)) +
+  annotate(geom = "rect", xmin = 0, xmax = .75, ymin = -.15, ymax = .15, fill = "#cecece", alpha = .75) +
+  geom_rect(aes(xmax = prop), xmin = 0, ymin = -.15, ymax = .15) +
+  geom_text(
+    data = filter(men, prop != 0), 
+    aes(x = .1, y = 0, color = after_scale(prismatic::best_contrast(fill)), 
+        label = glue::glue("{round(prop*100, 0)}%")), 
+    size = 4, hjust = 0
+  ) +
+  labs(
+    subtitle = "Share of men by age groups playing romantic\nroles in Hollywood between 1935 & 2022",
+    caption = "Tidytuesday Week-07 2023\n GitHub: @hardin47\n Code from: Abdoul ISSA BIDA\n
+    Data from Hollywood Age Gap via Data Is Plural"
+  ) +
+  facet_grid(release_decade ~ age, switch = "y") +
+  coord_equal() +
+  scale_fill_manual(
+    values = c("#54AC5E", "#5B43CD", "#F5D04E", "#C9439A"),
+    guide = "none"
+  ) +
+  theme_minimal() +
+  theme(
+    axis.text = element_blank(),
+    axis.title = element_blank(),
+    panel.grid = element_blank(),
+    plot.title.position = "plot",
+    strip.text.x = element_text(hjust = 1, size = rel(.75)),
+    strip.text.y.left = element_text(angle = 0, size = rel(1.5)),
+    plot.background = element_rect(fill = "#FFFFFF", color = NA),
+    plot.margin = margin(t = .75, r = 0, b =.75, l = .25, unit = "cm"))
+
+
+
+```
+```{r}
+#| fig-alt: By breaking down the proportion of men and women in each age category, by decade, we see that male love interests have consistently been 35 to 49 years old with most of the rest being 50 years old or older.  Women, on the other hand, have been primarily 25 to 34 years old, only recently become more heavily represented by acors in their 40s and 50s.
+#| fig-cap: Representation of women and men, by age, in films
+
+library(patchwork)
+p1 + p2
+
+```
+
+
+

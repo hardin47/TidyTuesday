@@ -27,7 +27,7 @@ library(udpipe)
 
 ## Quarto + Shiny
 
-Finally got the refresh to work!!!   The Shiny App is hosted at: https://hardin47.shinyapps.io/horrormovies/
+Finally got the refresh to work!!!   The Shiny App is hosted at: <a href = "https://hardin47.shinyapps.io/horrormovies/" target = "_blank">https://hardin47.shinyapps.io/horrormovies/</a>
 
 ## The Data
 
@@ -202,6 +202,13 @@ make_poster <- function(tagline=T, random=T, seed = 47){
 #  make_poster()
 #  ggsave(paste(path,"/poster_",str_pad(n, 3, pad="0"),".jpg"), width=16, height=9, units="cm", dpi=600)
 #}
+```
+
+
+## Make one poster:
+
+```{r}
+make_poster()
 ```
 
 

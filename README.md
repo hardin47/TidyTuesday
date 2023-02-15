@@ -4,6 +4,8 @@ My Tidy Tuesday adventures: [https://hardin47.github.io/TidyTuesday/](https://ha
 
 ### Tidy Tuesday Analyses
 
+* 2023-02-14 [Tidy Tuesday Hollywod Age Gaps](https://hardin47.github.io/TidyTuesday/2023-02-14/love.html)
+
 * 2023-02-07 [Tidy Tuesday Big Tech Stock Prices](https://hardin47.github.io/TidyTuesday/2023-02-07/techstock.html)
 
 * 2023-01-31 [Tidy Tuesday UK Cats](https://hardin47.github.io/TidyTuesday/2023-01-31/cats.html)
