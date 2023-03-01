@@ -4,6 +4,8 @@ My Tidy Tuesday adventures: [https://hardin47.github.io/TidyTuesday/](https://ha
 
 ### Tidy Tuesday Analyses
 
+* 2023-02-28 [Tidy Tuesday African Language Sentiment](https://hardin47.github.io/TidyTuesday/2023-02-28/afr_sent.html)
+
 * 2023-02-21 [Tidy Tuesday Bob Ross Paintings](https://hardin47.github.io/TidyTuesday/2023-02-21/bobross.html)
 
 * 2023-02-14 [Tidy Tuesday Hollywod Age Gaps](https://hardin47.github.io/TidyTuesday/2023-02-14/love.html)
