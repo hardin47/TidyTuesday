@@ -1,0 +1,63 @@
+---
+title: "Programming Languages"
+author: "Jo Hardin"
+date: "3/21/2023"
+format: html
+execute:
+  warning: false
+  message: false
+---
+
+```{r}
+library(tidyverse)
+library(tidytext)
+library(praise)
+#devtools::install_github("ricardo-bion/ggradar", dependencies = TRUE)
+library(ggradar)
+library(scales)
+```
+
+## The Data
+
+The data this week comes from the [Programming Language DataBase](https://pldb.com/index.html). Thanks to [Jesus M. Castagnetto](https://github.com/rfordatascience/tidytuesday/issues/530) for the suggestion!
+
+The PLDB has a [blog](https://pldb.com/posts/index.html) with numerous articles exploring the data, such as [Does every programming language have line comments?](https://pldb.com/posts/does-every-programming-language-support-line-comments.html).
+
+
+```{r}
+languages <- read_csv("languages.csv")
+
+lang_daily <- languages %>%
+  filter(pldb_id %in% c("python", "sql", "r", "stata", "spss", "sas", #"latex", "markdown",
+                        "matlab", "mathematica"))
+```
+
+
+
+```{r}
+lang_daily %>%
+  ggplot(aes(x = appeared, y = isbndb)) + 
+  geom_point() + 
+  geom_text(aes(label = pldb_id), vjust = 1.5)
+```
+Consider the following variables that we might want to compare across some standard programming languages used around here. 
+
+```{r}
+lang_daily %>%
+  select(pldb_id, appeared, number_of_jobs, number_of_users, book_count, language_rank)
+```
+
+We can put the variables on the same scale by using `rescale` which forces each data point to be between zero and one (with the smallest value set to 0 and the largest value set to 1) using:
+
+$$X_{rs} = \frac{X - \min}{\max - \min}$$
+
+```{r}
+#| fig.cap: Comparison of 8 programming languages in terms of the following rescaled variables - the year they appeared, their ranking as a programming language, number of books, number of users, and number of jobs
+#| fig.alt: A radar plot comparing relative values of year they appeared, their ranking as a programming language, number of books, number of users, and number of jobs for the following programming languages - Mathematica, Matlab, Python, R, SAS, SPSS, SQL, and Stata
+
+lang_daily %>%
+  select(pldb_id, appeared, number_of_jobs, number_of_users, book_count, language_rank) %>%
+  mutate_at(vars(-pldb_id), rescale) %>%
+  ggradar() 
+```
+
