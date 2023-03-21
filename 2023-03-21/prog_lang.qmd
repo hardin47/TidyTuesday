@@ -56,8 +56,9 @@ $$X_{rs} = \frac{X - \min}{\max - \min}$$
 #| fig.alt: A radar plot comparing relative values of year they appeared, their ranking as a programming language, number of books, number of users, and number of jobs for the following programming languages - Mathematica, Matlab, Python, R, SAS, SPSS, SQL, and Stata
 
 lang_daily %>%
-  select(pldb_id, appeared, number_of_jobs, number_of_users, book_count, language_rank) %>%
+  select(pldb_id, appeared, number_of_jobs, number_of_users, book_count, 
+         language_rank) %>%
   mutate_at(vars(-pldb_id), rescale) %>%
-  ggradar() 
+  ggradar(axis.label.size = 2.7)
 ```
 
