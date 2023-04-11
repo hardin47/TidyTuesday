@@ -4,6 +4,8 @@ My Tidy Tuesday adventures: [https://hardin47.github.io/TidyTuesday/](https://ha
 
 ### Tidy Tuesday Analyses
 
+* 2023-04-11 [Tidy Tuesday Egg Production](https://hardin47.github.io/TidyTuesday/2023-04-11/eggs.html)
+
 * 2023-04-04 [Tidy Tuesday Premier League](https://hardin47.github.io/TidyTuesday/2023-04-04/premier.html)
 
 * 2023-03-28 [Tidy Tuesday Time Zones](https://hardin47.github.io/TidyTuesday/2023-03-28/time_zones.html)
