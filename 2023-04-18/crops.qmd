@@ -1,0 +1,72 @@
+---
+title: "Neolithic Founder Crops"
+author: "Jo Hardin"
+date: "4/18/2023"
+format: html
+execute:
+  warning: false
+  message: false
+---
+
+```{r}
+library(tidyverse)
+library(praise)
+library(sf)
+library(rnaturalearth)
+library(gganimate)
+```
+
+## The Data
+
+The data this week comes from [The "Neolithic Founder Crops"" in Southwest Asia: Research Compendium](https://github.com/joeroe/SWAsiaNeolithicFounderCrops/). ["Revisiting the concept of the 'Neolithic Founder Crops' in southwest Asia"](https://link.springer.com/article/10.1007/s00334-023-00917-1) is an open-access research paper that uses the data. Thank you for sharing your research, [@joeroe](https://github.com/joeroe)!
+
+
+```{r}
+crops <- readr::read_csv("founder_crops.csv")
+```
+
+
+```{r}
+crops %>%
+  ggplot(aes(x = age_start)) + 
+  geom_histogram()
+```
+
+## How do crops change over time?
+
+Base map taken from [@nrennie](https://github.com/nrennie/tidytuesday).
+
+```{r}
+#| fig.cap: Points indicate the existence of founder crops in the region of the Middle East based on the number of years since 1950.
+#| fig.alt: A zoomed in map of the middle east, roughly where Turkey, Syria, Iraq, Iran, Jordan, and Saudia Arabia are now situated. Points indicate where founder crops of fruits and nuts, grasses, pulses, and wild plants have been found in that area.  The plot starts 14211 years before 1950 and animates through the years until the most recent year at 1850 years before 1950.
+
+world <- ne_countries(scale = "medium", returnclass = "sf") |>
+  filter(subregion != "Antarctica")
+
+p <- crops %>%
+  filter(!is.na(category)) %>%
+  droplevels() %>%
+  #filter(age_start > date, age_end < date) %>%
+  ggplot() +
+  geom_sf(data = world) +
+  geom_jitter(mapping = aes(x = longitude,
+                           y = latitude,
+                           colour = category),
+             size = 3) +
+  coord_sf(xlim = c(30.0, 48.6),
+           ylim = c(29.8, 39.9),
+           expand = FALSE) +
+  labs(x = "",
+       y = "") +
+  theme_minimal(base_size = 16) + 
+  transition_events(start = -age_start,
+                    end = -age_end,
+                    enter_length = 100,
+                    exit_length = 100) +
+  labs(title = 'Neolithic founder crops \nyears since 1950: {as.integer(-frame_time)}' )
+
+animate(p, start_pause = 15, end_pause = 15)
+```
+
+
+
