@@ -4,6 +4,8 @@ My Tidy Tuesday adventures: [https://hardin47.github.io/TidyTuesday/](https://ha
 
 ### Tidy Tuesday Analyses
 
+* 2023-04-18 [Tidy Tuesday London Marathon](https://hardin47.github.io/TidyTuesday/2023-04-25/marathon.html)
+
 * 2023-04-18 [Tidy Tuesday Neolithic Founder Crops](https://hardin47.github.io/TidyTuesday/2023-04-18/crops.html)
 
 * 2023-04-11 [Tidy Tuesday Egg Production](https://hardin47.github.io/TidyTuesday/2023-04-11/eggs.html)

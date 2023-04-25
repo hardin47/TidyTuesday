@@ -1,0 +1,52 @@
+---
+title: "London Marathon"
+author: "Jo Hardin"
+date: "4/25/2023"
+format: html
+execute:
+  warning: false
+  message: false
+---
+
+```{r}
+library(tidyverse)
+library(praise)
+```
+
+## The Data
+
+The data this week comes from Nicola Rennie's [LondonMarathon R package](https://github.com/nrennie/LondonMarathon). This is an R package containing two data sets scraped from Wikipedia (1 November 2022) on London Marathon winners, and some general data. How the dataset was created, and some analysis, is described in Nicola's post ["Scraping London Marathon data with {rvest}"](https://nrennie.rbind.io/blog/web-scraping-rvest-london-marathon/). Thank you for putting this dataset together @nrennie! 
+
+
+```{r}
+marathon <- readr::read_csv("london_marathon.csv")
+winners <- readr::read_csv("winners.csv")
+```
+
+```{r}
+#| fig.cap: All four categories of competitors seems to be getting faster with men seemingly more stable with respect to their marathon times.
+#| fig.alt: Line plot with year on the x-axis and winning marathon time on the y-axis.  Four lines are given, one for each of the four categories of participants which are women, women in wheelchairs, men, and men in wheelchairs.  After about 2003, women in wheelchairs consistently beat the men after which date the winning times were consistently ranked with men in wheelchairs as fastest, then women in wheelchairs, then men, then women.
+
+winners %>%
+  filter(Year >= 1990) %>%
+  ggplot(aes(x = Year, y = Time, color = Category)) + 
+  geom_line() + 
+  ylab("") + 
+  ggtitle("Winning Marathon Time")
+```
+
+
+
+```{r}
+#| fig.cap: Both the number of applicants as well as the number of runners in the London Marathon have increased substantially from 1980 to 2020.  In 2020 only a few elite runners were allowed to compete due to the COVID-19 pandemic.
+#| fig.alt: Line plot with year on the x-axis and count on the y-axis.  Three lines are given, one for each of number of applicants, number of starters, and number of finishers to the London Marathon.  All three lines increase quite a bit over the range of data which is between 1980 and 2020.  In 2020 all three lines sharply drop because of the COVID-19 pandemic and only 77 people being allowed to compete.
+
+marathon %>%
+  pivot_longer(Accepted:Finishers, names_to = "runners", values_to = "count") %>%
+  ggplot(aes(x = Year, y = count, color = runners)) + 
+  geom_line() + 
+  ylab("") + 
+  ggtitle("Runners")
+```
+
+
