@@ -38,31 +38,28 @@ richmondway |>
 ## Roy Kent
 
 ```{r}
-p1 <- richmondway |>
+richmondway |>
   mutate(f_count_else = f_count_total - f_count_rk) |>
   pivot_longer(cols = c(`f_count_rk`,`f_count_else`), names_to = "who", values_to = "count") |>
   mutate(who = ifelse(who == "f_count_rk", "Roy Kent", "someone else")) |>
   mutate(count = ifelse(who == "Roy Kent", -count, count)) |>
   ggplot(aes(x = episode_order, y = count, fill = imdb_rating)) +
   geom_bar(stat = "identity", width = 0.8) +
-  geom_hline(yintercept = 0) + 
-  geom_vline(xintercept = 10.5, color = "black") + 
-  geom_vline(xintercept = 22.5, color = "black") +
-  scale_x_reverse() + 
+  geom_hline(yintercept = 0, lwd = 1.5) + 
+  geom_vline(xintercept = 10.5, color = "darkgrey", lwd = 0.5) + 
+  geom_vline(xintercept = 22.5, color = "darkgrey", lwd = 0.5) +
+  scale_x_reverse(limits = c(40, 0)) +  
+  scale_y_continuous(breaks = seq(-25, 50, by = 5),
+                     labels = as.character(c(seq(25, 0, by = -5), seq(5, 50, by = 5)))) +
+  annotate("text", x = c(2, 13, 25), y = -21, label = c("Season 1", "Season 2", "Season 3")) +
+  annotate("text", x = 39, y = c(-12.5, 14.5), label = c("F**k count, Roy Kent", "F**k count, everyone else"), color = "darkred", size = 5) + 
   coord_flip() +
   scale_fill_gradient(high = "red", low = "darkblue") + 
   labs(x = "", y = "",
-       fill = "IMDB rating")
+       fill = "IMDB rating") +
+  theme(axis.text.y = element_blank(), axis.ticks.y = element_blank())
 
-p2 <- cowplot::add_sub(p1, "F**k count, Roy Kent | F**k count, everyone else", hjust = 0.54)
-cowplot::ggdraw(p2)
-
-p3 <- cowplot::add_sub(p2)
-
-cowplot::ggdraw(p3)
 ```
-
-
 
 
 ```{r}
