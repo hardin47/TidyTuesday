@@ -1,4 +1,4 @@
-* 2023-04-18 [Tidy Tuesday London Marathon](https://hardin47.github.io/TidyTuesday/2023-04-25/marathon.html)
+* 2023-04-25 [Tidy Tuesday London Marathon](https://hardin47.github.io/TidyTuesday/2023-04-25/marathon.html)
 
 ### Please add alt text to your posts
 

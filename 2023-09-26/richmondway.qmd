@@ -1,0 +1,72 @@
+---
+title: "The Richmond Way"
+author: "Jo Hardin"
+date: "9/26/2023"
+format: html
+execute:
+  warning: false
+  message: false
+---
+
+```{r}
+library(tidyverse)
+library(praise)
+```
+
+## The Data
+
+For Deepsha Menghani's talk on [Data Viz animation and interactivity in Quarto](https://deepshamenghani.github.io/posit_plotly_crosstalk/#/title-slide), she watched each episode of Ted Lasso at 2X speed and diligently noted down every F*bomb and gesture reference, and then made it into the [richmondway R package](https://github.com/deepshamenghani/richmondway)!
+
+
+```{r}
+richmondway <- read.csv("richmondway.csv") |>
+  janitor::clean_names()
+```
+
+## Exploring
+
+```{r}
+#| fig-cap: The first episode of the season is rated much lower than the last episode of the season for each of the three seasons (delineated by blue vertical lines).
+richmondway |>
+  ggplot(aes(x = episode_order, y = imdb_rating)) + 
+  geom_point() +
+  geom_vline(xintercept = 10.5, color = "blue") +
+  geom_vline(xintercept = 22.5, color = "blue")
+```
+
+
+## Roy Kent
+
+```{r}
+p1 <- richmondway |>
+  mutate(f_count_else = f_count_total - f_count_rk) |>
+  pivot_longer(cols = c(`f_count_rk`,`f_count_else`), names_to = "who", values_to = "count") |>
+  mutate(who = ifelse(who == "f_count_rk", "Roy Kent", "someone else")) |>
+  mutate(count = ifelse(who == "Roy Kent", -count, count)) |>
+  ggplot(aes(x = episode_order, y = count, fill = imdb_rating)) +
+  geom_bar(stat = "identity", width = 0.8) +
+  geom_hline(yintercept = 0) + 
+  geom_vline(xintercept = 10.5, color = "black") + 
+  geom_vline(xintercept = 22.5, color = "black") +
+  scale_x_reverse() + 
+  coord_flip() +
+  scale_fill_gradient(high = "red", low = "darkblue") + 
+  labs(x = "", y = "",
+       fill = "IMDB rating")
+
+p2 <- cowplot::add_sub(p1, "F**k count, Roy Kent | F**k count, everyone else", hjust = 0.54)
+cowplot::ggdraw(p2)
+
+p3 <- cowplot::add_sub(p2)
+
+cowplot::ggdraw(p3)
+```
+
+
+
+
+```{r}
+praise()
+```
+
+
