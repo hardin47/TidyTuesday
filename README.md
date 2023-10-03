@@ -4,6 +4,8 @@ My Tidy Tuesday adventures: [https://hardin47.github.io/TidyTuesday/](https://ha
 
 ### Tidy Tuesday Analyses
 
+* 2023-10-03 [Tidy Tuesday Grant Opportunities](https://hardin47.github.io/TidyTuesday/2023-10-03/grants.html)
+
 * 2023-09-26 [Tidy Tuesday The Richmond Way](https://hardin47.github.io/TidyTuesday/2023-09-26/richmondway.html)
 
 * 2023-04-25 [Tidy Tuesday London Marathon](https://hardin47.github.io/TidyTuesday/2023-04-25/marathon.html)

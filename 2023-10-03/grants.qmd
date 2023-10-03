@@ -1,0 +1,93 @@
+---
+title: "Grant Opportunities"
+author: "Jo Hardin"
+date: "10/03/2023"
+format: html
+execute:
+  warning: false
+  message: false
+---
+
+```{r}
+library(tidyverse) # ggplot, lubridate, dplyr, stringr, readr...
+library(praise)
+```
+
+
+# The Data
+
+All grants past and present from [Grants.gov](https://www.grants.gov/web/grants/search-grants.html).
+
+
+```{r}
+grant_opportunity_details <- read_csv("grant_opportunity_details.csv")
+grants <- read_csv("grants.csv") |>
+  separate(agency_code, c("agency", "sub_agency"), remove = FALSE) |>
+  mutate(year = ymd(paste0(year(posted_date), "01", "01")))
+```
+
+
+
+# Exploring the data
+
+```{r}
+grants |>
+  ggplot(aes(x = posted_date, y = estimated_funding)) +
+  geom_point(aes(color = agency), size = .5, alpha = 0.5) +
+  scale_y_log10() + 
+  geom_line(data = summarize(group_by(grants, year), mean_fund = mean(estimated_funding, na.rm = TRUE)),
+            aes(x = year, y = mean_fund)) +
+  labs(title = "estimated funding",
+       y = "", x = "date",
+       caption = "From entries at grants.gov, we plot each grant's\ndate and estimating funding.\nBlack line is the average funding per year (with NA removed).")
+```
+
+
+
+
+
+```{r}
+grants |>
+  select(agency) |>
+  table() |>
+  length()
+```
+
+
+
+```{r}
+grants |>
+  ggplot(aes(x = agency, y = estimated_funding)) + 
+  geom_boxplot(color = "red")  +
+  geom_jitter(size = 0.001, height = 0, width = 0.2) + 
+  scale_y_log10() + 
+  theme(axis.text.x = element_text(angle = 45, vjust = 0.5, hjust=1, size = 7)) + 
+  ggtitle("a terrible plot of funding")
+```
+
+
+
+```{r}
+grants |>
+  group_by(agency) |>
+  summarize(fund_na = sum(!is.na(estimated_funding)), fund_count = n(),
+            prop_na = mean(!is.na(estimated_funding))) |>
+  arrange(desc(fund_count))
+
+
+grants |>
+  group_by(agency) |>
+  summarize(count_low_fund = sum(estimated_funding == 0, na.rm = TRUE),
+            prop_low_fund = mean(estimated_funding == 0, na.rm = TRUE),
+            count_fund = n(),
+            count_fund_isna = sum(is.na(estimated_funding))) |>
+  arrange(desc(prop_low_fund))
+
+grants |>
+  filter(agency == "GDIT")
+```
+
+
+
+
+
