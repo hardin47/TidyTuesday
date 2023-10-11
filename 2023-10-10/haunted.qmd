@@ -1,0 +1,98 @@
+---
+title: "Haunted Places"
+author: "Jo Hardin"
+date: "10/10/2023"
+format: html
+execute:
+  warning: false
+  message: false
+---
+
+```{r}
+library(tidyverse) # ggplot, lubridate, dplyr, stringr, readr...
+library(tidytext)
+library(praise)
+library(sf)
+library(paletteer)
+```
+
+
+# The Data
+
+This week's data is a compilation of Haunted Places in the United States. 
+The dataset was [compiled by Tim Renner](https://github.com/timothyrenner/shadowlands-haunted-places), using [The Shadowlands Haunted Places Index](https://www.theshadowlands.net/places/), and [shared on data.world](https://data.world/timothyrenner/haunted-places).
+
+
+```{r}
+haunted_places <- read_csv("haunted_places.csv") %>%
+  mutate(index = seq(1:n()))
+```
+
+
+```{r}
+haunted_places |>
+  filter(state == "Ohio") |>
+  arrange(desc(longitude))
+```
+
+```{r}
+usa <- sf::st_as_sf(maps::map("state", fill = TRUE, plot = FALSE))
+
+haunted_map <- haunted_places |>
+  filter(city_longitude > -130) |>
+  mutate(location = str_to_lower(location)) |>
+  mutate(place = case_when(
+    grepl("school", location) ~ "school",
+    grepl("university", location) ~ "school",
+    grepl("college", location) ~ "school",
+    grepl("inn",  location) ~ "hotel",
+    grepl("hotel",  location) ~ "hotel",
+    grepl("motel",  location) ~ "hotel",
+    grepl("cemetery",  location) ~ "cemetery",
+    grepl("hospital",  location) ~ "hospital",
+    grepl("house",  location) ~ "house",
+    grepl("bridge",  location) ~ "bridge",
+    grepl("park",  location) ~ "park",
+    TRUE ~ "other"))
+```
+
+
+```{r}
+#| fig-alt: Scatterplot superimposed on a plot of the contiguous 48 United States.  Each dot represents a haunted place with the color distinguishing whether that place is a bridge, cemetary, hospital, hotel, house, school, park, or other.
+
+ggplot(usa) +
+  geom_sf(color = "black", fill = "white", size = 1) +
+  geom_point(data = haunted_map, 
+             aes(y = city_latitude, x = city_longitude, color = place), 
+             size= .2) +
+  scale_color_paletteer_d("RColorBrewer::Dark2") + 
+  #ggthemes::scale_color_colorblind() +
+  labs(x = "", y = "",
+       title = "Haunted places across the US")
+```
+
+
+```{r}
+haunted_loc <- haunted_places |>
+  unnest_tokens(word_location, location)
+
+haunted_loc |>
+  select(word_location) |>
+  group_by(word_location) |>
+  summarize(word_count = n()) |>
+  arrange(desc(word_count)) |>
+  head(n = 20)
+
+places <- c("school", "cemetery", "house", "university", "college", "park", "inn", "hotel", "bridge", "hospital")
+
+haunted_loc |>
+  filter(word_location %in% places) |>
+  group_by(index) |>
+  distinct(word_location) |>
+  summarize(num_places = n()) |>
+  arrange(desc(num_places)) |>
+  head(n = 20)
+
+```
+
+

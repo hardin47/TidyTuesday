@@ -4,6 +4,8 @@ My Tidy Tuesday adventures: [https://hardin47.github.io/TidyTuesday/](https://ha
 
 ### Tidy Tuesday Analyses
 
+* 2023-10-10 [Tidy Tuesday Haunted Places](https://hardin47.github.io/TidyTuesday/2023-10-10/haunted.html)
+
 * 2023-10-03 [Tidy Tuesday Grant Opportunities](https://hardin47.github.io/TidyTuesday/2023-10-03/grants.html)
 
 * 2023-09-26 [Tidy Tuesday The Richmond Way](https://hardin47.github.io/TidyTuesday/2023-09-26/richmondway.html)
