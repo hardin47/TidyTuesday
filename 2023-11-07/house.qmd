@@ -1,0 +1,134 @@
+---
+title: "US House Results"
+author: "Jo Hardin"
+date: "11/07/2023"
+format: html
+execute:
+  warning: false
+  message: false
+---
+
+
+```{r}
+library(tidyverse) # ggplot, lubridate, dplyr, stringr, readr...
+library(tidytext)
+library(praise)
+library(paletteer)
+library(geofacet)
+library(usmap)
+library(gganimate)
+library(transformr)
+```
+
+
+
+## The Data
+
+The data this week comes from the [MIT Election Data and Science Lab](https://electionlab.mit.edu/) (MEDSL). 
+
+
+```{r}
+house <- read_csv("house.csv") |>
+  mutate(party_new = case_when(
+    party == "DEMOCRAT" ~ "democrat",
+    party == "REPUBLICAN" ~ "republican",
+    party == "LIBERTARIAN" ~ "libertarian",
+    party == "INDEPENDENT" ~ "independent",
+    party == "CONSERVATIVE" ~ "conservative",
+    party == "GREEN" ~ "green",
+    TRUE ~ "other"
+  ))
+  
+```
+
+```{r}
+house |>
+  group_by(party) |>
+  summarize(count_party = n()) |>
+  arrange(desc(count_party))
+
+
+house |>
+  group_by(party_new) |>
+  summarize(count_party = n()) |>
+  arrange(desc(count_party))
+```
+
+
+## Some maps
+
+
+```{r}
+house |>
+  filter(year == 2022) |>
+  filter(party_new %in% c("democrat", "republican")) |>
+  group_by(state_po, party_new) |>
+  summarize(vote_count = sum(candidatevotes)) |>
+  ggplot(aes(y = vote_count, x = party_new, fill = party_new)) +
+  geom_bar(stat = "identity") + 
+  coord_flip() + 
+  theme(axis.text.x = element_text(angle = 45, vjust = 0.5, hjust=1)) +
+  facet_geo(~state_po, grid = "us_state_grid2")
+
+```
+
+
+Alas, OF COURSE, districts are different from counties.  There are *way* more counties than districts.  So the vast majority of counties are not colored in.
+
+```{r}
+house_county <- house |>
+  mutate(fips = case_when(
+    state_fips < 10 ~ paste0("0",state_fips,district, sep = ""),
+    TRUE ~ paste(state_fips,district,sep="")
+  )) |>
+  filter(party_new %in% c("democrat", "republican")) |>
+  group_by(state, district, year) |>
+  mutate(proportions = candidatevotes / sum(candidatevotes)) |>
+  select(state_fips, district, fips, proportions) |>
+  filter(year == 2016) 
+
+usmap::plot_usmap(regions = "counties", 
+                  data = house_county, 
+                  values = "proportions",
+                  linewidth = 0) + 
+  scale_fill_continuous(type = "viridis", 
+                        name = "Purpleness")
+```
+
+So instead, let's look at the state map.  Here the total number of votes cast is summed up over all of the districts in a particular state.
+
+```{r}
+#| fig.alt: Choropleth map of the states of the United States where each map is colored based on the proportion of votes the Democratic House candidates have gotten as compared with the votes that went to the Republicna House candidate.  Plot is animated and transitions over year.  New England and the West Coast are more blue, and the rest of the country is more red.
+#| fig.cap: Choropleth map of the united states colored by the proportion of votes that went to a Democrat.
+
+
+house_state <- house |>
+  filter(party_new %in% c("democrat", "republican")) |>
+  group_by(state, year, party_new) |>
+  summarize(party_count = sum(candidatevotes)) |>
+  summarize(proportions = party_count / sum(party_count), party_new = party_new) |>
+  mutate(year = as.integer(year))
+
+p <- usmap::plot_usmap(regions = "state", 
+                  data = house_state, 
+                  values = "proportions",
+                  linewidth = 0) + 
+  scale_fill_gradient(low = "red", high = "darkblue",
+                        name = "Purpleness") + 
+  transition_time(year) +
+  labs(subtitle = "Year: {frame_time}",
+       title = "Out of total votes cast for Republicans and Democrats, the proportion\n that went to democrats.",
+       caption = "Data credit: @MIT Election Data and Science Lab")
+
+animate(p)
+```
+
+
+```{r}
+praise()
+```
+
+
+
+
+

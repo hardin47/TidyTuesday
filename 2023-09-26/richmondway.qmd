@@ -38,6 +38,10 @@ richmondway |>
 ## Roy Kent
 
 ```{r}
+#| fig.alt: Bar graph counting the number of time Roy Kent says an F-bomb as compared to the number of times everyone else says an F-bomb on the TV show Ted Lasso.  The count is broken down by episode and season and colored by the overall IMDB rating of the episode.  The coloring indicates that some episodes are more highly ranked than others, but the show does not show a consistent improvement or decline over time.
+#| fig.cap: F**k count for Roy Kent (left) vs other characters (right) on the TV show Ted Lasso.  The color of the bar indicates the IMDB rating for the episode.
+
+
 richmondway |>
   mutate(f_count_else = f_count_total - f_count_rk) |>
   pivot_longer(cols = c(`f_count_rk`,`f_count_else`), names_to = "who", values_to = "count") |>

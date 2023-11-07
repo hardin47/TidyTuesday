@@ -4,6 +4,12 @@ My Tidy Tuesday adventures: [https://hardin47.github.io/TidyTuesday/](https://ha
 
 ### Tidy Tuesday Analyses
 
+* 2023-11-07 [Tidy Tuesday US House Results](https://hardin47.github.io/TidyTuesday/2023-11-07/house.html)
+
+* 2023-10-31 [Tidy Tuesday Snopes Horror Articles](https://hardin47.github.io/TidyTuesday/2023-10-31/snopes.html)
+
+* 2023-10-17 [Tidy Tuesday Taylor Swift Songs](https://hardin47.github.io/TidyTuesday/2023-10-17/TS.html)
+
 * 2023-10-10 [Tidy Tuesday Haunted Places](https://hardin47.github.io/TidyTuesday/2023-10-10/haunted.html)
 
 * 2023-10-03 [Tidy Tuesday Grant Opportunities](https://hardin47.github.io/TidyTuesday/2023-10-03/grants.html)
