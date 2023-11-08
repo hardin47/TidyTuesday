@@ -1,0 +1,174 @@
+---
+title: "Taylor Swift Song Lyrics"
+author: "Jo Hardin"
+date: "10/17/2023"
+format: html
+execute:
+  warning: false
+  message: false
+---
+
+```{r}
+library(tidyverse) # ggplot, lubridate, dplyr, stringr, readr...
+library(tidytext)
+library(praise)
+library(sf)
+library(paletteer)
+library(tidymodels)
+```
+
+
+
+```{r}
+ts_songs <- read_csv("taylor_all_songs.csv")
+ts_album_songs <- read_csv("taylor_album_songs.csv") |>
+  mutate(track_name = tolower(track_name)) |>
+  mutate(track_name = gsub("'", '', track_name, fixed=TRUE)) |>
+  mutate(track_name = gsub(",", '', track_name, fixed=TRUE)) |>
+  mutate(track_name = gsub(" (taylors version) [from the vault]", '', track_name, fixed=TRUE)) |>
+  mutate(track_name = gsub(" (string remix)", '', track_name, fixed=TRUE)) |>
+  mutate(track_name = gsub(" (piano remix)", '', track_name, fixed=TRUE)) |>
+  mutate(track_name = gsub(" (pop version)", '', track_name, fixed=TRUE)) |>
+  mutate(track_name = gsub(" (piano version) [taylors version]", '', track_name, fixed=TRUE)) |>
+  mutate(track_name = gsub(" (acoustic version) [taylors version]", '', track_name, fixed=TRUE)) |>
+  mutate(track_name = gsub(" (10 minute version) [taylors version] [from the vault]", '', track_name, fixed=TRUE)) |>
+  mutate(track_name = gsub(" (taylors version)", '', track_name, fixed=TRUE))
+
+
+
+ts_lyrics <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-09-29/taylor_swift_lyrics.csv') |>
+  janitor::clean_names()
+
+```
+
+
+There are fewer albums in the `taylor_album_songs.csv` dataset than in the `taylor_all_songs.csv` dataset.
+
+```{r}
+ts_songs |>
+  select(album_name) |>
+  table()
+
+ts_album_songs |>
+  select(album_name) |>
+  table()
+
+ts_lyrics |>
+  select(album) |>
+  table()
+```
+
+## Lyrics
+
+```{r}
+lyrics_unnest <- ts_lyrics |>
+  unnest_tokens(lyric_word, lyrics, token = "ngrams", n = 1) |>
+  group_by(lyric_word) |>
+  summarize(lyric_count = n()) |>
+  filter(lyric_count >= 100)
+
+vec_tokens <- c(lyrics_unnest$lyric_word)
+
+temp <- purrr::map(vec_tokens, function(x) str_count(ts_lyrics$lyrics,x)) 
+temp2 <- as.data.frame(do.call(cbind, temp))
+names(temp2) <- vec_tokens
+
+full_lyrics <- ts_lyrics |>
+  cbind(temp2) |>
+  mutate(num_words = str_count(lyrics, '\\w+')) |>
+  mutate(title = tolower(title)) |>
+  mutate(title = gsub("’", '', title, fixed=TRUE)) |>
+  mutate(title = gsub(",", '', title, fixed=TRUE)) |>
+  inner_join(ts_album_songs, by = c("title" = "track_name") )
+
+full_lyrics |> head()
+
+```
+
+
+## Predicting `speechiness` using $k$ nearest neighbors
+
+```{r}
+lyrics <- full_lyrics |>
+  select(a:your, num_words, danceability:tempo)
+
+set.seed(47)
+lyrics_split <- initial_split(lyrics)
+lyrics_train <- training(lyrics_split)
+lyrics_test <- testing(lyrics_split)
+
+lyrics_vfold <- vfold_cv(lyrics_train,
+                         v = 3)
+
+k_grid <- data.frame(neighbors = seq(1,15, by = 2))
+```
+
+
+
+```{r}
+ts_recipe <- 
+  recipe(speechiness ~ .,
+         data = lyrics_train)
+
+ts_knn_tune <- nearest_neighbor(neighbors = tune()) |>
+  set_engine("kknn") |>
+  set_mode("regression")
+
+ts_wflow_tune <- workflow() |>
+  add_model(ts_knn_tune) |>
+  add_recipe(ts_recipe)
+
+ts_wflow_tune |>
+  tune_grid(resamples = lyrics_vfold,
+            grid = k_grid) |>
+  collect_metrics() |>
+  #filter(.metric == "rsq") |>
+  ggplot(aes(x = neighbors, y = mean, group = .metric, color = .metric)) +
+  geom_line(aes(linetype = .metric))
+```
+
+The metrics tells us that 15 neighbors should be used to predict the speechiness of the songs. 
+
+```{r}
+
+ts_knn <- nearest_neighbor(neighbors = 15) |>
+  set_engine("kknn") |>
+  set_mode("regression")
+
+ts_wflow <- workflow() |>
+  add_model(ts_knn) |>
+  add_recipe(ts_recipe)
+
+ts_fit <- ts_wflow |>
+  fit(data = lyrics_train)
+
+```
+
+How well is the test data predicted?
+
+
+```{r}
+#| fig.alt: Scatter plot with true speechiness on the x-axis and predicted speechiness on the y-axis.  The plot has a slight positive trend, indicating that the predictions are not complete noise. However, the trend is not strong.
+#| fig.cap: Speechiness predictions using a k-NN model with 15 neighbors.  Observed points are from the test dataset using the training data as the model (i.e., as the neighbors). The dashed black line is given at y = x; the solid blue line gives a loess smooth fit to between the true values and the predicted values.
+
+ts_fit |>
+  predict(new_data = lyrics_test) |>
+  cbind(lyrics_test) |>
+  ggplot(aes(x = speechiness, y = .pred)) +
+  geom_point() +
+  geom_abline(intercept = 0, slope = 1, linetype = 2) +
+  geom_smooth(method = "loess") +
+  labs(x = "true speechiness value",
+       y = "predicted speechiness value",
+       title = "Predicted speechiness from Taylor Swift songs")
+```
+
+
+
+```{r}
+praise()
+```
+
+
+
+

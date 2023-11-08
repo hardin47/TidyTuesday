@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.4.373">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Jo Hardin">
+<meta name="dcterms.date" content="2023-10-17">
+
+<title>Taylor Swift Song Lyrics</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="TS_files/libs/clipboard/clipboard.min.js"></script>
+<script src="TS_files/libs/quarto-html/quarto.js"></script>
+<script src="TS_files/libs/quarto-html/popper.min.js"></script>
+<script src="TS_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="TS_files/libs/quarto-html/anchor.min.js"></script>
+<link href="TS_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="TS_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="TS_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="TS_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="TS_files/libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+</head>
+
+<body class="fullcontent">
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Taylor Swift Song Lyrics</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Jo Hardin </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">October 17, 2023</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse) <span class="co"># ggplot, lubridate, dplyr, stringr, readr...</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidytext)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(praise)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(sf)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(paletteer)</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidymodels)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>ts_songs <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"taylor_all_songs.csv"</span>)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>ts_album_songs <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"taylor_album_songs.csv"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">track_name =</span> <span class="fu">tolower</span>(track_name)) <span class="sc">|&gt;</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">track_name =</span> <span class="fu">gsub</span>(<span class="st">"'"</span>, <span class="st">''</span>, track_name, <span class="at">fixed=</span><span class="cn">TRUE</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">track_name =</span> <span class="fu">gsub</span>(<span class="st">","</span>, <span class="st">''</span>, track_name, <span class="at">fixed=</span><span class="cn">TRUE</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">track_name =</span> <span class="fu">gsub</span>(<span class="st">" (taylors version) [from the vault]"</span>, <span class="st">''</span>, track_name, <span class="at">fixed=</span><span class="cn">TRUE</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">track_name =</span> <span class="fu">gsub</span>(<span class="st">" (string remix)"</span>, <span class="st">''</span>, track_name, <span class="at">fixed=</span><span class="cn">TRUE</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">track_name =</span> <span class="fu">gsub</span>(<span class="st">" (piano remix)"</span>, <span class="st">''</span>, track_name, <span class="at">fixed=</span><span class="cn">TRUE</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">track_name =</span> <span class="fu">gsub</span>(<span class="st">" (pop version)"</span>, <span class="st">''</span>, track_name, <span class="at">fixed=</span><span class="cn">TRUE</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">track_name =</span> <span class="fu">gsub</span>(<span class="st">" (piano version) [taylors version]"</span>, <span class="st">''</span>, track_name, <span class="at">fixed=</span><span class="cn">TRUE</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">track_name =</span> <span class="fu">gsub</span>(<span class="st">" (acoustic version) [taylors version]"</span>, <span class="st">''</span>, track_name, <span class="at">fixed=</span><span class="cn">TRUE</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">track_name =</span> <span class="fu">gsub</span>(<span class="st">" (10 minute version) [taylors version] [from the vault]"</span>, <span class="st">''</span>, track_name, <span class="at">fixed=</span><span class="cn">TRUE</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">track_name =</span> <span class="fu">gsub</span>(<span class="st">" (taylors version)"</span>, <span class="st">''</span>, track_name, <span class="at">fixed=</span><span class="cn">TRUE</span>))</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>ts_lyrics <span class="ot">&lt;-</span> readr<span class="sc">::</span><span class="fu">read_csv</span>(<span class="st">'https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-09-29/taylor_swift_lyrics.csv'</span>) <span class="sc">|&gt;</span></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>  janitor<span class="sc">::</span><span class="fu">clean_names</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>There are fewer albums in the <code>taylor_album_songs.csv</code> dataset than in the <code>taylor_all_songs.csv</code> dataset.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>ts_songs <span class="sc">|&gt;</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(album_name) <span class="sc">|&gt;</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">table</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>album_name
+                               1989                      Beautiful Eyes 
+                                 16                                   6 
+                           evermore                            Fearless 
+                                 17                                  19 
+        Fearless (Taylor's Version)                            folklore 
+                                 26                                  17 
+                              Lover                           Midnights 
+                                 18                                  23 
+                                Red              Red (Taylor's Version) 
+                                 22                                  30 
+                         reputation                           Speak Now 
+                                 15                                  17 
+                       Taylor Swift The Taylor Swift Holiday Collection 
+                                 15                                   6 </code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>ts_album_songs <span class="sc">|&gt;</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(album_name) <span class="sc">|&gt;</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">table</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>album_name
+                       1989                    evermore 
+                         16                          17 
+Fearless (Taylor's Version)                    folklore 
+                         26                          17 
+                      Lover                   Midnights 
+                         18                          23 
+     Red (Taylor's Version)                  reputation 
+                         30                          15 
+                  Speak Now                Taylor Swift 
+                         17                          15 </code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>ts_lyrics <span class="sc">|&gt;</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(album) <span class="sc">|&gt;</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">table</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>album
+        1989     Fearless     folklore        Lover          Red   reputation 
+          15           18           16           18           19           15 
+   Speak Now Taylor Swift 
+          17           14 </code></pre>
+</div>
+</div>
+<section id="lyrics" class="level2">
+<h2 class="anchored" data-anchor-id="lyrics">Lyrics</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>lyrics_unnest <span class="ot">&lt;-</span> ts_lyrics <span class="sc">|&gt;</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unnest_tokens</span>(lyric_word, lyrics, <span class="at">token =</span> <span class="st">"ngrams"</span>, <span class="at">n =</span> <span class="dv">1</span>) <span class="sc">|&gt;</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(lyric_word) <span class="sc">|&gt;</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">lyric_count =</span> <span class="fu">n</span>()) <span class="sc">|&gt;</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(lyric_count <span class="sc">&gt;=</span> <span class="dv">100</span>)</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>vec_tokens <span class="ot">&lt;-</span> <span class="fu">c</span>(lyrics_unnest<span class="sc">$</span>lyric_word)</span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>temp <span class="ot">&lt;-</span> purrr<span class="sc">::</span><span class="fu">map</span>(vec_tokens, <span class="cf">function</span>(x) <span class="fu">str_count</span>(ts_lyrics<span class="sc">$</span>lyrics,x)) </span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>temp2 <span class="ot">&lt;-</span> <span class="fu">as.data.frame</span>(<span class="fu">do.call</span>(cbind, temp))</span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a><span class="fu">names</span>(temp2) <span class="ot">&lt;-</span> vec_tokens</span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>full_lyrics <span class="ot">&lt;-</span> ts_lyrics <span class="sc">|&gt;</span></span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cbind</span>(temp2) <span class="sc">|&gt;</span></span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">num_words =</span> <span class="fu">str_count</span>(lyrics, <span class="st">'</span><span class="sc">\\</span><span class="st">w+'</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">title =</span> <span class="fu">tolower</span>(title)) <span class="sc">|&gt;</span></span>
+<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">title =</span> <span class="fu">gsub</span>(<span class="st">"’"</span>, <span class="st">''</span>, title, <span class="at">fixed=</span><span class="cn">TRUE</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">title =</span> <span class="fu">gsub</span>(<span class="st">","</span>, <span class="st">''</span>, title, <span class="at">fixed=</span><span class="cn">TRUE</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb9-19"><a href="#cb9-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">inner_join</span>(ts_album_songs, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"title"</span> <span class="ot">=</span> <span class="st">"track_name"</span>) )</span>
+<span id="cb9-20"><a href="#cb9-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-21"><a href="#cb9-21" aria-hidden="true" tabindex="-1"></a>full_lyrics <span class="sc">|&gt;</span> <span class="fu">head</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>      artist.x        album                  title
+1 Taylor Swift Taylor Swift             tim mcgraw
+2 Taylor Swift Taylor Swift        picture to burn
+3 Taylor Swift Taylor Swift teardrops on my guitar
+4 Taylor Swift Taylor Swift teardrops on my guitar
+5 Taylor Swift Taylor Swift  a place in this world
+6 Taylor Swift Taylor Swift            cold as you
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        lyrics.x
+1 He said the way my blue eyes shinx\nPut those Georgia stars to shame that night\nI said: "That's a lie."\nJust a boy in a Chevy truck\nThat had a tendency of gettin' stuck\nOn back roads at night\nAnd I was right there beside him all summer long\nAnd then the time we woke up to find that summer had gone\nBut when you think "Tim McGraw"\nI hope you think my favorite song\nThe one we danced to all night long\nThe moon like a spotlight on the lake\nWhen you think happiness\nI hope you think "that little black dress"\nThink of my head on your chest\nAnd my old faded blue jeans\nWhen you think Tim McGraw\nI hope you think of me\nSeptember saw a month of tears\nAnd thankin' God that you weren't here\nTo see me like that\nBut in a box beneath my bed\nIs a letter that you never read\nFrom three summers back\nIt's hard not to find it all a little bitter sweet\nAnd lookin' back on all of that, it's nice to believe\nBut when you think "Tim McGraw"\nI hope you think my favorite song\nThe one we danced to all night long\nThe moon like a spotlight on the lake\nWhen you think happiness\nI hope you think "that little black dress"\nThink of my head on your chest\nAnd my old faded blue jeans\nWhen you think Tim McGraw\nI hope you think of me\nAnd I'm back for the first time since then\nI'm standin' on your street\nAnd there's a letter left on your doorstep\nAnd the first thing that you'll read\nIs when you think "Tim McGraw"\nI hope you think my favorite song\nSomeday you'll turn your radio on\nI hope it takes you back to that place\nWhen you think happiness\nI hope you think "that little black dress"\nThink of my head on your chest\nAnd my old faded blue jeans\nWhen you think Tim McGraw\nI hope you think of me\nOh, think of me\nMmm\nYou said the way my blue eyes shined\nPut those Georgia stars to shame that night\nI said, "That's a lie."\n
+2                                                                                                                                                                                                                                                                                                      State the obvious, I didn't get my perfect fantasy\nI realize you love yourself more than you could ever love me\nSo go and tell your friends that I'm obsessive and crazy\nThat's fine, you won't mind if I say\nBy the way\nI hate that stupid old pickup truck you never let me drive\nYou're a redneck heartbreak who's really bad at lying\nSo watch me strike a match on all my wasted time\nAs far as I'm concerned, you're just another picture to burn\nThere's no time for tears\nI'm just sitting here planning my revenge\nThere's nothing stopping me\nFrom going out with all of your best friends\nAnd if you come around saying sorry to me\nMy daddy's gonna show you how sorry you'll be\n'Cause I hate that stupid old pickup truck you never let me drive\nYou're a redneck heartbreak who's really bad at lying\nSo watch me strike a match on all my wasted time\nAs far as I'm concerned, you're just another picture to burn\nAnd if you're missing me, you'd better keep it to yourself\n'Cause coming back around here would be bad for your health\n'Cause I hate that stupid old pickup truck you never let me drive\nYou're a redneck heartbreak who's really bad at lying\nSo watch me strike a match on all my wasted time\nIn case you haven't heard\nI really, really hate that\nStupid old pickup truck you never let me drive\nYou're a redneck heartbreak, who's really bad at lying\nSo watch me strike a match on all my wasted time\nAs far as I'm concerned, you're just another picture to burn\nBurn, burn, burn, baby, burn\nYou're just another picture to burn\nBaby, burn\n
+3                                                                                                                                                                                                                                                                                                                                                                                                                          Drew looks at me,\nI fake a smile so he won't see,\nWhat I want, what I need,\nAnd everything that we should be,\nI'll bet she's beautiful,\nThat girl he talks about,\nAnd she's got everything that I've had to live without,\nDrew talks to me,\nAndI laugh 'cause it's just so funny,\nThat I can't even see\nAnyone when he's with me,\nHe says he's so in love,\nHe's finally got it right,\nI wonder if he knows he's all I think about at night,\nHe's the reason for the teardrops on my guitar,\nThe only thing that keeps me wishing on a wishing star,\nHe's the song in the car I keep singing, don't know why I do\nDrew walks by me,\nCan he tell that I can't breathe?\nAnd there he goes so perfectly,\nThe kind of flawless I wish I could be,\nShe better hold him tight,\nGive him all her love,\nLook in those beautiful eyes,\nAnd know she's lucky 'cause,\nHe's the reason for the teardrops on my guitar,\nThe only thing that keeps me wishing on a wishing star,\nHe's the song in the car I keep singing, don't know why I do\nSo I'll drive home alone,\nAs I turn out the light,\nI'll put his picture down,\nAnd maybe get some sleep tonight,\nHe's the reason for the teardrops on my guitar,\nThe only one who's got enough of me to break my heart,\nHe's the song in the car I keep singing, don't know why I do\nHe's the time taken up,\nBut there's never enough,\nAnd he's all the I need to fall into,\nDrew looks at me,\nI fake a smile so he won't see.\n
+4                                                                                                                                                                                                                                                                                                                                                                                                                          Drew looks at me,\nI fake a smile so he won't see,\nWhat I want, what I need,\nAnd everything that we should be,\nI'll bet she's beautiful,\nThat girl he talks about,\nAnd she's got everything that I've had to live without,\nDrew talks to me,\nAndI laugh 'cause it's just so funny,\nThat I can't even see\nAnyone when he's with me,\nHe says he's so in love,\nHe's finally got it right,\nI wonder if he knows he's all I think about at night,\nHe's the reason for the teardrops on my guitar,\nThe only thing that keeps me wishing on a wishing star,\nHe's the song in the car I keep singing, don't know why I do\nDrew walks by me,\nCan he tell that I can't breathe?\nAnd there he goes so perfectly,\nThe kind of flawless I wish I could be,\nShe better hold him tight,\nGive him all her love,\nLook in those beautiful eyes,\nAnd know she's lucky 'cause,\nHe's the reason for the teardrops on my guitar,\nThe only thing that keeps me wishing on a wishing star,\nHe's the song in the car I keep singing, don't know why I do\nSo I'll drive home alone,\nAs I turn out the light,\nI'll put his picture down,\nAnd maybe get some sleep tonight,\nHe's the reason for the teardrops on my guitar,\nThe only one who's got enough of me to break my heart,\nHe's the song in the car I keep singing, don't know why I do\nHe's the time taken up,\nBut there's never enough,\nAnd he's all the I need to fall into,\nDrew looks at me,\nI fake a smile so he won't see.\n
+5                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            I don't know what I want, so don't ask me\n'Cause I'm still trying to figure it out\nDon't know what's down this road\nI'm just walking\nTrying to see through the rain coming down\nEven though I'm not the only one, who feels\nThe way I do\nI'm alone, on my own\nAnd that's all I know,\nI'll be strong, I'll be wrong\nOh, but life goes on\nOh, I'm just a girl\nTrying to find a place in this world\nGot the radio on, my old blue jeans\nAnd I'm wearing my heart on my sleeve\nFeeling lucky today, got the sunshine\nCould you tell me what more do I need?\nAnd tomorrow's just a mystery, oh yeah\nBut that's okay\nI'm alone, on my own\nAnd that's all I know,\nI'll be strong, I'll be wrong\nOh, but life goes on\nOh, I'm just a girl\nTrying to find a place in this world\nMaybe I'm just a girl on a mission\nBut I'm ready to fly\nI'm alone, on my own\nAnd that's all I know\nOh, I'll be strong, I'll be wrong\nOh, but life goes on\nOh, I'm alone, on my own\nAnd that's all I know\nOh, I'm just a girl\nTrying to find a place in this world\nOh, I'm just a girl\nOh, I'm just a girl, oh, oh\nOh, I'm just a girl\n
+6                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     You have a way of coming easily to me\nAnd when you take, you take the very best of me\nSo I start a fight 'cause I need to feel somethin'\nAnd you do what you want 'cause I'm not what you wanted\nOh, what a shame\nWhat a rainy ending given to a perfect day\nJust walk away\nAin't no use defending words that you will never say\nAnd now that I'm sittin' here thinkin' it through\nI've never been anywhere cold as you\nYou put up the walls and paint them all a shade of gray\nAnd I stood there loving you, and wished them all away\nAnd you come away with a great little story\nOf a mess of a dreamer with the nerve to adore you\nOh, what a shame\nWhat a rainy ending given to a perfect day\nJust walk away\nAin't no use defending words that you will never say\nAnd now that I'm sittin' here thinkin' it through\nI've never been anywhere cold as you\nYou never did give a damn thing, honey\nBut I cried, cried for you\nAnd I know you wouldn't have told nobody if I died, died for you\nDied for you\nOh, what a shame\nWhat a rainy ending given to a perfect day\nOh, every smile you fake is so condescending\nCountin' all the scars you've made\nNow that I'm sittin' here thinkin' it through\nI've never been anywhere cold as you\n
+   a all and are at baby back be been but can can't cause come could do don't
+1 94   5   1   0 17    0    5  5    0   0   0     0     0    0     0  1     0
+2 95  11   2   0 23    1    1  4    0   0   0     0     0    1     1  0     0
+3 60   5   0   0 13    0    0  7    0   0   2     2     2    0     1  7     3
+4 60   5   0   0 13    0    0  7    0   0   2     2     2    0     1  7     3
+5 47   4   0   0  8    0    0  7    0   3   0     0     0    0     0  6     2
+6 83   4   2   0 14    0    0  4    3   0   0     0     2    1     0  2     0
+  down ever for get go got had have he here how  i i'd i'll i'm if in is it
+1    0    1   1   1  1   0   2    0 32    3   0 82   0    0   0  0 37  0 11
+2    0    5   2   1  3   0   0    1 16    4   2 52   0    0   0  3 14  1  3
+3    1    3   3   1  4   3   1    0 39    2   0 54   0    0   0  3 23  6  7
+4    1    3   3   1  4   3   1    0 39    2   0 54   0    0   0  3 23  6  7
+5    2    0   0   0  4   1   0    0  6    0   0 37   0    0   0  3 17  5  1
+6    0    7   3   0  0   0   1    2 15    7   0 53   0    0   0  1 26  2  9
+  it's just know like look love me my never no not now of oh on one ooh out
+1    1    0    0    3    1    0 13 12     1  1   1   0 10  0 21   3   0   0
+2    0    5    0    0    0    2 18  6     4  6   5   0  1  0  9   0   0   1
+3    1    1    5    0    2    2 11  4     1  7   0   5  2  0 24   3   0   4
+4    1    1    5    0    2    2 11  4     1  7   0   5  2  0 24   3   0   4
+5    0    9    6    0    0    0  2  8     0  7   1   6  0  3 26   5   0   1
+6    0    0    1    0    0    0  9  0     6  7   1   3  4  0  2   1   0   0
+  right said say see so stay take that the there they think this time to up
+1     1    4   0   1  3    0    1   12  11     2    0    19    0    2  8  1
+2     0    0   2   0  2    0    0    5   6     0    0     0    0    5  7  8
+3     1    0   1   3 12    0    1    5  18     2    0     1    0    1  6  1
+4     1    0   1   3 12    0    1    5  18     2    0     1    0    1  6  1
+5     0    0   0   1  1    0    0    5   4     0    0     0    4    0  8  0
+6     0    0   2   0  2    0    2    5   7     1    0     3    0    0  9  1
+  wanna want was we were what when wish with would yeah you you're your
+1     0    0   1  5    1    0    3    0    0     0    0  29      0    6
+2     0    0   4  0    0    0    0    0    1     1    0  21      4    5
+3     0    1   0  1    0    1    1    5    2     0    0   0      0    0
+4     0    1   0  1    0    1    1    5    2     0    0   0      0    0
+5     0    1   0  1    0    3    0    0    0     0    1   1      0    0
+6     0    2   0  0    0    5    1    1    2     1    0  19      0    0
+  num_words   album_name    ep album_release track_number     artist.y
+1       380 Taylor Swift FALSE    2006-10-24            1 Taylor Swift
+2       318 Taylor Swift FALSE    2006-10-24            2 Taylor Swift
+3       317 Taylor Swift FALSE    2006-10-24            3 Taylor Swift
+4       317 Taylor Swift FALSE    2006-10-24           15 Taylor Swift
+5       265 Taylor Swift FALSE    2006-10-24            4 Taylor Swift
+6       256 Taylor Swift FALSE    2006-10-24            5 Taylor Swift
+  featuring bonus_track promotional_release single_release track_release
+1      &lt;NA&gt;       FALSE                &lt;NA&gt;     2006-06-19    2006-06-19
+2      &lt;NA&gt;       FALSE                &lt;NA&gt;     2008-02-03    2006-10-24
+3      &lt;NA&gt;       FALSE                &lt;NA&gt;     2007-02-19    2006-10-24
+4      &lt;NA&gt;        TRUE                &lt;NA&gt;           &lt;NA&gt;    2008-03-18
+5      &lt;NA&gt;       FALSE                &lt;NA&gt;           &lt;NA&gt;    2006-10-24
+6      &lt;NA&gt;       FALSE                &lt;NA&gt;           &lt;NA&gt;    2006-10-24
+  danceability energy key loudness mode speechiness acousticness
+1        0.580  0.491   0   -6.462    1      0.0251       0.5750
+2        0.658  0.877   7   -2.098    1      0.0323       0.1730
+3        0.621  0.417  10   -6.941    1      0.0231       0.2880
+4        0.459  0.753  10   -3.827    1      0.0537       0.0402
+5        0.576  0.777   9   -2.881    1      0.0324       0.0510
+6        0.418  0.482   5   -5.769    1      0.0266       0.2170
+  instrumentalness liveness valence   tempo time_signature duration_ms explicit
+1                0   0.1210   0.425  76.009              4      232107    FALSE
+2                0   0.0962   0.821 105.586              4      173067    FALSE
+3                0   0.1190   0.289  99.953              4      203040    FALSE
+4                0   0.0863   0.483 199.997              4      179067    FALSE
+5                0   0.3200   0.428 115.028              4      199200    FALSE
+6                0   0.1230   0.261 175.558              4      239013    FALSE
+  key_name mode_name key_mode lyrics.y
+1        C     major  C major       NA
+2        G     major  G major       NA
+3       A#     major A# major       NA
+4       A#     major A# major       NA
+5        A     major  A major       NA
+6        F     major  F major       NA</code></pre>
+</div>
+</div>
+</section>
+<section id="predicting-speechiness-using-k-nearest-neighbors" class="level2">
+<h2 class="anchored" data-anchor-id="predicting-speechiness-using-k-nearest-neighbors">Predicting <code>speechiness</code> using <span class="math inline">\(k\)</span> nearest neighbors</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>lyrics <span class="ot">&lt;-</span> full_lyrics <span class="sc">|&gt;</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(a<span class="sc">:</span>your, num_words, danceability<span class="sc">:</span>tempo)</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">47</span>)</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>lyrics_split <span class="ot">&lt;-</span> <span class="fu">initial_split</span>(lyrics)</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>lyrics_train <span class="ot">&lt;-</span> <span class="fu">training</span>(lyrics_split)</span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>lyrics_test <span class="ot">&lt;-</span> <span class="fu">testing</span>(lyrics_split)</span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>lyrics_vfold <span class="ot">&lt;-</span> <span class="fu">vfold_cv</span>(lyrics_train,</span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>                         <span class="at">v =</span> <span class="dv">3</span>)</span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a>k_grid <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">neighbors =</span> <span class="fu">seq</span>(<span class="dv">1</span>,<span class="dv">15</span>, <span class="at">by =</span> <span class="dv">2</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>ts_recipe <span class="ot">&lt;-</span> </span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">recipe</span>(speechiness <span class="sc">~</span> .,</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>         <span class="at">data =</span> lyrics_train)</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>ts_knn_tune <span class="ot">&lt;-</span> <span class="fu">nearest_neighbor</span>(<span class="at">neighbors =</span> <span class="fu">tune</span>()) <span class="sc">|&gt;</span></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">set_engine</span>(<span class="st">"kknn"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">set_mode</span>(<span class="st">"regression"</span>)</span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>ts_wflow_tune <span class="ot">&lt;-</span> <span class="fu">workflow</span>() <span class="sc">|&gt;</span></span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">add_model</span>(ts_knn_tune) <span class="sc">|&gt;</span></span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">add_recipe</span>(ts_recipe)</span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a>ts_wflow_tune <span class="sc">|&gt;</span></span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tune_grid</span>(<span class="at">resamples =</span> lyrics_vfold,</span>
+<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a>            <span class="at">grid =</span> k_grid) <span class="sc">|&gt;</span></span>
+<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">collect_metrics</span>() <span class="sc">|&gt;</span></span>
+<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a>  <span class="co">#filter(.metric == "rsq") |&gt;</span></span>
+<span id="cb12-18"><a href="#cb12-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> neighbors, <span class="at">y =</span> mean, <span class="at">group =</span> .metric, <span class="at">color =</span> .metric)) <span class="sc">+</span></span>
+<span id="cb12-19"><a href="#cb12-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="fu">aes</span>(<span class="at">linetype =</span> .metric))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div id="fig-539a35d47e664c97a50115a146a7f1bd-1" class="quarto-figure quarto-figure-center anchored" width="672">
+<figure class="quarto-float quarto-float-fig figure">
+<div>
+<img src="TS_files/figure-html/unnamed-chunk-6-1.png" id="fig-539a35d47e664c97a50115a146a7f1bd-1" class="img-fluid figure-img" width="672">
+</div>
+</figure>
+</div>
+</div>
+</div>
+<p>The metrics tells us that 15 neighbors should be used to predict the speechiness of the songs.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>ts_knn <span class="ot">&lt;-</span> <span class="fu">nearest_neighbor</span>(<span class="at">neighbors =</span> <span class="dv">15</span>) <span class="sc">|&gt;</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">set_engine</span>(<span class="st">"kknn"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">set_mode</span>(<span class="st">"regression"</span>)</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>ts_wflow <span class="ot">&lt;-</span> <span class="fu">workflow</span>() <span class="sc">|&gt;</span></span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">add_model</span>(ts_knn) <span class="sc">|&gt;</span></span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">add_recipe</span>(ts_recipe)</span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>ts_fit <span class="ot">&lt;-</span> ts_wflow <span class="sc">|&gt;</span></span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">fit</span>(<span class="at">data =</span> lyrics_train)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>How well is the test data predicted?</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>ts_fit <span class="sc">|&gt;</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">predict</span>(<span class="at">new_data =</span> lyrics_test) <span class="sc">|&gt;</span></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cbind</span>(lyrics_test) <span class="sc">|&gt;</span></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> speechiness, <span class="at">y =</span> .pred)) <span class="sc">+</span></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span></span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_abline</span>(<span class="at">intercept =</span> <span class="dv">0</span>, <span class="at">slope =</span> <span class="dv">1</span>, <span class="at">linetype =</span> <span class="dv">2</span>) <span class="sc">+</span></span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_smooth</span>(<span class="at">method =</span> <span class="st">"loess"</span>) <span class="sc">+</span></span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"true speechiness value"</span>,</span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"predicted speechiness value"</span>,</span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>       <span class="at">title =</span> <span class="st">"Predicted speechiness from Taylor Swift songs"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="TS_files/figure-html/unnamed-chunk-8-1.png" class="img-fluid figure-img" width="672"></p>
+<figcaption>Speechiness predictions using a k-NN model with 15 neighbors. Observed points are from the test dataset using the training data as the model (i.e., as the neighbors). The dashed black line is given at y = x; the solid blue line gives a loess smooth fit to between the true values and the predicted values.</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">praise</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] "You are extraordinary!"</code></pre>
+</div>
+</div>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    text: function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        for (let i = 0; i < 2; i++) {
+          container.appendChild(note.children[i].cloneNode(true));
+        }
+        return container.innerHTML
+      } else {
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      return note.innerHTML;
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        console.log("RESIZE");
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>
