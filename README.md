@@ -4,6 +4,8 @@ My Tidy Tuesday adventures: [https://hardin47.github.io/TidyTuesday/](https://ha
 
 ### Tidy Tuesday Analyses
 
+* 2023-11-28 [Tidy Tuesday Dr. Who](https://hardin47.github.io/TidyTuesday/2023-11-28/drwho.html)
+
 * 2023-11-14 [Tidy Tuesday Diwali Sales Data](https://hardin47.github.io/TidyTuesday/2023-11-14/diwali.html)
 
 * 2023-11-07 [Tidy Tuesday US House Results](https://hardin47.github.io/TidyTuesday/2023-11-07/house.html)
