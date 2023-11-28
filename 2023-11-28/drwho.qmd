@@ -46,13 +46,13 @@ p <- episodes |>
   facet_wrap( ~ writer) + 
   ggthemes::scale_color_colorblind() +
   guides(color="none") + 
-  labs(x = "number of views, UK", y = "rating",
+  labs(x = "number of views, UK (millions)", y = "appreciation index",
        title = "Evaluting Dr. Who writers")
 
 ggplotly(p, tooltip = c("episode_title"))
 ```
 
-It isn't clear where the rating came from.  Maybe IMDb? Let's scrape the IMDb website to see if the ratings are the same as what was used in the original dataset.  
+It isn't clear where the rating came from.  Maybe IMDb? Let's scrape the IMDb website to see if the ratings are the same as what was used in the original dataset. From what I know, British ratings are provided by randomly sampled households using a device in their house to provide a measure of how good the show is.  It is called the Appreciation Index.
 
 ```{r}
 library(rvest)
@@ -93,7 +93,7 @@ episodes |>
   left_join(imdb_who, by = c("season_number", "episode_number")) |>
   ggplot(aes(x = imdb_rating, y = rating)) + 
   geom_point() + 
-  labs(x = "IMDb rating", y = "TidyTuesday rating",
+  labs(x = "IMDb rating", y = "Appreciation Index",
        title = "Comparing two different ratings")
 ```
 
