@@ -4,6 +4,8 @@ My Tidy Tuesday adventures: [https://hardin47.github.io/TidyTuesday/](https://ha
 
 ### Tidy Tuesday Analyses
 
+* 2023-12-05 [Tidy Tuesday Life Expectancy](https://hardin47.github.io/TidyTuesday/2023-12-05/life_exp.html)
+
 * 2023-11-28 [Tidy Tuesday Dr. Who](https://hardin47.github.io/TidyTuesday/2023-11-28/drwho.html)
 
 * 2023-11-14 [Tidy Tuesday Diwali Sales Data](https://hardin47.github.io/TidyTuesday/2023-11-14/diwali.html)
@@ -197,18 +199,13 @@ My Tidy Tuesday adventures: [https://hardin47.github.io/TidyTuesday/](https://ha
 
 Each week, copy the week's folder which includes both the data and the information describing the data.  Then create / navigate to the gh-pages branch where the .html file (from the .Rmd) describes the analysis.
 
-1. Navigate to the R4DS folder to download
+git clone --no-checkout https://github.com/rfordatascience/tidytuesday.git
 
-2. Modify the URL, replace `tree/master` with `trunk`.  For example, replace
+cd tidytuesday
 
-`https://github.com/rfordatascience/tidytuesday/tree/master/data/2021/2021-02-02`
+git sparse-checkout init --cone
 
-with `https://github.com/rfordatascience/tidytuesday/trunk/data/2021/2021-02-02`
+git sparse-checkout set data/2023/2023-12-05
 
-3.  Download the folder using the terminal window in RStudio.
-
-`svn checkout https://github.com/rfordatascience/tidytuesday/trunk/data/2021/2021-03-02`
-
-4. Create a new gh-pages branch.  Build the Rmarkdown file (and resulting HTML) for analyzing the data.
-
+git checkout @
 
