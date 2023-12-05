@@ -1,0 +1,185 @@
+---
+title: "Life expectancy over age and time"
+author: "Jo Hardin"
+date: "12/05/2023"
+format: html
+execute:
+  warning: false
+  message: false
+---
+
+
+```{r}
+library(tidyverse) # ggplot, lubridate, dplyr, stringr, readr...
+library(tidytext)
+library(praise)
+library(paletteer)
+library(ggforce)
+library(networkD3)
+library(plotly)
+```
+
+
+```{r}
+life_exp <- read_csv("life_expectancy.csv")
+life_exp_age <- read_csv("life_expectancy_different_ages.csv")
+life_exp_gen <- read_csv("life_expectancy_female_male.csv")
+```
+
+## Data
+
+The data this week comes the [Our World in Data Life Expectancy report](https://ourworldindata.org/life-expectancy), specifically the figures in the [key insights](https://ourworldindata.org/life-expectancy#key-insights) section. The source for this data is from United Nations World Population Prospects (2022); Human Mortality Database (2023); Zijdeman, Richard and Filipa Ribeira da Silva (2015), [Life Expectancy at Birth (Total)](http://hdl.handle.net/10622/LKYT5); Riley, J.C. (2005), [Estimates of Regional and Global Life Expectancy 1800-2001](https://doi.org/10.1111/j.1728-4457.2005.00083.x), Population and Development Review, 31: 537-543. Minor processing by Our World in Data. 
+
+
+```{r}
+life_exp_long <- life_exp_age |>
+  filter(!is.na(Code)) |>
+  pivot_longer(LifeExpectancy0:LifeExpectancy80, values_to = "life_exp", names_to = "at") |>
+  mutate(at = str_replace(at, "LifeExpectancy", ""))
+
+life_exp_long
+```
+
+
+```{r}
+world <- map_data("world") 
+
+life_world <- life_exp_long |>
+  mutate(Entity2 = case_when(
+    Entity == "Antigua and Barbuda" ~ "Antigua",
+    Entity == "Bonaire Sint Eustatius and Saba" ~ "Bonaire",
+    Entity == "Congo" ~ "Republic of Congo",
+    Entity == "Democratic Republic of Congo" ~ "Democratic Republic of the Congo",
+    Entity == "Cote d'Ivoire" ~ "Ivory Coast",
+    Entity == "Czechia" ~ "Czech Republic",
+    Entity == "East Timor" ~ "Timor-Leste",
+    Entity == "Micronesia (country)" ~ "Micronesia",
+    Entity == "Saint Kitts and Nevis" ~ "Saint Kitts",
+    Entity == "Saint Martin (French part)" ~ "Saint Martin",
+    Entity == "Saint Vincent and the Grenadines" ~ "Saint Vincent",
+    Entity == "Sint Maarten (Dutch part)" ~ "Sint Maarten",
+    Entity == "Trinidad and Tobago" ~ "Trinidad",
+    Entity == "United States" ~ "USA",
+    Entity == "United Kingdom" ~ "UK",
+    Entity == "United States Virgin Islands" ~ "Virgin Islands",
+    TRUE ~ Entity
+  )) |>
+  left_join(world, by = c("Entity2" = "region"))
+```
+
+
+Because I wasn't able to iterate the plot over both year and age simultaneously, I made three plots: 1920, 1970, 2020.
+
+```{r}
+#| fig-cap: At different ages between 0 and 80, the life expectancy is given for each country in 1920.
+#| fig-alt: Image of the world map where each country is colored according to its life expectancy in 1920. Data are missing for most of Africa and Asia. The life expectancy of the US at age 0 in 1920 was only 55, in much of South American it was in the 30s.
+
+library(plotly)
+
+p <- life_world |>
+  #dplyr::filter(at == "0") |>
+  dplyr::filter(Year == 1920) |>
+  mutate(`at age` = as.numeric(at)) |>
+  ggplot(aes(x = long, y = lat, group = group)) +
+  geom_polygon(aes(fill = life_exp, frame = `at age`)) +
+  labs(x = "", y = "", fill = "",
+       title = "Life expectancy at different ages (in 1920)")
+
+ggplotly(p) |>
+  animation_opts(frame = 2000,    # time between frames in miliseconds
+                 transition = 0)  # duration of transtion
+```
+
+
+```{r}
+#| fig-cap: At different ages between 0 and 80, the life expectancy is given for each country in 1970.
+#| fig-alt: Image of the world map where each country is colored according to its life expectancy in 1970.  At age 0 African nations have life expectancy around between 40 and 50 while Western nations have life expectancy in the low 70s.  At age 80, however, all world nations have life expectancy around 85 years old.
+
+p <- life_world |>
+  #dplyr::filter(at == "0") |>
+  dplyr::filter(Year == 1970) |>
+  mutate(`at age` = as.numeric(at)) |>
+  ggplot(aes(x = long, y = lat, group = group)) +
+  geom_polygon(aes(fill = life_exp, frame = `at age`)) +
+  labs(x = "", y = "", fill = "",
+       title = "Life expectancy at different ages (in 1970)")
+
+ggplotly(p) |>
+  animation_opts(frame = 2000,    # time between frames in miliseconds
+                 transition = 0)  # duration of transtion
+```
+
+
+
+```{r}
+#| fig-cap: At different ages between 0 and 80, the life expectancy is given for each country in 2020.
+#| fig-alt: Image of the world map where each country is colored according to its life expectancy in 2020.  At age 0 African nations have life expectancy around to 50 while Western nations have life expectancy in the 70s.  At age 80, however, all world nations have life expectancy around 90 years old.
+
+
+p <- life_world |>
+  #dplyr::filter(at == "0") |>
+  dplyr::filter(Year == 2020) |>
+  mutate(`at age` = as.numeric(at)) |>
+  ggplot(aes(x = long, y = lat, group = group)) +
+  geom_polygon(aes(fill = life_exp, frame = `at age`)) +
+  labs(x = "", y = "", fill = "",
+       title = "Life expectancy at different ages (in 2020)")
+
+ggplotly(p) |>
+  animation_opts(frame = 2000,    # time between frames in miliseconds
+                 transition = 0)  # duration of transtion
+```
+
+
+## Scratch work
+
+Below is the work that helped figure out how to match the country names.
+
+```{r}
+names1 <- world |>
+  group_by(region) |>
+  summarize(count1 = n())
+
+names2 <- life_exp_age |>
+  filter(!is.na(Code)) |>
+  mutate(Entity2 = case_when(
+    Entity == "Antigua and Barbuda" ~ "Antigua",
+    Entity == "Bonaire Sint Eustatius and Saba" ~ "Bonaire",
+    Entity == "Congo" ~ "Republic of Congo",
+    Entity == "Democratic Republic of Congo" ~ "Democratic Republic of the Congo",
+    Entity == "Cote d'Ivoire" ~ "Ivory Coast",
+    Entity == "Czechia" ~ "Czech Republic",
+    Entity == "East Timor" ~ "Timor-Leste",
+    Entity == "Micronesia (country)" ~ "Micronesia",
+    Entity == "Saint Kitts and Nevis" ~ "Saint Kitts",
+    Entity == "Saint Martin (French part)" ~ "Saint Martin",
+    Entity == "Saint Vincent and the Grenadines" ~ "Saint Vincent",
+    Entity == "Sint Maarten (Dutch part)" ~ "Sint Maarten",
+    Entity == "Trinidad and Tobago" ~ "Trinidad",
+    Entity == "United States" ~ "USA",
+    Entity == "United Kingdom" ~ "UK",
+    Entity == "United States Virgin Islands" ~ "Virgin Islands",
+    TRUE ~ Entity
+  )) |>
+  group_by(Entity2) |>
+  summarize(count2 = n())
+
+names1 |>
+  full_join(names2, by = c("region" = "Entity2")) |>
+  filter(is.na(count1) | is.na(count2)) |>
+  arrange(region)
+```
+
+
+
+```{r}
+praise()
+```
+
+
+
+
+
+
+
+
