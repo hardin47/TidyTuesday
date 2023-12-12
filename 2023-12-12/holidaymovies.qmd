@@ -1,0 +1,96 @@
+---
+title: "Holiday Movies"
+author: "Jo Hardin"
+date: "12/12/2023"
+format: html
+execute:
+  warning: false
+  message: false
+---
+
+
+```{r}
+library(tidyverse) # ggplot, lubridate, dplyr, stringr, readr...
+library(tidytext)
+library(praise)
+library(paletteer)
+library(ggforce)
+library(networkD3)
+library(plotly)
+```
+
+
+## The Data
+
+The data this week comes from the [Internet Movie Database](https://developer.imdb.com/non-commercial-datasets/).
+We don't have an article using exactly this dataset, but you might get inspiration from this [Christmas Movies](https://networkdatascience.ceu.edu/article/2019-12-16/christmas-movies) blog post by Milán Janosov at Central European University.
+
+```{r}
+movies <- read_csv("holiday_movies.csv")
+genres <- read_csv("holiday_movie_genres.csv")
+```
+
+
+
+## How has genre changed over time?
+
+```{r}
+#| fig-alt: Area plot of holiday films over time.  There were very few holiday films made before 1980 with the majority of the holiday films being made after 2010. In the 1980s and 1990s there was a higher proportion of animated films than in the 21st century.  Since 2015 there have been a high proportion of romance holiday films.
+movies |>
+  filter(runtime_minutes >= 20) |>
+  inner_join(genres, by = "tconst") |>
+  group_by(genres.y) |>
+  mutate(count = n()) |>
+  filter(count > 100) |>
+  group_by(year, genres.y) |>
+  summarize(count = n())|>
+  ggplot(aes(x = year, y = count, fill = genres.y, label = genres.y)) +
+  geom_area() +
+  ggthemes::scale_fill_colorblind() +
+  scale_x_continuous(breaks = seq(1920, 2020, 10)) +
+  theme(panel.grid.minor.x = element_blank()) +
+  labs(x = "", y = "", 
+       title = "Number of holiday films in each genre.", 
+       fill = "")
+```
+
+
+## Common holday words and phrases
+
+
+```{r}
+movies |>
+  mutate(row = row_number()) |>
+  filter(!is.na(primary_title)) |>
+  unnest_tokens(title_words, primary_title, token = "ngrams", n=1) |>
+  anti_join(stop_words, by = c("title_words" = "word")) |>
+  group_by(row) |>
+  summarize(title = paste0(title_words, collapse = ' ')) |>
+  unnest_tokens(bigrams, title, token = "ngrams", n = 2) |>
+  count(bigrams, sort = TRUE)
+```
+
+
+```{r}
+#| fig-alt: An upset plot with genre combinations on the x-axis and frequency on the y-axis.  Comedy is the most popular genre, closely followed by Comedy-Romance pair of genres.
+
+library(ggupset)
+
+genres |>
+  group_by(tconst) |>
+  summarize(genre_list = list(genres)) |>
+  ggplot(aes(x = genre_list)) + 
+  geom_bar() +
+  scale_x_upset(n_intersections = 20) +
+  labs(x = "", y = "", title = "Number of holidy movies in each (combination of) genre(s).")
+```
+
+
+
+
+
+
+
+
+
+
