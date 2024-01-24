@@ -22,7 +22,7 @@ library(paletteer)
 The [dataset](https://github.com/PublicI/us-polling-places) comes from [The Center for Public Integrity](https://publicintegrity.org/). Each row represents a US polling place (location to vote in an election) across many elections from 2012 to 2020.  
 
 ```{r}
-polling <- read_csv("polling_places.csv") |>
+polling <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2024/2024-01-16/polling_places.csv') |>
   mutate(year = year(election_date),
          name = tolower(name),
          address = tolower(address))
