@@ -88,6 +88,9 @@ genres |>
 
 
 
+```{r}
+praise()
+```
 
 
 

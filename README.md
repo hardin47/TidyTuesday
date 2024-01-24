@@ -4,6 +4,8 @@ My Tidy Tuesday adventures: [https://hardin47.github.io/TidyTuesday/](https://ha
 
 ### Tidy Tuesday Analyses
 
+* 2024-01-16 [Tidy Tuesday Polling Places](https://hardin47.github.io/TidyTuesday/2024-01-16/polling.html)
+
 * 2023-12-12 [Tidy Tuesday Holiday Movies](https://hardin47.github.io/TidyTuesday/2023-12-12/holidaymovies.html)
 
 * 2023-12-05 [Tidy Tuesday Life Expectancy](https://hardin47.github.io/TidyTuesday/2023-12-05/life_exp.html)
@@ -207,7 +209,8 @@ cd tidytuesday
 
 git sparse-checkout init --cone
 
-git sparse-checkout set data/2023/2023-12-12
+git sparse-checkout set data/2024/2024-01-16
 
 git checkout @
 
+then move the folder to TidyTuesday, delete tidytuesday, and start over next week.
