@@ -4,6 +4,8 @@ My Tidy Tuesday adventures: [https://hardin47.github.io/TidyTuesday/](https://ha
 
 ### Tidy Tuesday Analyses
 
+* 2024-01-30 [Tidy Tuesday Groundhog Day](https://hardin47.github.io/TidyTuesday/2024-01-30/groundhogs.html)
+
 * 2024-01-16 [Tidy Tuesday Polling Places](https://hardin47.github.io/TidyTuesday/2024-01-16/polling.html)
 
 * 2023-12-12 [Tidy Tuesday Holiday Movies](https://hardin47.github.io/TidyTuesday/2023-12-12/holidaymovies.html)
