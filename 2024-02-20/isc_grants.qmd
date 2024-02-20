@@ -1,0 +1,137 @@
+---
+title: "Grants from the R Consortium Infrastructure Steering Committee (ISC) Grant Program"
+author: "Jo Hardin"
+date: "02/20/2024"
+format: html
+execute:
+  warning: false
+  message: false
+---
+
+
+```{r}
+library(tidyverse) # ggplot, lubridate, dplyr, stringr, readr...
+library(tidytext)
+library(praise)
+```
+
+
+## The Data
+
+The R Consortium Infrastructure Steering Committee (ISC) Grant Program will accept proposals again between March 1 and April 1, 2024 (and then again in the fall).
+
+> This initiative is a cornerstone of our commitment to bolstering and enhancing the R Ecosystem. We fund projects contributing to the R community’s technical and social infrastructures.
+
+Learn more in [their blog post announcing this round of grants](https://www.r-consortium.org/blog/2024/02/08/r-consortium-infrastructure-steering-committee-isc-grant-program-accepting-proposals-starting-march-1st).
+
+The R Consortium ISC has been awarding grants since 2016.
+This week's data is an exploration of past grant recipients.
+
+
+```{r}
+isc_grants <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2024/2024-02-20/isc_grants.csv') |>
+  mutate(index = row_number())
+```
+
+
+
+## n-grams
+
+```{r}
+bigrams <- isc_grants |>
+  unnest_tokens(bigram, summary, token = "ngrams", n = 2) |>
+  filter(!is.na(bigram))
+
+bigrams |>
+  count(bigram, sort = TRUE)
+```
+
+```{r}
+bigram_isc <- bigrams |>
+  group_by(group) |>
+  separate(bigram, c("word1", "word2"), sep = " ") |>
+  filter(!word1 %in% stop_words$word) |>
+  filter(!word2 %in% stop_words$word) |>
+  count(word1, word2, sort = TRUE) |>
+  filter(n > 3) |>
+  unite(bigram, word1, word2, sep = " ")
+```
+
+```{r}
+bigram_isc
+
+tf_idf <- bigram_isc |>
+  count(group, bigram) |>
+  bind_tf_idf(bigram, group, n) |>
+  arrange(desc(tf_idf))
+
+tf_idf
+```
+
+```{r}
+#| fig-cap: "Top tf-idf bigram scores for spring (coded as 1) and fall (coded as 2).  The
+#|   data aren't very good at pulling out linguistic trends."
+#| fig-alt: "Bar plots for tf-idf scores for bigrams."
+tf_idf |>
+  arrange(desc(td_idf)) |>
+  group_by(group) |>
+  slice_max(tf_idf, n = 5) |>
+  ungroup() |>
+  mutate(bigram = reorder(bigram, tf_idf)) |>
+  ggplot(aes(x = tf_idf, y = bigram, fill = as.factor(group))) +
+  geom_col(show.legend = FALSE) +
+  facet_wrap(~group, ncol = 2, scales = "free") +
+  ylab("")
+```
+
+
+Are there places (typos?) where words are repeated?
+
+```{r}
+bigrams |>
+  separate(bigram, c("word1", "word2"), sep = " ") |>
+  filter(word1 == word2)
+
+```
+
+
+
+
+```{r}
+#| fig-cap: Nine people have been funded multiple times.
+#| fig-alt: "Scatter plot with year is on the x axis and funding amount is on the y axis. The
+#|   points are subsetted to include only those people who have been funded multiple times.
+#|   There don't seem to be any big trends with respect to who is applying for funding."
+isc_grants |>
+  group_by(proposed_by) |>
+  mutate(n_proposal = n()) |>
+  filter(n_proposal > 1) |>
+  ggplot(aes(x = year, y = funded, color = proposed_by)) +
+  geom_jitter(width = 0.1)
+```
+
+
+
+```{r}
+#| fig-cap: Seems like there has been less funding over time, although 2018 is also
+#|   quite an outlier with a few very large grants.
+#| fig-alt: Year is on the x axis and funding amount is on the y axis.  There are dots
+#|   representing each grant which was funded. An additional line plot indicates the
+#|   sum of all grants funded per year.  The line is trending down in recent years,
+#|   although 2018 had a few very large grants funded and is quite an outlier.
+isc_grants |>
+  group_by(year) |>
+  mutate(total = sum(funded)) |>
+  ggplot(aes(x = year, y = funded, color = year)) +
+  geom_jitter(width = 0.1) +
+  geom_line(aes(y = total))
+```
+
+
+
+
+
+
+
+
+

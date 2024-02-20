@@ -4,6 +4,8 @@ My Tidy Tuesday adventures: [https://hardin47.github.io/TidyTuesday/](https://ha
 
 ### Tidy Tuesday Analyses
 
+* 2024-02-20 [Tidy Tuesday ISC R grants](https://hardin47.github.io/TidyTuesday/2024-02-20/isc_grants.html)
+
 * 2024-02-13 [Tidy Tuesday Valentine's Day Consumer Data](https://hardin47.github.io/TidyTuesday/2024-02-13/valentines.html)
 
 * 2024-02-06 [Tidy Tuesday UNESCO World Heritage Sites](https://hardin47.github.io/TidyTuesday/2024-02-06/unesco.html)
