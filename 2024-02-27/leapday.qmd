@@ -1,0 +1,165 @@
+---
+title: "People and events on Leap Days"
+author: "Jo Hardin"
+date: "02/27/2024"
+format: html
+execute:
+  warning: false
+  message: false
+---
+
+
+```{r}
+library(tidyverse) # ggplot, lubridate, dplyr, stringr, readr...
+library(babynames)
+library(praise)
+```
+
+
+## The Data
+
+Happy Leap Day! This week's data comes from the [February 29](https://en.wikipedia.org/wiki/February_29) article on Wikipedia.
+
+> February 29 is a leap day (or "leap year day"), an intercalary date added periodically to create leap years in the Julian and Gregorian calendars.
+
+One event that's missing from Wikipedia's list: [R version 1.0 was released on February 29, 2000](https://en.wikipedia.org/wiki/R_(programming_language)#History).
+
+
+```{r}
+events <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2024/2024-02-27/events.csv')
+births <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2024/2024-02-27/births.csv')
+deaths <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2024/2024-02-27/deaths.csv')
+
+```
+
+
+
+```{r}
+babynames |>
+  filter(name == "Matthew" | name == "John" | name == "Federica" | name == "Johanna" | name == "Clara") |>
+  filter(sex == "F") |>
+  ggplot(aes(x = year, y = n, color = name)) +
+  geom_line(aes(lty = sex))
+```
+
+```{r}
+babynames |> filter(name == "Jaguar")
+```
+
+
+
+```{r}
+births <- births |>
+  separate(person, c("Fname", "Lname", "other")) 
+```
+
+```{r}
+leap_names <- births |>  # create a list of duplicate leap names
+  group_by(Fname) |>
+  summarize(count = n()) |>
+  filter(count >= 2) 
+
+leap_names
+
+leap_births <- babynames |>
+  filter(name %in% leap_names$Fname) |> # names that happen at least twice 
+  group_by(name, year) |>
+  mutate(diff = n - lag(n),             # measures women minus men (only for M rows)
+         diff_plus = n - lead(n)) |>    # measures men minus women (only for F rows)
+  mutate(keep_sex = case_when(
+    n > abs(diff) ~ "M", 
+    n > abs(diff_plus) ~ "F",
+    n < abs(diff) ~ "F",
+    n < abs(diff_plus) ~ "M",
+    TRUE ~ sex
+  )) |>
+  filter(sex == keep_sex) 
+  
+leap_births
+```
+
+
+```{r}
+#| fig-cap: 'Trends in the US for babynames for "famous" people who were
+#|   born on leap day. The seven people were chosen because their first names
+#|   showed up at least twice in the list of leap day people.'
+#| fig-alt: 'Line plots showing the trends of baby naming in the US from 1880
+#|   to 2017. The seven people were chosen because their first names
+#|   showed up at least twice in the list of leap day people.
+#|   Across the board, the names were most popular from about 1940 to 1970.'
+
+pal <- c("#004949","#009292","#ff6db6",
+ "#490092","#006ddb","#b66dff","#6db6ff",
+ "#920000","#24ff24","#ffff6d")
+
+leap_births |>
+  ggplot(aes(x = year, y = n)) + 
+  geom_line(aes(color = name, lty = sex)) +
+  geom_point(data = filter(births, Fname %in% leap_names$Fname),
+             aes(color = Fname, x = year_birth), y = 75000, size = 3) +
+  xlim(1880, 2020) +
+  scale_linetype_manual(values = c("dashed", "solid")) + 
+  scale_color_manual(values = pal) +
+  labs(y = "",
+       x = "",
+       title = "Number of births with given name at each year",
+       subtitle = "Dots indicate a leap day baby famous person")
+```
+
+
+```{r}
+leap_births2 <- babynames |>
+  filter(name %in% births$Fname) |> # all the names in the leap year data 
+  group_by(name, year) |>
+  mutate(diff = n - lag(n),             # measures women minus men (only for M rows)
+         diff_plus = n - lead(n)) |>    # measures men minus women (only for F rows)
+  mutate(keep_sex = case_when(
+    n > abs(diff) ~ "M", 
+    n > abs(diff_plus) ~ "F",
+    n < abs(diff) ~ "F",
+    n < abs(diff_plus) ~ "M",
+    TRUE ~ sex
+  )) |>
+  filter(sex == keep_sex) |>
+  ungroup() |>
+  group_by(name) |>
+  mutate(tot_names = sum(n)) |>
+  filter(tot_names > 1000000)
+  
+leap_births2 |>
+  slice_head(n=1) |>
+  arrange(tot_names)
+```
+
+
+```{r}
+#| fig-cap: 'Trends in the US for babynames for "famous" people who were
+#|   born on leap day. The ten people were chosen because, of the leap day
+#|   birthday set, they were the names that were most popular in the US 
+#|   across time.'
+#| fig-alt: 'Line plots showing the trends of baby naming in the US from 1880
+#|   to 2017. The names were chosen because, of the leap day birthday set,
+#|   they were the names that were the most popular in the US across time.
+#|   Across the board, the names were most popular from about 1940 to 1970.'
+leap_births2 |>
+  ggplot(aes(x = year, y = n)) + 
+  geom_line(aes(color = name, lty = sex)) +
+  geom_point(data = filter(births, Fname %in% leap_births2$name),
+             aes(color = Fname, x = year_birth), y = 75000, size = 3) +
+  xlim(1880, 2020) +
+  scale_linetype_manual(values = c("dashed", "solid")) + 
+  scale_color_manual(values = pal) +
+  labs(y = "",
+       x = "",
+       title = "Number of births with given name at each year",
+       subtitle = "Dots indicate a leap day baby famous person")
+```
+
+
+
+```{r}
+praise()
+```
+
+
+
