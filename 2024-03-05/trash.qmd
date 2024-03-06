@@ -1,0 +1,78 @@
+---
+title: "Mr Trash Wheel"
+author: "Jo Hardin"
+date: "03/05/2024"
+format: html
+execute:
+  warning: false
+  message: false
+---
+
+
+```{r}
+library(tidyverse) # ggplot, lubridate, dplyr, stringr, readr...
+library(ggstream)
+library(praise)
+```
+
+
+## The Data
+
+This week's data is [Trash Wheel Collection Data](https://docs.google.com/spreadsheets/d/1b8Lbe-z3PNb3H8nSsSjrwK2B0ReAblL2/edit#gid=1143432795) from the [Mr. Trash Wheel](https://www.mrtrashwheel.com/) [Baltimore Healthy Harbor](https://www.waterfrontpartnership.org/healthy-harbor-initiative) initiative.
+
+> Mr. Trash Wheel is a semi-autonomous trash interceptor that is placed at the end of a river, stream or other outfall. Far too lazy to chase trash around the ocean, Mr. Trash Wheel stays put and waits for the waste to flow to him. Sustainably powered and built to withstand the biggest storms, Mr. Trash Wheel uses a unique blend of solar and hydro power to pull hundreds of tons of trash out of the water each year.
+
+```{r}
+trashwheel <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2024/2024-03-05/trashwheel.csv')
+
+```
+
+
+## Exploring
+
+We tried out `geom_stream()` to follow the work of @bjnnowak on <a href = "https://fosstodon.org/@bjnnowak/112041553167603841" target = "_blank">fosstodon.org</a>.  His <a href = "https://github.com/BjnNowak/TidyTuesday/blob/main/trash_wheel.R" target = "_blank">code is available</a>, thank you!!
+
+A stream plot is similar to a density plot, but instead of having the bottom flat against the x-axis, it becomes symmetric around the line y = 0. Note that we are plotting the number of items, so it makes sense that cigarette butts will dominate the count.
+
+```{r}
+trash_long <- trashwheel |>
+  pivot_longer(cols = PlasticBottles:SportsBalls, names_to = "type", values_to = "count") |>
+  mutate(ym = as_date(zoo::as.yearmon(paste(Year, Date), "%Y %m"))) |>
+  group_by(ym, Name, type) |>
+  summarize(bigcount = sum(count)) |>
+  ungroup() 
+  
+```
+
+
+```{r}
+#| fig-alt: 'Stream plot over time from 2014 to 2024, faceted by the Wheel
+#|   that collected the trash.  Stream plot gives the density
+#|   of the variable, which here is number of trash items. The trash items are: 
+#|   cigarette butts, glass bottles, plastic bags, plastic bottles, polystyrene,
+#|   sports balls, and wrappers. Mr Trash Wheel is the oldest and collected most of 
+#|   its trash between 2014 and 2017. When other Wheels were introducted, Mr Wheel
+#|   seemed to collect less trash, but maybe other things change (e.g., the amount
+#|   of trash in the bay overall).'
+
+trash_long |>
+  ggplot(aes(x = ym, y = bigcount, fill = type, color = type)) +
+  geom_stream(geom = "contour", extra_span = 0.1, bw = 0.65, size = 0.75) + 
+  geom_stream(geom = "polygon", extra_span = 0.1, bw = 0.65, size = 0.75) + 
+  facet_wrap(~ Name, ncol = 1, scales = "free_y") +
+  scale_fill_brewer(palette = "Set1") +
+  scale_color_brewer(palette = "Set1")  + 
+  labs(x = "", y = "", color = "", fill = "",
+       title = "Number of trash items of each type found by each Wheel",
+       caption = "Figure made by Jo Hardin | Code originally by @bjnnowak") + 
+  theme_minimal()
+```
+
+
+
+
+```{r}
+praise()
+```
+
+
