@@ -1,13 +1,10 @@
-* 2024-03-05 [Tidy Tuesday Mr. Trash Wheel](https://hardin47.github.io/TidyTuesday/2024-03-05/trash.html)
-
-
 # TidyTuesday
 
 My Tidy Tuesday adventures: [https://hardin47.github.io/TidyTuesday/](https://hardin47.github.io/TidyTuesday/)
 
 ### Tidy Tuesday Analyses
 
-* 2024-03-05 [Tidy Tuesday Mutant Moneyball](https://hardin47.github.io/TidyTuesday/2024-03-19/mutant_moneyball.html)
+* 2024-03-19 [Tidy Tuesday Mutant Moneyball](https://hardin47.github.io/TidyTuesday/2024-03-19/mutant_moneyball.html)
 
 * 2024-03-05 [Tidy Tuesday Mr. Trash Wheel](https://hardin47.github.io/TidyTuesday/2024-03-05/trash.html)
 

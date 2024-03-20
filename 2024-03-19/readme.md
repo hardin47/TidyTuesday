@@ -1,4 +1,4 @@
-* 2024-03-05 [Tidy Tuesday Mutant Moneyball](https://hardin47.github.io/TidyTuesday/2024-03-19/mutant_moneyball.html)
+* 2024-03-19 [Tidy Tuesday Mutant Moneyball](https://hardin47.github.io/TidyTuesday/2024-03-19/mutant_moneyball.html)
 
 # X-Men Mutant Moneyball
 
