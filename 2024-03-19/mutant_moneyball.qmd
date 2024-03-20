@@ -1,0 +1,107 @@
+---
+title: "X-Men Mutant Moneyball"
+author: "Jo Hardin"
+date: "03/19/2024"
+format: html
+execute:
+  warning: false
+  message: false
+---
+
+
+```{r}
+library(tidyverse) # ggplot, lubridate, dplyr, stringr, readr...
+library(praise)
+```
+
+
+## The Data
+
+This week's data is [X-Men Mutant Moneyball](https://github.com/EliCash82/mutantmoneyball) from Rally's [Mutant moneyball: a data driven ultimate X-men](https://rallyrd.com/mutant-moneyball-a-data-driven-ultimate-x-men/) by [Anderson Evans](https://github.com/EliCash82). 
+
+While pulling in the data, we use `parse_number()` to remove all of the `$` and `%` symbols in some of the columns.
+
+```{r}
+mutant_moneyball <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2024/2024-03-19/mutant_moneyball.csv') |>
+  mutate(across(`60s_Appearance_Percent`:PPI90s_oStreet, parse_number))
+```
+
+# Wrangling the data
+
+Note that the dataset is currently very wide. And it would be better to have the variables consolidated across decade with a single column referencing the relevant decade for each variable type.  We'll have to `pivot_longer()` and then wrangle the variable and then `pivot_wider()` back. 
+
+```{r}
+mutant_moneyball
+```
+
+
+The `pivot_longer()` command below is able to pivot to three name columns, here `name1`, `name2`, and `name3`.  
+
+```{r}
+mutant_moneyball |>
+  select(-TotalIssues, -totalIssueCheck, 
+         -TotalValue_heritage, -TotalValue_ebay) |>
+  pivot_longer(cols=-1,
+               names_pattern = "(.*)(\\d\\ds)(.*)", 
+               names_to = c("name1", "name2", "name3"))
+```
+
+
+But the name of the value should be `name1` and `name3` pasted together.
+
+```{r}
+mutant_moneyball |>
+  select(-TotalIssues, -totalIssueCheck, 
+         -TotalValue_heritage, -TotalValue_ebay) |>
+  pivot_longer(cols=-1,
+               names_pattern = "(.*)(\\d\\ds)(.*)", 
+               names_to = c("name1", "name2", "name3")) |>
+  mutate(variable = paste(name1, name3, sep = "")) 
+```
+
+Then we need to `pivot_wider()` so that the columns of interest are separated.
+
+```{r}
+mutant_moneyball_clean <- mutant_moneyball |>
+  select(-TotalIssues, -totalIssueCheck, 
+         -TotalValue_heritage, -TotalValue_ebay) |>
+  pivot_longer(cols=-1,
+               names_pattern = "(.*)(\\d\\ds)(.*)", 
+               names_to = c("name1", "name2", "name3")) |>
+  mutate(variable = paste(name1, name3, sep = "")) |>
+  select(Member, decade = name2, value, variable) |>
+  pivot_wider(names_from = variable, values_from = value)
+
+mutant_moneyball_clean
+```
+
+The data is now in a format that will make graphing easy!
+
+# Graphing
+
+## Comparing different valuations
+
+```{r}
+#| fig-cap: 'Difference in price per issue for two different price guides: Wizard and Overstreet. Note that the Overstreet Price Guide consistently estimates the issues as higher priced than the Wizard Price Guide.'
+#| fig-alt: 'Scatterplot describing the relationship between two different price guides for issues of X-Men comics.  The two price guides are very strongly correlated, but the Overstreet Price Guide estimates that the issues are substantially more expensive that what the Wizard Price Guide estimates.  The graphs are faceted by decade (1960 to 1990).  The same trends are seen for each decade, but the older issues are a lot more expensive.'
+mutant_moneyball_clean |>
+  #ggplot(aes(x = PPI_wiz, y = PPI_ebay)) + 
+  ggplot(aes(x = PPI_wiz, y = PPI_oStreet)) + 
+  geom_point(aes(size = TotalIssues, color = Member)) +
+  geom_abline(intercept = 0, slope = 1) + 
+  ggrepel::geom_label_repel(aes(label = Member), max.overlaps = 15,
+                            size = 2) +
+  facet_wrap(~decade, scales = "free") + 
+  theme(legend.position = "none") +
+  labs(x = "Price per issue, Wizard Price Guide",
+       y = "Price per issues, Overstreet Price Guide",
+       title = "Price and frequency for X-Men commic books\nincluding each of the given characters",
+       subtitle = "Size of dot proportional to the number of issues character appeared in")
+```
+
+
+```{r}
+praise()
+```
+
+

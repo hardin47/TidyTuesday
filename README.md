@@ -7,6 +7,8 @@ My Tidy Tuesday adventures: [https://hardin47.github.io/TidyTuesday/](https://ha
 
 ### Tidy Tuesday Analyses
 
+* 2024-03-05 [Tidy Tuesday Mutant Moneyball](https://hardin47.github.io/TidyTuesday/2024-03-19/mutant_moneyball.html)
+
 * 2024-03-05 [Tidy Tuesday Mr. Trash Wheel](https://hardin47.github.io/TidyTuesday/2024-03-05/trash.html)
 
 * 2024-02-27 [Tidy Tuesday Leap Day Babies](https://hardin47.github.io/TidyTuesday/2024-02-27/leapday.html)
