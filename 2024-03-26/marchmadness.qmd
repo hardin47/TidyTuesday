@@ -1,0 +1,97 @@
+---
+title: "March Madness"
+author: "Jo Hardin"
+date: "03/26/2024"
+format: html
+execute:
+  warning: false
+  message: false
+---
+
+
+```{r}
+library(tidyverse) # ggplot, lubridate, dplyr, stringr, readr...
+library(praise)
+```
+
+
+## The Data
+
+March is NCAA basketball March Madness! This week's data is [NCAA Men's March Madness data](https://www.kaggle.com/datasets/nishaanamin/march-madness-data) from Nishaan Amin's Kaggle dataset and analysis [Bracketology: predicting March Madness](https://www.kaggle.com/code/nishaanamin/bracketology-predicting-march-madness).
+
+
+```{r}
+team_results <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2024/2024-03-26/team-results.csv')
+public_picks <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2024/2024-03-26/public-picks.csv')
+```
+
+
+## Team performance
+
+Caveat: some of the variables were a little difficult for me to parse.  I'm not sure what "performance against" means in the PAKE and PASE variables.  And at first we were looking at schools with different PAKE and PASE.  But later we thought it might be more interesting to look at schools whose PAKE and PASE were both high (or low).  
+
+```{r}
+#| fig-cap: Scatter plot to show the difference between PAKE and PASE.  The colors represent how different PAKE and PASE are.  However, maybe it makes more sense to look at schools in the upper corner or lower corner.
+#| fig-alt: Scatterplot with PAKE on the x-axis and PASE on the y-axis. Most of the schools have very similar PAKE and PASE (that is, they are close to the line y=x).  Some of the schools have very high PAKE and PASE, meaning that they performed above expected.  Some of the schools have very low PAKE and PASE, meaning that they performed below expected.
+seed_data <- team_results |>
+  mutate(expectations = ifelse(PAKE >= PASE, "underseeded", "overseeded")) |>
+  mutate(rank_diff = PAKE-PASE) |>
+  #filter(abs(PAKE - PASE) > 1) |>
+  mutate(expect_grps = case_when(
+    PAKE - PASE < -2 ~ "way_under",
+    PAKE - PASE < -1 ~ "little_under",
+    PAKE - PASE < 0 ~ "under",
+    PAKE - PASE < 1 ~ "over",
+    PAKE - PASE < 2 ~ "little_over",
+    TRUE ~ "way_over")
+    ) |>
+  mutate(expect_grps = factor(expect_grps, 
+                              levels = c("way_under", "little_under","under", "over",
+                                         "little_over", "way_over")))
+
+seed_data |>
+  ggplot(aes(x = PAKE, y = PASE, color = expect_grps)) + 
+  geom_point() + 
+  geom_abline(slope = 1, intercept = 0) +
+  labs(x = "Performance against Komputer ranking", y = "Performance against seed ranking", color = "expected groups") +
+  scale_color_manual(values = c("red", "orange", "yellow", "lightblue", "blue", "purple")) + 
+  ggrepel::geom_label_repel(data = filter(seed_data, abs(PAKE-PASE) > 1.5), mapping = aes(label = TEAM), key_glyph = "point") +
+  guides(color = guide_legend(override.aes = list(size = 3)))
+
+```
+
+
+```{r}
+#| fig-cap: 'Radar plot on the following variables: times making it to the final 4 percent, PAKE, PASE, number of games played in the tournament, number of wins in the tournament, and number of times to the round of 64. Using different variables, we can see if schools perform high on one variable and low on another.  Given that the variables are all on different scales, we created z-scores for each of the variables before plotting them on the radar.'
+#| fig-alt: 'Radar plot on the following variables: times making it to the final four percent, PAKE, PASE, number of games played in the tournament, number of wins in the tournament, and number of times to the round of 64.  Kansas has extremely large z-score for number of wins, especially compared to the percent of times they made it to the final four. Butler had very high PAKE and PASE, but much lower percent of times they made it to the final four.'
+
+library(ggradar)
+
+team_results |>
+  mutate(F4PERCENT = parse_number(F4PERCENT)) |>
+  select(TEAM, PAKE, PASE, GAMES, W, R64, F4PERCENT) |>
+  mutate(across(PAKE:F4PERCENT, scale)) |>
+  filter(TEAM %in% c( "Houston", "Butler", "Florida Atlantic", "Kansas", "Purdue")) 
+
+team_results |>
+  mutate(F4PERCENT = parse_number(F4PERCENT)) |>
+  select(TEAM, F4PERCENT, PAKE, PASE, GAMES, W, R64) |>
+  mutate(across(F4PERCENT:R64, scale)) |>
+  filter(TEAM %in% c("Houston", "Butler", "Florida Atlantic", "Kansas", "Purdue")) |>
+ggradar(values.radar = c("-4", "0", "4"),
+        grid.min = -2, grid.mid = 0, grid.max = 5,
+        group.line.width = 1,
+        group.point.size = 2)
+
+```
+
+
+
+
+
+```{r}
+praise()
+```
+
+
+
