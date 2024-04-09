@@ -4,6 +4,9 @@ My Tidy Tuesday adventures: [https://hardin47.github.io/TidyTuesday/](https://ha
 
 ### Tidy Tuesday Analyses
 
+
+* 2024-04-09 [Tidy Tuesday Solar Eclipse](https://hardin47.github.io/TidyTuesday/2024-04-09/eclipse.html)
+
 * 2024-03-19 [Tidy Tuesday Men's March Madness](https://hardin47.github.io/TidyTuesday/2024-03-26/marchmadness.html)
 
 * 2024-03-19 [Tidy Tuesday Mutant Moneyball](https://hardin47.github.io/TidyTuesday/2024-03-19/mutant_moneyball.html)
