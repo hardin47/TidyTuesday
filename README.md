@@ -4,6 +4,7 @@ My Tidy Tuesday adventures: [https://hardin47.github.io/TidyTuesday/](https://ha
 
 ### Tidy Tuesday Analyses
 
+* 2024-04-16 [Tidy Tuesday Creating a Shiny App](https://hardin47.github.io/TidyTuesday/2024-04-16/shiny.html)
 
 * 2024-04-09 [Tidy Tuesday Solar Eclipse](https://hardin47.github.io/TidyTuesday/2024-04-09/eclipse.html)
 

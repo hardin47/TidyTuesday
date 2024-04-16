@@ -1,0 +1,100 @@
+---
+title: "Making a Shiny App"
+author: "Jo Hardin"
+date: "04/16/2024"
+format: html
+server: shiny
+---
+
+```{r}
+library(tidyverse)
+library(shiny)
+```
+
+
+```{r}
+#| warning: false
+#| message: false
+
+library(tidyverse)
+library(shiny)
+```
+
+n.b. I couldn't get Shiny to run locally on my computer (maybe because I'm running Sonoma OS?).  Instead, I worked on the Pomona Rstudio server, and we compiled the Shiny app perfectly!  Code below works flawlessly for systems where a Shiny app is able to run.
+
+
+# Data
+
+Going back to the crop [data from 09/01/2020](https://github.com/rfordatascience/tidytuesday/tree/master/data/2020/2020-09-01) because it has a lot of variables to work with within the Shiny framework.
+
+## Global Crop Yields
+
+The data this week comes from [Our World in Data](https://ourworldindata.org/crop-yields). Note that there is a lot of data on that site, we're looking at some subsets but feel free to use whatever data from there you find interesting! It's all pretty clean and ready to go.
+
+```{r}
+key_crop_yields <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-09-01/key_crop_yields.csv')
+```
+
+Let's start by creating a static plot that we can extend within the Shiny app.
+
+```{r}
+#| fig-cap: Wheat crop yield over time for Afghanistan (AFG), Guatemala (GTM), Spain (ESP),
+#|   and New Zealand (NSL).
+#| fig-alt: A line plot with time on the x axis and yield (in tonnes per hectare) on the y axis.
+#|   Separate lines have been drawn for each of Afghanistan, Guatemala, Spain,
+#|   and New Zealand. All countries show that wheat yield is increasing, but the yield
+#|   increases substantially for New Zealand and just a very small amount for Afghanistan.
+#| echo: false
+
+key_crop_yields |>
+  filter(Code %in% c("AFG", "GTM", "ESP", "NZL")) |>
+  ggplot(aes(x = Year, y = `Wheat (tonnes per hectare)`, color = Code)) +
+  geom_line()
+```
+
+
+Using all of the countries and the eleven different types of crops, we can build a Shiny app to describe how the yields change over time.  
+
+The first chunk of Shiny code creates the interactive buttons that allow the user to specify what variables they want to use.  The second chunk of Shiny code uses the input variables in the ggplot itself.
+
+```{r}
+sliderInput("year_range", "Year range:", 
+            min = 1961, max = 2020, value = c(1980, 2010),
+            sep = "")
+checkboxGroupInput("var", "Variable(s):", 
+                   choices =  names(select(key_crop_yields, `Wheat (tonnes per hectare)`:`Bananas (tonnes per hectare)`)), 
+                   selected = "Wheat (tonnes per hectare)",
+                   inline = TRUE)
+selectizeInput("country", "Countries:", 
+                   choices = unique(key_crop_yields$Entity), 
+                   selected = c("Mexico", "Spain"), 
+               multiple = TRUE)
+plotOutput("distPlot2")
+```
+
+```{r}
+#| context: server
+
+library(tidyverse)
+library(ggthemes)
+key_crop_yields <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-09-01/key_crop_yields.csv')
+
+output$distPlot2 <- renderPlot({
+  key_crop_yields |>
+  #filter(Code %in% c("AFG", "GTM", "ESP", "NZL")) |>
+  filter(Year >= input$year_range[1] & Year <= input$year_range[2]) |>
+  filter(Entity %in% input$country) |>
+  pivot_longer(cols = `Wheat (tonnes per hectare)`:`Bananas (tonnes per hectare)`, 
+               names_to = "crop",
+               values_to = "yield") |>
+  filter(crop %in% input$var) |>
+  ggplot(aes(x = Year, color = Entity, y = yield)) +
+  # note that if you use a variable from input$var inside ggplot, you need get(input$var)
+  geom_line() +
+  facet_wrap(~crop) +
+  scale_color_colorblind()
+})
+```
+
+
+
