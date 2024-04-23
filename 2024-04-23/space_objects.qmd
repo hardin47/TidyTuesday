@@ -1,0 +1,106 @@
+---
+title: "Objects Launched into Space"
+author: "Jo Hardin"
+date: "04/23/2024"
+format: html
+execute:
+  warning: false
+  message: false
+---
+
+
+```{r}
+library(tidyverse) # ggplot, lubridate, dplyr, stringr, readr...
+library(praise)
+library(gganimate)
+```
+
+
+## The Data
+
+
+This week we're exploring the [annual number of objects launched into outer space](https://ourworldindata.org/grapher/yearly-number-of-objects-launched-into-outer-space)! Our World in Data processed the data from the [Online Index of Objects Launched into Outer Space](https://www.unoosa.org/oosa/osoindex/search-ng.jspx), maintained by the United Nations Office for Outer Space Affairs since 1962. h/t [Data is Plural](https://www.data-is-plural.com/archive/2024-04-10-edition/).
+
+
+
+```{r}
+outer_space_objects <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2024/2024-04-23/outer_space_objects.csv') |>
+  rename(region = Entity) |>
+  mutate(region = case_when(
+    region == "United States" ~"USA",
+    TRUE ~ region
+  )) |>
+  filter(!is.na(Code))
+
+temp <- map_data("world")
+```
+
+```{r}
+region_grid <- data_frame(expand.grid(Year = c(1990:2023),
+                    region = unique(outer_space_objects$region)))
+
+outer_space_objects_full <- left_join(region_grid,
+                                    group_by(outer_space_objects, region)) |>
+  mutate(num_objects = case_when(
+    is.na(num_objects) ~ 0,
+    TRUE ~ num_objects
+  )) |>
+  group_by(region) |>
+  arrange(region, Year) |>
+  mutate(cum_objs = cumsum(num_objects))
+```
+
+
+
+```{r}
+#| fig-cap: Starting in 1980, the cumulatitve number of 
+#|   objects each country has launched into space.  By 2023,
+#|   the US had launched 8688 objects (from 1980 to 2023),
+#|   where other countries (like Armenia and Ireland) 
+#|   have only launched a single object.
+#| fig-alt: A heatmap of the world which is 
+#|   animated by a time lapse.  For any given year, the
+#|   country is colored by the number of objects it has
+#|   launched into space.
+
+world_map <- map_data("world") |>
+  select(-subregion, -order)
+
+region_grid <- data_frame(expand.grid(Year = c(1980:2023),
+                    region = unique(world_map$region)))
+
+
+cum_vals <- region_grid |>
+  left_join(outer_space_objects, by = c("region", "Year")) |>
+  mutate(num_objects = case_when(
+    is.na(num_objects) ~ 0,
+    TRUE ~ num_objects
+  )) |>
+  group_by(region) |>
+  arrange(region, Year) |>
+  mutate(cum_objs = log(cumsum(num_objects), 10))
+
+world_map <- world_map |> left_join(cum_vals)
+  
+world_map |>
+  #filter(Year == 2020) |>
+  select(long, lat, group, region, Year, cum_objs) |>
+  drop_na() |>
+  ggplot(aes(map_id = region, fill = cum_objs)) +
+  geom_map(map = world_map, 
+           aes(x = long, y = lat, group = group)) +
+  theme_minimal() +
+  transition_states(Year) +  
+  #transition_reveal(Year) +
+  labs(x = "", y = "", fill = "") + 
+  ggtitle('Number of launched objects (log10 scale)',
+          subtitle = 'as of {closest_state}')
+
+```
+
+
+
+```{r}
+praise()
+```
+
