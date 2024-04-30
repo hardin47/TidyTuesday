@@ -1,0 +1,74 @@
+---
+title: "Worldwide Bureaucracy Indicators"
+author: "Jo Hardin"
+date: "04/30/2024"
+format: html
+execute:
+  warning: false
+  message: false
+---
+
+
+```{r}
+library(tidyverse) # ggplot, lubridate, dplyr, stringr, readr...
+library(praise)
+library(ggrepel)
+```
+
+```{r}
+wwbi_data <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2024/2024-04-30/wwbi_data.csv')
+wwbi_series <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2024/2024-04-30/wwbi_series.csv')
+wwbi_country <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2024/2024-04-30/wwbi_country.csv')
+```
+
+
+
+
+```{r}
+#| fig-cap: 'Using data from the Worldwide Bureaucracy Index (using the most recent data available), we plot
+#|   the proportion of women in each of the public and private sectors.
+#|   The goal was to to recreate the image at [Five facts about gender equality in the public sector, March 2019](https://blogs.worldbank.org/en/governance/five-facts-about-gender-equality-public-sector), which seems to have reversed the values for
+#|   some of the countries (namely, the European and North American countries).
+#|   The blog on [Five facts on gender equity in the public sector, Sep 2021](https://blogs.worldbank.org/en/governance/five-facts-gender-equity-public-sector)
+#|   seems to align with the information in ours.  Notably, the
+#|   proportion of women in the workforce is below 50% for the 
+#|   majority of countries, especially in the private sector.  Women
+#|   make up more than 50% of employees in the public sector in 
+#|   European and North American countries.'
+#| fig-alt: A scatter plot with the proportion of female employees in
+#|   the public sector on the x axis and the proportion of female
+#|  employees in the private sector on the y axis.  Each point is a 
+#|  country, plotted for the most recent data available.  The points 
+#|  are reasonably highly correlated, but most of the points have a 
+#|  higher public value than private value, and there are no points 
+#|  about fifty percent for the private sector.  European and North 
+#|  American countries tend to have more than fifty percent female 
+#|  employees in the public sector.
+
+
+wwbi_data |>
+  dplyr::filter(indicator_code %in% c("BI.PWK.PRVS.FE.ZS", "BI.PWK.PUBS.FE.ZS")) |>
+  mutate(sector = case_when(indicator_code == "BI.PWK.PUBS.FE.ZS" ~ "public",
+                            indicator_code == "BI.PWK.PRVS.FE.ZS" ~ "private")) |>
+  select(-indicator_code) |>
+  pivot_wider(id_cols = country_code:year, names_from = sector, values_from = value) |>
+  #filter(year <= 2012) |>
+  group_by(country_code) |>
+  top_n(1, year) |>
+  left_join(wwbi_country, by = c("country_code")) |>
+  ggplot(aes(x = public, y = private)) +
+  geom_point(aes(color = region), size = 2) + 
+  geom_abline(slope = 1, intercept = 0) +
+  geom_hline(yintercept = 0.5, color = "brown") + 
+  geom_vline(xintercept = 0.5, color = "brown") + 
+  geom_text_repel(aes(label = country_code), size = 3.5, color = "darkgrey") + 
+  scale_color_brewer(palette = "Dark2") +
+  labs(title = "Proportion of female as share of each sector",
+       x = "Public sector",
+       y = "Private sector") +
+  theme_minimal() + 
+  theme(legend.position = "bottom", legend.title = element_blank())
+```
+
+
+
