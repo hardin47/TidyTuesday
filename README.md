@@ -4,6 +4,8 @@ My Tidy Tuesday adventures: [https://hardin47.github.io/TidyTuesday/](https://ha
 
 ### Tidy Tuesday Analyses
 
+* 2024-05-07 [Tidy Tuesday Rolling Stone's Best Albums](https://hardin47.github.io/TidyTuesday/2024-05-07/albums.html)
+
 * 2024-04-30 [Tidy Tuesday Worldwide Bureaucracy Indicators](https://hardin47.github.io/TidyTuesday/2024-04-30/wwbi.html)
 
 * 2024-04-23 [Tidy Tuesday Objects Launched into Space](https://hardin47.github.io/TidyTuesday/2024-04-23/space_objects.html)
