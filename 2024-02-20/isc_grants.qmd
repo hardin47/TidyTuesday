@@ -73,7 +73,7 @@ tf_idf
 #|   data aren't very good at pulling out linguistic trends."
 #| fig-alt: "Bar plots for tf-idf scores for bigrams."
 tf_idf |>
-  arrange(desc(td_idf)) |>
+  arrange(desc(tf_idf)) |>
   group_by(group) |>
   slice_max(tf_idf, n = 5) |>
   ungroup() |>
@@ -91,7 +91,6 @@ Are there places (typos?) where words are repeated?
 bigrams |>
   separate(bigram, c("word1", "word2"), sep = " ") |>
   filter(word1 == word2)
-
 ```
 
 
@@ -129,6 +128,9 @@ isc_grants |>
 
 
 
+```{r}
+praise()
+```
 
 
 

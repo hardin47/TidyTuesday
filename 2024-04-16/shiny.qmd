@@ -4,11 +4,15 @@ author: "Jo Hardin"
 date: "04/16/2024"
 format: html
 server: shiny
+execute:
+  warning: false
+  message: false
 ---
 
 ```{r}
 library(tidyverse)
 library(shiny)
+library(praise)
 ```
 
 
@@ -19,8 +23,6 @@ library(shiny)
 library(tidyverse)
 library(shiny)
 ```
-
-n.b. I couldn't get Shiny to run locally on my computer (maybe because I'm running Sonoma OS?).  Instead, I worked on the Pomona Rstudio server, and we compiled the Shiny app perfectly!  Code below works flawlessly for systems where a Shiny app is able to run.
 
 
 # Data
@@ -96,5 +98,9 @@ output$distPlot2 <- renderPlot({
 })
 ```
 
+
+```{r}
+praise()
+```
 
 
