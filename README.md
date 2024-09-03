@@ -4,6 +4,8 @@ My Tidy Tuesday adventures: [https://hardin47.github.io/TidyTuesday/](https://ha
 
 ### Tidy Tuesday Analyses
 
+* 2024-09-03 [Stack Overflow Annual Developer Survey 2024](https://hardin47.github.io/TidyTuesday/2024-09-03/stackoverflow.html)
+
 * 2024-05-07 [Tidy Tuesday Rolling Stone's Best Albums](https://hardin47.github.io/TidyTuesday/2024-05-07/albums.html)
 
 * 2024-04-30 [Tidy Tuesday Worldwide Bureaucracy Indicators](https://hardin47.github.io/TidyTuesday/2024-04-30/wwbi.html)
@@ -228,6 +230,8 @@ My Tidy Tuesday adventures: [https://hardin47.github.io/TidyTuesday/](https://ha
 ### Getting the data
 
 Each week, copy the week's folder which includes both the data and the information describing the data.  Then create / navigate to the gh-pages branch where the .html file (from the .Rmd) describes the analysis.
+
+Uhhh... this process doesn't seem to work.  :(
 
 git clone --no-checkout https://github.com/rfordatascience/tidytuesday.git
 

@@ -1,0 +1,131 @@
+---
+title: "Stack Overflow Annual Developer Survey 2024"
+author: "Jo Hardin"
+date: "09/03/2024"
+format: html
+execute:
+  warning: false
+  message: false
+---
+
+
+```{r}
+library(tidyverse) # ggplot, lubridate, dplyr, stringr, readr...
+library(praise)
+```
+
+
+## Data
+
+This week's dataset is derived from the 2024 Stack Overflow Annual Developer Survey. Conducted in May 2024, the survey gathered responses from over 65,000 developers across seven key sections.
+
+```{r}
+qname_levels_single_response_crosswalk <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2024/2024-09-03/qname_levels_single_response_crosswalk.csv')
+stackoverflow_survey_questions <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2024/2024-09-03/stackoverflow_survey_questions.csv')
+stackoverflow_survey_single_response <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2024/2024-09-03/stackoverflow_survey_single_response.csv') |>
+  mutate(ai_sent2 = case_when(
+    ai_sent == 1 ~ "favorable",
+    ai_sent == 2 ~ "indifferent",
+    ai_sent == 3 ~ "unfavorable",
+    ai_sent == 4 ~ "unsure",
+    ai_sent == 5 ~ "very favorable",
+    ai_sent == 6 ~ "very unfavorable"
+  )) |> 
+  mutate(ai_sent2 = factor(ai_sent2,
+                           levels = c("very unfavorable",
+                                     "unfavorable",
+                                     "unsure",
+                                     "indifferent",
+                                     "favorable",
+                                     "very favorable")))
+```
+
+
+# AI sentiment and number of years programming
+
+How is AI sentiment distributed across the number of years an individual has spent programming?
+
+```{r}
+#| fig.cap: The proportion of developers with a particular AI sentiment, broken down by the number of years the developer has been coding.
+#| fig.alt: A percent stacked bar plot, where each bar has a height of 1.0.  The colors break down the proportion of developers in each category on a scale of very unfavorable to very favorable. Developers who have been programming for a long time are slightly less favorable about AI.
+stackoverflow_survey_single_response |> 
+  ggplot() + 
+  geom_bar(aes(fill = ai_sent2, x = years_code),
+           position = "fill") +
+  labs(fill = "AI sentiment",
+       y = "",
+       x = "number of years spent programming")
+```
+
+# Developers across the world
+
+How much faith do developers across the world have in AI?  We measure the average sentiment (now mapped to a 1-5 scale that is more meaningful) and average per country. Thank you to @Sarah Penir for the useful code at https://sarahpenir.github.io/r/making-maps/.
+
+```{r}
+survey_country <- stackoverflow_survey_single_response |> 
+  mutate(ai_sent = case_when(
+    ai_sent == 1 ~ 4,
+    ai_sent == 2 ~ 3,
+    ai_sent == 3 ~ 2,
+    ai_sent == 4 ~ NA,
+    ai_sent == 5 ~ 5,
+    ai_sent == 6 ~ 1
+  )) |> 
+  rename(region = country) |> 
+  mutate(region = recode(region, 
+                         "United States of America" = "USA",
+                         "United Kingdom of Great Britain and Northern Ireland" = "UK",
+                         "Republic of Korea" = "South Korea",
+                         "Democratic People's Republic of Korea" = "North Korea",
+                         "Congo, Republic of the..." = "Republic of Congo",
+                         "Russian Federation" = "Russia",
+                         "United Republic of Tanzania" = "Tanzania",
+                         "Côte d'Ivoire" = "Ivory Coast",
+                         "Venezuela, Bolivarian Republic of..." = "Venezuela"
+)) |>
+  group_by(region) |> 
+  summarize(ave_sent = mean(ai_sent, na.rm = TRUE),
+            n_devel = n()) 
+
+```
+
+```{r}
+world <- map_data("world")
+full_world <- left_join(world, survey_country, by = "region")
+```
+
+
+```{r}
+#| fig.cap: AI favorability averaged over country.  
+#| fig.alt: A world map where each country is colored based on the average AI favorability of the developers who filled out the Stack Overflow survery.
+full_world |> 
+ggplot(aes(x=long, y = lat, group = group)) +
+  geom_polygon(aes(fill = ave_sent)) + 
+  scale_fill_distiller(palette ="RdBu", direction = -1) + 
+  coord_fixed(1.3) +
+  theme_void() + 
+  labs(fill = "average sentiment")
+                 
+```
+
+Note that in Mali, the average AI favorability is extremely high.  One might think that the extreme average is due to having very few developers in Mali.  Below is a map showing how many developers were surveyed in each country.  Indeed, there were very few developers from Mali who filled out the survey (n=2).
+
+
+```{r}
+#| fig.cap: Number of developers per country on log10 scale.
+#| fig.alt: A world map where each country is colored by the number of developers who filled out the Stack Overflow survey. 
+full_world |> 
+ggplot(aes(x=long, y = lat, group = group)) +
+  geom_polygon(aes(fill = log(n_devel, 10))) + 
+  scale_fill_distiller(palette ="RdBu", direction = -1) + 
+  coord_fixed(1.3) +
+  theme_void() + 
+  labs(fill = "number of developers\n log10 scale")
+                 
+```
+
+
+```{r}
+praise()
+```
+
