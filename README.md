@@ -4,6 +4,9 @@ My Tidy Tuesday adventures: [https://hardin47.github.io/TidyTuesday/](https://ha
 
 ### Tidy Tuesday Analyses
 
+
+* 2024-09-17 [Shakespeare Dialogue](https://hardin47.github.io/TidyTuesday/2024-09-17/shakespeare.html)
+
 * 2024-09-10 [Economic Diversity and Student Outcomes](https://hardin47.github.io/TidyTuesday/2024-09-10/econdivoutcomes.html)
 
 * 2024-09-03 [Stack Overflow Annual Developer Survey 2024](https://hardin47.github.io/TidyTuesday/2024-09-03/stackoverflow.html)

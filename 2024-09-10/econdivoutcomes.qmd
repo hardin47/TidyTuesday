@@ -47,7 +47,7 @@ college_admissions |>
        title = "unsuccessfully trying to understand the `attend` variable")
 ```
 
-Regardless, we will continue with the `attend` variable as some measure of attendance as a function of income percentile of the parents.
+Regardless, we will continue with the `attend` variable as some measure of attendance as a function of income percentile of the parents.  The code for highlighting the lines was taken from <a href = "https://talks.cpsievert.me/20210624/#1" target = "_blank">Augmenting data exploration with interactive web graphics</a> by Carson Sievert.
 
 ```{r}
 #| fig-cap: By hovering over the lines we can see the relationship between the parental income percentile and the attendance variable for each of the 139 institutions in the study. The private schools all tend to go **up** for the highest incomes. The majority of public schools go **down** for the highest incomes.
