@@ -5,11 +5,13 @@ My Tidy Tuesday adventures: [https://hardin47.github.io/TidyTuesday/](https://ha
 ### Tidy Tuesday Analyses
 
 
-* 2024-09-17 [Shakespeare Dialogue](https://hardin47.github.io/TidyTuesday/2024-09-17/shakespeare.html)
+* 2024-09-24 [Tidy Tuesday International Mathematical Olympiad](https://hardin47.github.io/TidyTuesday/2024-09-24/imo.html)
 
-* 2024-09-10 [Economic Diversity and Student Outcomes](https://hardin47.github.io/TidyTuesday/2024-09-10/econdivoutcomes.html)
+* 2024-09-17 [Tidy Tuesday Shakespeare Dialogue](https://hardin47.github.io/TidyTuesday/2024-09-17/shakespeare.html)
 
-* 2024-09-03 [Stack Overflow Annual Developer Survey 2024](https://hardin47.github.io/TidyTuesday/2024-09-03/stackoverflow.html)
+* 2024-09-10 [Tidy Tuesday Economic Diversity and Student Outcomes](https://hardin47.github.io/TidyTuesday/2024-09-10/econdivoutcomes.html)
+
+* 2024-09-03 [Tidy Tuesday Stack Overflow Annual Developer Survey 2024](https://hardin47.github.io/TidyTuesday/2024-09-03/stackoverflow.html)
 
 * 2024-05-07 [Tidy Tuesday Rolling Stone's Best Albums](https://hardin47.github.io/TidyTuesday/2024-05-07/albums.html)
 
@@ -21,7 +23,7 @@ My Tidy Tuesday adventures: [https://hardin47.github.io/TidyTuesday/](https://ha
 
 * 2024-04-09 [Tidy Tuesday Solar Eclipse](https://hardin47.github.io/TidyTuesday/2024-04-09/eclipse.html)
 
-* 2024-03-19 [Tidy Tuesday Men's March Madness](https://hardin47.github.io/TidyTuesday/2024-03-26/marchmadness.html)
+* 2024-03-26 [Tidy Tuesday Men's March Madness](https://hardin47.github.io/TidyTuesday/2024-03-26/marchmadness.html)
 
 * 2024-03-19 [Tidy Tuesday Mutant Moneyball](https://hardin47.github.io/TidyTuesday/2024-03-19/mutant_moneyball.html)
 
@@ -138,8 +140,6 @@ My Tidy Tuesday adventures: [https://hardin47.github.io/TidyTuesday/](https://ha
 * 2022-02-22 [TidyTuesday Freedom & Democracy](https://hardin47.github.io/TidyTuesday/2022-02-22/freedom.html)
 
 * 2022-02-15 [TidyTuesday DuBois Challenge 2022](https://hardin47.github.io/TidyTuesday/2022-02-15/DuBois2022.html)
-
-* 2022-02-08 [TidyTuesday Tuskegee Airmen](https://hardin47.github.io/TidyTuesday/2022-02-08/tuskegee_air.html)
 
 * 2022-02-08 [TidyTuesday Tuskegee Airmen](https://hardin47.github.io/TidyTuesday/2022-02-08/tuskegee_air.html)
 

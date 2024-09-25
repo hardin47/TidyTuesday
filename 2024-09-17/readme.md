@@ -1,4 +1,4 @@
-* 2024-09-17 [Shakespeare Dialogue](https://hardin47.github.io/TidyTuesday/2024-09-17/shakespeare.html)
+* 2024-09-17 [Tidy Tuesday Shakespeare Dialogue](https://hardin47.github.io/TidyTuesday/2024-09-17/shakespeare.html)
 
 # Shakespeare Dialogue
 
