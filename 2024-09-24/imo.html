@@ -158,16 +158,17 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>    country2 <span class="sc">==</span> <span class="st">"Islamic Republic of Iran"</span> <span class="sc">~</span> <span class="st">"Iran"</span>,</span>
 <span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>    country2 <span class="sc">==</span> <span class="st">"Turkish Republic of Northern Cyprus"</span> <span class="sc">~</span> <span class="st">"Cyprus"</span>,</span>
 <span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>    country2 <span class="sc">==</span> <span class="st">"Democratic People's Republic of Korea"</span> <span class="sc">~</span> <span class="st">"North Korea"</span>,</span>
-<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>    <span class="cn">TRUE</span> <span class="sc">~</span> country2</span>
-<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>  )) <span class="sc">|&gt;</span> </span>
-<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">award =</span> <span class="fu">as.factor</span>(<span class="fu">case_when</span>(</span>
-<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a>         <span class="fu">str_detect</span>(award, <span class="st">"Gold"</span>) <span class="sc">~</span> <span class="st">"Gold"</span>,</span>
-<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a>         <span class="fu">str_detect</span>(award, <span class="st">"Silver"</span>) <span class="sc">~</span> <span class="st">"Silver"</span>,</span>
-<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a>         <span class="fu">str_detect</span>(award, <span class="st">"Bronze"</span>) <span class="sc">~</span> <span class="st">"Bronze"</span>,</span>
-<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a>         <span class="cn">TRUE</span> <span class="sc">~</span> <span class="cn">NA</span>))) <span class="sc">|&gt;</span> </span>
-<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">award =</span> <span class="fu">fct_relevel</span>(award, <span class="fu">c</span>(<span class="st">"Gold"</span>, <span class="st">"Silver"</span>, <span class="st">"Bronze"</span>)))</span>
-<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a>indiv_country</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>    country2 <span class="sc">==</span> <span class="st">"United Kingdom"</span> <span class="sc">~</span> <span class="st">"UK"</span>,</span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>    <span class="cn">TRUE</span> <span class="sc">~</span> country2</span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a>  )) <span class="sc">|&gt;</span> </span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">award =</span> <span class="fu">as.factor</span>(<span class="fu">case_when</span>(</span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a>         <span class="fu">str_detect</span>(award, <span class="st">"Gold"</span>) <span class="sc">~</span> <span class="st">"Gold"</span>,</span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a>         <span class="fu">str_detect</span>(award, <span class="st">"Silver"</span>) <span class="sc">~</span> <span class="st">"Silver"</span>,</span>
+<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a>         <span class="fu">str_detect</span>(award, <span class="st">"Bronze"</span>) <span class="sc">~</span> <span class="st">"Bronze"</span>,</span>
+<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a>         <span class="cn">TRUE</span> <span class="sc">~</span> <span class="cn">NA</span>))) <span class="sc">|&gt;</span> </span>
+<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">award =</span> <span class="fu">fct_relevel</span>(award, <span class="fu">c</span>(<span class="st">"Gold"</span>, <span class="st">"Silver"</span>, <span class="st">"Bronze"</span>)))</span>
+<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-26"><a href="#cb5-26" aria-hidden="true" tabindex="-1"></a>indiv_country</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 3,781 × 5
 # Groups:   country2, year [3,781]
@@ -203,7 +204,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="fu">n_distinct</span>(region))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>  n_distinct(region)
-1                127</code></pre>
+1                128</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>plot_imo <span class="ot">&lt;-</span> world_data <span class="sc">|&gt;</span> </span>
 <span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(indiv_country, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"region"</span> <span class="ot">=</span> <span class="st">"country3"</span>)) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -245,7 +246,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="cell">
 <div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">praise</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] "You are flawless!"</code></pre>
+<pre><code>[1] "You are hunky-dory!"</code></pre>
 </div>
 </div>
 </section>

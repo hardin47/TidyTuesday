@@ -4,6 +4,7 @@ My Tidy Tuesday adventures: [https://hardin47.github.io/TidyTuesday/](https://ha
 
 ### Tidy Tuesday Analyses
 
+* 2024-10-01 [Tidy Tuesday Chess Games](https://hardin47.github.io/TidyTuesday/2024-10-01/chess.html)
 
 * 2024-09-24 [Tidy Tuesday International Mathematical Olympiad](https://hardin47.github.io/TidyTuesday/2024-09-24/imo.html)
 

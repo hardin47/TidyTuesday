@@ -59,6 +59,7 @@ indiv_country <- indiv_country |>
     country2 == "Islamic Republic of Iran" ~ "Iran",
     country2 == "Turkish Republic of Northern Cyprus" ~ "Cyprus",
     country2 == "Democratic People's Republic of Korea" ~ "North Korea",
+    country2 == "United Kingdom" ~ "UK",
     TRUE ~ country2
   )) |> 
   mutate(award = as.factor(case_when(
