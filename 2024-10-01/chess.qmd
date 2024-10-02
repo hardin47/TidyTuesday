@@ -1,0 +1,123 @@
+---
+title: "Chess Matches"
+author: "Jo Hardin"
+date: "10/01/2024"
+format: html
+execute:
+  warning: false
+  message: false
+---
+
+```{r}
+library(tidyverse) # ggplot, lubridate, dplyr, stringr, readr...
+library(praise)
+```
+
+
+## The Data
+
+The chess dataset this week comes from Lichess.org via [Kaggle/Mitchell J](https://www.kaggle.com/datasets/datasnaek/chess/data).
+
+> This is a set of just over 20,000 games collected from a selection of users on the site Lichess.org.
+
+Use the data to explore -
+
+1. What the common opening moves? By ranks?
+2. How many turns does a game last based on player ranking?
+3. What move patterns explain the game outcome?
+
+Thank you to [Havisha Khurana](https://github.com/havishak) for curating this week's dataset.
+
+
+## Collapsing the type of opening
+
+There are a **lot** of opening moves.  In order to have some understanding of the patterns, we'll collapse the different opening moves into the base opening (e.g., before the `:`, `|`, or `#`).
+
+```{r}
+chess <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2024/2024-10-01/chess.csv') |> 
+  mutate(opening_main = case_when(
+    str_detect(opening_name, ":") ~ str_extract(opening_name, ".+?(?=:)"),
+    str_detect(opening_name, "\\|") ~ str_extract(opening_name, ".+?(?= \\|)"),
+    str_detect(opening_name, "#") ~ str_extract(opening_name, ".+?(?= #)"),
+    TRUE ~ opening_name)) |> 
+  mutate(num_moves = str_count(moves, "\\S+"))
+```
+
+
+## Opening moves
+
+Let's keep only the top 10 opening moves.
+
+```{r}
+top_open <- chess |> group_by(opening_main) |> 
+  summarize(open_count = n()) |> 
+  arrange(desc(open_count)) |> 
+  filter(open_count > 500) |> 
+  select(opening_main) |> 
+  pull()
+
+top_open
+
+chess_top <- chess |> 
+  filter(opening_main %in% top_open)
+```
+
+
+```{r}
+chess_top |> 
+  ggplot(aes(x = opening_main, fill = winner)) + 
+  geom_bar(position = "fill") + 
+  #theme(axis.text.x = element_text(angle = 45, vjust = 0.5, hjust=0.5)) + 
+  scale_fill_brewer(palette = "Dark2")  + 
+  coord_flip() + 
+  labs(y = "", x = "",
+       title = "Opening moves")
+```
+
+To look at the differences of opening strategies as a function of the player ratings, we'll use only the top 5 opening strategies.
+
+```{r}
+
+top_open_5 <- chess |> group_by(opening_main) |> 
+  summarize(open_count = n()) |> 
+  arrange(desc(open_count)) |> 
+  filter(open_count > 500) |> 
+  select(opening_main) |> 
+  pull()
+
+top_open_5
+
+chess |> 
+  filter(opening_main %in% top_open_5) |> 
+  ggplot(aes(x = white_rating, y = black_rating, color = opening_main)) + 
+  geom_point() +
+  scale_color_brewer(palette = "Spectral")
+```
+
+
+## Model
+
+Just for fun, let's run a logistic regression.  Seems like there isn't really much of a relationship between the ratings, the number of moves, whether or not the game/players were rated and the out come of whether the Sicilian Defense was used.
+
+```{r}
+chess <- chess |> 
+  mutate(sicilian = ifelse(opening_main == "Sicilian Defense", 1, 0))
+
+glm(sicilian ~ black_rating + white_rating + num_moves + rated, 
+    data = chess, family = "binomial") |> 
+  broom::augment(type.predict = "response") 
+
+glm(sicilian ~ black_rating + white_rating + num_moves + rated, 
+    data = chess, family = "binomial") |> 
+  broom::augment(type.predict = "response") |> 
+  ggplot(aes(x = .fitted, y = sicilian)) + 
+  geom_point(alpha = 0.1)
+```
+
+
+
+```{r}
+praise()
+```
+
+
