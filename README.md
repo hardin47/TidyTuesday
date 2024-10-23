@@ -4,7 +4,7 @@ My Tidy Tuesday adventures: [https://hardin47.github.io/TidyTuesday/](https://ha
 
 ### Tidy Tuesday Analyses
 
-* 2024-10-08 [Tidy Tuesday CIA Factbook](https://hardin47.github.io/TidyTuesday/2024-10-22/ciafact.html)
+* 2024-10-22 [Tidy Tuesday CIA Factbook](https://hardin47.github.io/TidyTuesday/2024-10-22/ciafact.html)
 
 * 2024-10-08 [Tidy Tuesday National Park Species](https://hardin47.github.io/TidyTuesday/2024-10-08/species.html)
 
