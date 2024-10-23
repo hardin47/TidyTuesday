@@ -1,0 +1,77 @@
+---
+title: "CIA Factbook"
+author: "Jo Hardin"
+date: "10/22/2024"
+format: html
+execute:
+  warning: false
+  message: false
+---
+
+```{r}
+library(tidyverse) # ggplot, lubridate, dplyr, stringr, readr...
+library(maps)
+library(praise)
+```
+
+
+## The Data
+
+This week we're exploring the [CIA World Factbook](https://www.cia.gov/the-world-factbook/)! 
+The dataset this week comes from the [CIA Factbook, Country Comparisons, 2014](https://www.cia.gov/the-world-factbook/references/guide-to-country-comparisons),
+via the [{openintro}](https://openintrostat.github.io/openintro/) R package,
+via the [{usdatasets}](https://cran.r-project.org/package=usdatasets) R package, 
+via [this post on LinkedIn](https://www.linkedin.com/posts/andrescaceresrossi_rstats-rstudio-opensource-activity-7249513444830318592-r395).
+
+> The *World Factbook* provides basic intelligence on the history, people, government, 
+> economy, energy, geography, environment, communications, transportation, military, 
+> terrorism, and transnational issues for 265 world entities.
+
+```{r}
+cia <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2024/2024-10-22/cia_factbook.csv') |> 
+  mutate(iso_a3 = countrycode::countrycode(
+      country,
+      origin = "country.name",
+      destination = "iso3c"
+    )) |> 
+  drop_na(iso_a3)
+```
+
+
+## World Map
+
+```{r}
+world_data <- map_data("world") |>   # ggplot2
+  mutate(iso_a3 = countrycode::countrycode(
+      region,
+      origin = "country.name",
+      destination = "iso3c"
+    )) |> 
+  drop_na(iso_a3)
+
+data4map <- world_data |> 
+  left_join(cia, by = "iso_a3")
+```
+
+
+```{r}
+#| fig-cap: world map colored by the death rate (number of deaths per 1,000 people) in 2014.
+#| fig-alt: world map where each country is colored by the number of deaths per 1000 people in 2014.
+data4map |> 
+  ggplot(aes(x = long, y = lat, group = group)) + 
+  geom_polygon(aes(fill = death_rate), color = "black", size = 0.15) + 
+  theme_void() + 
+  scale_fill_gradient(trans = "log")
+  #scale_fill_gradient(low = "blue", high = "purple")
+```
+
+## Shiny App
+
+I also created a Shiny App which allows the user to change the variable that colors each country.  However, I don't have an obvious place to host the Shiny App.  The source code for the Shiny App is in `app.R` which is located at https://github.com/hardin47/TidyTuesday/tree/gh-pages/2024-10-22/CIAFactbook .
+
+
+
+```{r}
+praise()
+```
+

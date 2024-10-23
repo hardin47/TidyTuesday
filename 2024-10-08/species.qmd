@@ -1,5 +1,5 @@
 ---
-title: "National Park Speciees"
+title: "National Park Species"
 author: "Jo Hardin"
 date: "10/08/2024"
 format: html
