@@ -1,0 +1,193 @@
+---
+title: "Monster Movies"
+author: "Jo Hardin"
+date: "10/29/2024"
+format: html
+execute:
+  warning: false
+  message: false
+---
+
+```{r}
+library(tidyverse) # ggplot, lubridate, dplyr, stringr, readr...
+library(ggmosaic)
+library(tidymodels)
+library(rpart.plot)
+library(praise)
+```
+
+
+## The Data
+
+This week we're exploring "monster" movies: movies with "monster" in their title!
+
+The data this week comes from the [Internet Movie Database](https://developer.imdb.com/non-commercial-datasets/).
+Check out ["Why Do People Like Horror Films? A Statistical Analysis"](https://www.statsignificant.com/p/why-do-people-like-horror-films-a) for an exploration of "the unique appeal of scary movies".
+
+Along with importing the data, we one-hot encode the genres into their own binary variables (for modeling later).
+
+```{r}
+monster_movie_genres <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2024/2024-10-29/monster_movie_genres.csv')
+monster_movies <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2024/2024-10-29/monster_movies.csv') |> 
+  separate_rows(genres, sep = ",") |> 
+  mutate(value = 1) |> 
+  pivot_wider(names_from = genres, values_from = value, values_fill = 0)
+```
+
+
+
+## Viz
+
+Taking inspiration from <a href = "https://stevenponce.netlify.app/data_visualizations/TidyTuesday/2024/tt_2024_44.html" target = "_blank">@stevenponce</a>, we create a mosaic plot of the types of films over the last 60 years.
+
+maybe change the font to spooky ...
+
+```{r}
+#| fig-alt: A mosaic plot showing how the proportion of monster movies (as compared to TV movies or videos) has changed over decades. The proportion of videos grew in the 2010s but was smaller in both the 2000s and the 2020s.  There are fewer monster movies in the dataset from earlier decades (1960s to 1990s) as compared to 2000s and beyond.
+#| fig-cap: A mosaic plot showing the proportion of monster movies has changed over decades.
+plot_data <- monster_movies |>
+    mutate(title_type = str_to_title(title_type)) |> 
+    mutate(decade = floor(year / 10) * 10) |> 
+    filter(decade >= 1960) |> 
+    drop_na(title_type, decade) |>
+    count(title_type, decade) 
+
+plot_data |> 
+  ggplot() + 
+  geom_mosaic(aes(weight = n, x = product(decade),
+                  fill = title_type)) + 
+  theme_void() + 
+  labs(title = "proportion of titles in each category per year") + 
+  theme(axis.text.x = element_text(),
+        axis.text.y = element_text(),
+        legend.position = "none") + 
+  scale_y_continuous() +
+  annotate(
+        "text",
+        x = .55, y = .5, label = "movies",
+        color = "white", size = 7, vjust = 1, hjust = 0
+    ) +
+    annotate(
+        "text",
+        x = .515, y = .8, label = "TV movies",
+        color = "white", size = 7, vjust = 1, hjust = 0
+    ) +
+    annotate(
+        "text",
+        x = .55, y = .95, label = "videos",
+        color = "white", size = 7, vjust = 1, hjust = 0
+    ) + 
+  scale_fill_brewer(palette = "Dark2")
+```
+
+## Model
+
+Let's try to predict the average IMDb rating!  The first model we'll choose is a linear model.  The `genres` have been re-coded into binary variables for each genre to which the movie is allocated (many films have multiple genres).
+
+```{r}
+monster_model <- monster_movies |> 
+  select(primary_title, year, runtime_minutes, average_rating,
+         num_votes, Comedy:Music, Short:War)
+
+movie_rec <- recipe(average_rating ~ ., 
+       data = monster_model) |> 
+  update_role(primary_title, new_role = "ID")
+
+movie_mod_lm <- linear_reg() |> 
+  set_engine(engine = "lm") |> 
+  set_mode(mode = "regression")
+
+movie_wflow_lm <- workflow() |> 
+  add_model(movie_mod_lm) |> 
+  add_recipe(movie_rec)
+
+movie_wflow_lm |> 
+  fit(data = monster_model) |> 
+  tidy()
+```
+
+
+We can use the linear model to predict the rating values for each movie.  (Note here that we don't have test and training data which is definitely a shortcoming in how we've modeled!)
+
+```{r}
+#| fig-alt: Scatterplot with original average rating on the x axis and linear model predicted rating on the y axis.  The values are somewhat positively correlated with an r-squared value of 0.29.
+#| fig-cap: Scatterplot describing the relationship between the observed rating and the predicted rating.
+movie_wflow_lm |> 
+  fit(data = monster_model) |> 
+  predict(new_data = monster_model) |> 
+  cbind(monster_model) |> 
+  ggplot(aes(x = average_rating, y = .pred)) + 
+  geom_point() + 
+  geom_abline(intercept = 0, slope = 1) + 
+  labs(x = "average IMDb rating for each film",
+       y = "predicted rating",
+       title = "linear model")
+  
+
+movie_wflow_lm |> 
+  fit(data = monster_model) |> 
+  predict(new_data = monster_model) |> 
+  cbind(monster_model) |> 
+  select(.pred, average_rating) |> 
+  cor(use = "pairwise.complete")
+```
+
+
+```{r}
+movie_mod_cart <- decision_tree() |> 
+  set_engine(engine = "rpart") |> 
+  set_mode(mode = "regression")
+
+movie_wflow_cart <- workflow() |> 
+  add_model(movie_mod_cart) |> 
+  add_recipe(movie_rec)
+```
+
+
+```{r}
+#| fig-alt: Scatterplot with original average rating on the x axis and decision treee predicted rating on the y axis.  The values are somewhat positively correlated with an r-squared value of 0.35.
+#| fig-cap: Scatterplot describing the relationship between the observed rating and the predicted rating. Predicted ratings are given by which terminal node the observation lands.  There are 11 terminal nodes, which is why there are 11 possible predicted ratings (note that two of the predicted ratings are very close to each other at roughly 6.2).
+
+movie_wflow_cart |> 
+  fit(data = monster_model) |> 
+  predict(new_data = monster_model) |> 
+  cbind(monster_model) |> 
+  ggplot(aes(x = average_rating, y = .pred)) + 
+  geom_point() + 
+  geom_abline(intercept = 0, slope = 1) +
+  labs(x = "average IMDb rating for each film",
+       y = "predicted rating",
+       title = "regression decision tree")
+
+movie_wflow_cart |> 
+  fit(data = monster_model) |> 
+  predict(new_data = monster_model) |> 
+  cbind(monster_model) |> 
+  select(.pred, average_rating) |> 
+  cor(use = "pairwise.complete") 
+```
+
+
+## Plotting model
+
+Plotting the decision tree for the regression tree model.
+
+```{r}
+#| fig-alt: decision tree showing each of the branches which partitions the space of explanatory variables.  The prediction is given by the average rating of the films in the terminal node.  Documenteries, for example, have a predicted rating of 6.8 and moves that are Horror movies, sci-fi moves and got more than 6055 votes have a predicted rating of 6.6.
+#| fig-cap: A decision tree that shows the different partitions of the explanatory variables. The prediciton is given by the average rating of the films in the terminal node.
+
+movies_tree <- movie_wflow_cart |> 
+  fit(data = monster_model) |> 
+  extract_fit_parsnip()
+
+rpart.plot(movies_tree$fit)
+```
+
+
+
+
+
+```{r}
+praise()
+```
+
