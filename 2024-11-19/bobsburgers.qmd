@@ -4,8 +4,7 @@ author: "Jo Hardin"
 date: "11/19/2024"
 format: 
   html:
-    theme: flatly
-    css: ../styles.css
+    from: markdown+emoji
 execute:
   warning: false
   message: false
@@ -43,6 +42,18 @@ poop_data <- transcript_data |>
 ```
 
 ```{r}
+poop_data |> 
+  group_by(season, episode) |> 
+  summarize(num_wrds = n()) |> 
+  full_join(imdb_wikipedia_data, 
+            by = c("season", "episode")) |> 
+  ggplot(aes(y = num_wrds, x = episode, 
+             color = as.factor(season))) + 
+  geom_point(size = 3, show.legend = FALSE, alpha = 0.8) + 
+  facet_wrap(~season)
+```
+
+```{r}
 words <- c("burger")
 
 list <- str_c("(?i)", str_c(words, collapse = "|"))
@@ -53,18 +64,21 @@ other_data <- transcript_data |>
   mutate(word_in = str_detect(raw_text, list)) 
 ```
 
-hamburgers...  "\U1F354"
+:hamburger:
+```{r}
+hamburg <- "\U1F354"
+```
 
 ```{r}
-library(ggtext)
-library(emo)
+# devtools::install_github("yjunechoe/junebug")
+#junebug::font_hoise("Font Awesome 5 Free")
 other_data |> 
   group_by(season, episode) |> 
   summarize(num_wrds = sum(word_in)) |> 
   full_join(imdb_wikipedia_data, 
             by = c("season", "episode")) |> 
   ggplot(aes(y = num_wrds, x = episode)) + 
-  geom_text(label = ji("hamburger"), size = 3) + 
+  geom_text(aes(label = "cat"), size = 5, family = "Font Awesome 5 Free Solid") +
   facet_wrap(~season)
 ```
 
