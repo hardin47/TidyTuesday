@@ -2,7 +2,10 @@
 title: "Bob's Burgers"
 author: "Jo Hardin"
 date: "11/19/2024"
-format: html
+format: 
+  html:
+    theme: flatly
+    css: ../styles.css
 execute:
   warning: false
   message: false
@@ -10,6 +13,7 @@ execute:
 
 ```{r}
 library(tidyverse) # ggplot, lubridate, dplyr, stringr, readr...
+library(bobsburgersR)
 library(praise)
 ```
 
@@ -25,6 +29,53 @@ See the [{bobsburgersR} R Package](https://github.com/poncest/bobsburgersR) for 
 ```{r}
 episode_metrics <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2024/2024-11-19/episode_metrics.csv')
 ```
+
+```{r}
+words <- c("fart", "crap", "toilet", "buns", "diarrhea",
+           "poop", "(doo doo)")
+
+list <- str_c("(?i)", str_c(words, collapse = "|"))
+list
+
+poop_data <- transcript_data |> 
+  filter(str_detect(raw_text, list)) |> 
+  filter(!str_detect(raw_text, "(?i)farth"))
+```
+
+```{r}
+words <- c("burger")
+
+list <- str_c("(?i)", str_c(words, collapse = "|"))
+list
+
+other_data <- transcript_data |> 
+  drop_na(raw_text) |> 
+  mutate(word_in = str_detect(raw_text, list)) 
+```
+
+hamburgers...  "\U1F354"
+
+```{r}
+library(ggtext)
+library(emo)
+other_data |> 
+  group_by(season, episode) |> 
+  summarize(num_wrds = sum(word_in)) |> 
+  full_join(imdb_wikipedia_data, 
+            by = c("season", "episode")) |> 
+  ggplot(aes(y = num_wrds, x = episode)) + 
+  geom_text(label = ji("hamburger"), size = 3) + 
+  facet_wrap(~season)
+```
+
+
+```{r}
+imdb_wikipedia_data |> 
+  group_by(wikipedia_directed_by) |> 
+  summarize(num_ep = n()) |> 
+  arrange(desc(num_ep))
+```
+
 
 
 ```{r}
