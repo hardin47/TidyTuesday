@@ -1,0 +1,87 @@
+---
+title: "ISO Country Codes"
+author: "Jo Hardin"
+date: "11/12/2024"
+format: html
+execute:
+  warning: false
+  message: false
+---
+
+```{r}
+library(tidyverse) # ggplot, lubridate, dplyr, stringr, readr...
+library(plotly)
+library(praise)
+```
+
+
+## The Data
+
+We've referenced countries and country codes in many past datasets, but we've never looked closely at the ISO 3166 standard that defines these codes.
+
+Wikipedia says:
+
+> ISO 3166 is a standard published by the International Organization for 
+> Standardization (ISO) that defines codes for the names of countries, dependent 
+> territories, special areas of geographical interest, and their principal 
+> subdivisions (e.g., provinces or states). The official name of the standard 
+> is Codes for the representation of names of countries and their subdivisions.
+
+The dataset this week comes from the {[ISOcodes](https://cran.r-project.org/package=ISOcodes)} R package. It consists of three tables:
+
+- `countries`: Country codes from ISO 3166-1.
+- `country_subdivisions`: Country subdivision code from ISO 3166-2.
+- `former_countries`: Code for formerly used names of countries from ISO 3166-3.
+
+
+```{r}
+countries <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2024/2024-11-12/countries.csv')
+country_subdivisions <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2024/2024-11-12/country_subdivisions.csv')
+former_countries <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2024/2024-11-12/former_countries.csv')
+
+```
+
+
+```{r}
+former <- former_countries |> 
+  mutate(date = case_when(
+    nchar(date_withdrawn) == 4 ~ ymd(paste0(date_withdrawn, "-01-01")),
+    TRUE ~ ymd(date_withdrawn)
+  )) |> 
+  mutate(country = fct_reorder(alpha_3, date))
+```
+
+
+
+```{r}
+country_subdivisions |> 
+  group_by(type) |> 
+  summarize(count_type = n()) |> 
+  arrange(desc(count_type))
+```
+
+
+
+```{r}
+#| fig-cap: Thirty-one countries have been withdrawn from the ISO 3166 standard in recent years.  Hover on the dot to see the name of the country and the year they were withdrawn.
+#| fig-alt: A horizonal lollipop plot with date on the x axis and country on the y axis.  The graph is interactive so that when you hover on the lollipop, the country name and year they were withdrawn is observed.
+
+
+p <- former |> 
+  ggplot(aes(x = date, y = country)) + 
+  geom_segment(aes(xend = min(date), yend = country)) + 
+  geom_point(aes(
+    text = paste("Country: ", name, "<br>Date: ", date_withdrawn,
+                 "<br>Info: ", comment)), 
+    size = 3) + 
+  theme_minimal() +
+  scale_y_discrete(limits=rev) + 
+  labs(title = "Date of Country Withdrawn",
+       y = "", x = "Date")
+
+ggplotly(p, tooltip = "text")
+
+```
+
+
+

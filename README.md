@@ -4,6 +4,12 @@ My Tidy Tuesday adventures: [https://hardin47.github.io/TidyTuesday/](https://ha
 
 ### Tidy Tuesday Analyses
 
+* 2024-11-19 [Tidy Tuesday Bob's Burgers](https://hardin47.github.io/TidyTuesday/2024-11-19/bobsburgers.html)
+
+* 2024-11-12 [Tidy Tuesday ISO Codes](https://hardin47.github.io/TidyTuesday/2024-11-12/iso.html)
+
+* 2024-11-05 [Tidy Tuesday Democracy & Dictatorship](https://hardin47.github.io/TidyTuesday/2024-11-05/democracy.html)
+
 * 2024-10-29 [Tidy Tuesday Monster Movies](https://hardin47.github.io/TidyTuesday/2024-10-29/monstermovies.html)
 
 * 2024-10-22 [Tidy Tuesday CIA Factbook](https://hardin47.github.io/TidyTuesday/2024-10-22/ciafact.html)

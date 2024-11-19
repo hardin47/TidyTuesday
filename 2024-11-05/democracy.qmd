@@ -1,0 +1,180 @@
+---
+title: "Democracy & Dictatorship"
+author: "Jo Hardin"
+date: "11/05/2024"
+format: html
+execute:
+  warning: false
+  message: false
+---
+
+```{r}
+library(tidyverse) # ggplot, lubridate, dplyr, stringr, readr...
+library(praise)
+```
+
+
+## The Data
+
+It's Election Day in the United States. If you are able to do so, vote!
+
+To celebrate, we're looking at a dataset about Democracy and Dictatorship.
+
+> This dataset updates [pacl](https://xmarquez.github.io/democracyData/reference/pacl.html) 
+> with more countries and coverage from 1950 to 2020, as described in C. 
+> Bjørnskov and M. Rode. "Regime types and regime change: A new dataset on 
+< democracy, coups, and political institutions". In: *The Review of International Organizations*
+> 15.2 (2020), pp. 531-551. [DOI: 10.1007/s11558-019-09345-1](https://link.springer.com/article/10.1007/s11558-019-09345-1).
+> The full data and codebook can be downloaded [here](http://www.christianbjoernskov.com/bjoernskovrodedata/).
+
+
+```{r}
+democracy_data <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2024/2024-11-05/democracy_data.csv') |> 
+  mutate(regime = case_when(
+    stringr::str_detect(regime_category, "(?i)colony") ~ "Colony",
+    regime_category == "Civilian dictatorship" ~ "Civilian dictatorship",
+    regime_category == "Parliamentary democracy" ~ "Parliamentary democracy",
+    regime_category == "Military dictatorship" ~ "Military dictatorship",
+    regime_category == "Presidential democracy" ~ "Presidential democracy",
+    regime_category == "Mixed democratic" ~ "Mixed democratic",
+    regime_category == "Royal dictatorship" ~ "Royal dictatorship",
+    regime_category == "Part of the USSR" ~ "Part of the USSR",
+    TRUE ~ "other"
+  )) |> 
+  mutate(country_name = case_when(
+    country_name == "United States" ~ "USA",
+    country_name == "United Kingdom" ~ "UK",
+    country_name == "Gambia, The" ~ "Gambia",
+    country_name == "Congo, Dem. Rep." ~ "Democratic Republic of the Congo",
+    country_name == "Congo, Republic of" ~ "Republic of Congo",
+    #country_name == "" ~ "",
+    #country_name == "" ~ "",
+    #country_name == "" ~ "",
+    TRUE ~ country_name
+  )) |> 
+  mutate(regime = factor(regime, 
+                            levels = c("Royal dictatorship",
+                                       "Military dictatorship",
+                                       "Civilian dictatorship",
+                                       "Colony",
+                                       "Part of the USSR",
+                                       "Presidential democracy",
+                                       "Mixed democratic",
+                                       "Parliamentary democracy", "other")))
+
+```
+
+
+```{r}
+
+world <- map_data("world")
+
+world |> 
+  mutate(the = str_detect(region, "(?i)congo")) |> 
+  dplyr::filter(the) |> 
+  select(region, the) |> 
+  distinct()
+
+democracy_data |> 
+  mutate(the = str_detect(country_name, "(?i)congo")) |> 
+  dplyr::filter(the) |> 
+  select(country_name, the) |> 
+  distinct()
+
+```
+
+
+```{r}
+democracy_data |> 
+  select(regime_category) |> 
+  group_by(regime_category) |> 
+  summarize(count = n()) |> 
+  arrange(desc(count))
+```
+
+
+```{r}
+ghana <- democracy_data |> 
+  dplyr::filter(country_code == "GHA")
+
+usa <- democracy_data |> 
+  dplyr::filter(country_code == "USA")
+
+```
+
+
+```{r}
+ghana |> 
+  ggplot(aes(x = year, y = regime_category, color = regime_category)) + 
+  geom_point()
+
+usa |> 
+  ggplot(aes(x = year, y = regime_category, color = regime_category)) + 
+  geom_point()
+```
+
+
+
+## Mapping the data
+
+```{r}
+world <- map_data("world")
+
+map_data <- democracy_data |> 
+  right_join(world, by = c("country_name" = "region"))
+```
+
+
+### To figure out which countries don't match:
+
+```{r}
+democracy_data |> 
+  anti_join(world, by = c("country_name" = "region")) |> 
+  select(country_name) |> 
+  distinct()
+
+world |> 
+  anti_join(democracy_data, by = c("region" = "country_name")) |> 
+  select(region) |> 
+  distinct()
+```
+
+```{r}
+map_data2 <- map_data |> 
+  dplyr::filter(year >= 2000)
+```
+
+```{r}
+#| fig-cap: A map describing the political regimes over time.  Unfortunately, I can't get the map to transition smoothly, so it is a pretty terrible graph.
+#| fig-alt: A map of the world where each country is colored by its type of political regime. The map transitions over time to see how regime type changes over time.  
+
+library(plotly)
+p <- map_data2 |> 
+  #dplyr::filter(year == 2020) |> 
+  ggplot() + 
+  geom_polygon(aes(x = long, y = lat, group = group, fill = regime, frame = year)) + 
+  theme_void()
+
+animation_opts(
+  p,
+  frame = 500,
+  transition = 0,
+  easing = "linear",
+  redraw = FALSE,
+  mode = "next"
+)
+
+ggplotly(p)
+```
+
+
+
+
+```{r}
+praise()
+```
+
+
+
+
+
