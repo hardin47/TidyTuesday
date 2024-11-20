@@ -81,7 +81,7 @@ other_data |>
   geom_text(aes(label = "cat"), size = 5, family = "Font Awesome 5 Free Solid") +
   facet_wrap(~season)
 ```
-
+some changes
 
 ```{r}
 imdb_wikipedia_data |> 
@@ -90,6 +90,10 @@ imdb_wikipedia_data |>
   arrange(desc(num_ep))
 ```
 
+```{r}
+
+plot(1:10)
+```
 
 
 ```{r}
