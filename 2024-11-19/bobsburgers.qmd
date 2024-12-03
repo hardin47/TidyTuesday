@@ -4,7 +4,7 @@ author: "Jo Hardin"
 date: "11/19/2024"
 format: 
   html:
-    from: markdown+emoji
+    embed-resources: true
 execute:
   warning: false
   message: false
@@ -17,7 +17,6 @@ library(praise)
 ```
 
 
-
 ## The Data
 
 This week we're exploring Bob's Burgers dialogue! Thank you to [Steven Ponce](https://github.com/poncest) for [the data](https://github.com/poncest/bobsburgersR), and a [blog post demonstrating how to visualize the data](https://stevenponce.netlify.app/projects/standalone_visualizations/sa_2024-11-11.html)!
@@ -28,6 +27,13 @@ See the [{bobsburgersR} R Package](https://github.com/poncest/bobsburgersR) for 
 ```{r}
 episode_metrics <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2024/2024-11-19/episode_metrics.csv')
 ```
+
+
+## Dialogue
+
+How often are particular words used in a particular episode?  Can we see any patterns over season and episode?
+
+We start with some gutter humor...
 
 ```{r}
 words <- c("fart", "crap", "toilet", "buns", "diarrhea",
@@ -42,6 +48,9 @@ poop_data <- transcript_data |>
 ```
 
 ```{r}
+#| fig-cap: Number of poop words in a particular episode in a given season.
+#| fig-alt: Scater plot with the number of times poop, or a poop synonym, is said in the dialogue of Bob's Burgers. On the x axis the episode number is plotted. The graph is faceted by season.  There are not many trends except for a few episodes here and there with a lot of poop words.
+
 poop_data |> 
   group_by(season, episode) |> 
   summarize(num_wrds = n()) |> 
@@ -50,7 +59,9 @@ poop_data |>
   ggplot(aes(y = num_wrds, x = episode, 
              color = as.factor(season))) + 
   geom_point(size = 3, show.legend = FALSE, alpha = 0.8) + 
-  facet_wrap(~season)
+  facet_wrap(~season) + 
+  labs(y = "number of poop words",
+       title = "Dialogue from Bob's Burgers")
 ```
 
 ```{r}
@@ -64,36 +75,25 @@ other_data <- transcript_data |>
   mutate(word_in = str_detect(raw_text, list)) 
 ```
 
-:hamburger:
-```{r}
-hamburg <- "\U1F354"
-```
 
 ```{r}
-# devtools::install_github("yjunechoe/junebug")
-#junebug::font_hoise("Font Awesome 5 Free")
+#| fig-cap: 'Number of times "burger" is said in a particular episode in a given season.'
+#| fig-alt: Scater plot with the number of times burger is said in the dialogue of Bob's Burgers. On the x axis the episode number is plotted. The graph is faceted by season. The word burger is said most often in the early seasons.
+
 other_data |> 
   group_by(season, episode) |> 
   summarize(num_wrds = sum(word_in)) |> 
   full_join(imdb_wikipedia_data, 
             by = c("season", "episode")) |> 
   ggplot(aes(y = num_wrds, x = episode)) + 
-  geom_text(aes(label = "cat"), size = 5, family = "Font Awesome 5 Free Solid") +
-  facet_wrap(~season)
-```
-some changes
-
-```{r}
-imdb_wikipedia_data |> 
-  group_by(wikipedia_directed_by) |> 
-  summarize(num_ep = n()) |> 
-  arrange(desc(num_ep))
+  geom_text(aes(label = "hamburger"), size = 3,
+            color = "darkorange", family = "Font Awesome 5 Free Solid") +
+  facet_wrap(~season) + 
+  labs(subtitle = "number of times burger is said",
+       title = "Dialogue from Bob's Burgers")
 ```
 
-```{r}
 
-plot(1:10)
-```
 
 
 ```{r}
