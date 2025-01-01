@@ -4,6 +4,10 @@ My Tidy Tuesday adventures: [https://hardin47.github.io/TidyTuesday/](https://ha
 
 ### Tidy Tuesday Analyses
 
+* 2024-12-24 [Tidy Tuesday Global Travel](https://hardin47.github.io/TidyTuesday/2024-12-24/globalholidays.html)
+
+* 2024-12-03 [Tidy Tuesday A64 road](https://hardin47.github.io/TidyTuesday/2024-12-03/a64traffic.html)
+
 * 2024-11-19 [Tidy Tuesday Bob's Burgers](https://hardin47.github.io/TidyTuesday/2024-11-19/bobsburgers.html)
 
 * 2024-11-12 [Tidy Tuesday ISO Codes](https://hardin47.github.io/TidyTuesday/2024-11-12/iso.html)
@@ -106,7 +110,7 @@ My Tidy Tuesday adventures: [https://hardin47.github.io/TidyTuesday/](https://ha
 
 * 2022-11-08 [Tidy Tuesday Radio Stations](https://hardin47.github.io/TidyTuesday/2022-11-08/radiostations.html)
 
-* 2022-11-01 [Tidy Tuesday Horror Movies](https://hardin47.github.io/TidyTuesday/2022-11-01/horrormovies.html)
+* 2022-11-01 [Tidy Tuesday Horror Movies](https://hardin47.github.io/TidyTuesday/2022-11-01/horrormovies.html), with corresponding [Shiny app](https://hardin47.shinyapps.io/horrormovies/)
 
 * 2022-10-18 [Tidy Tuesday Stranger Things](https://hardin47.github.io/TidyTuesday/2022-10-18/strangerthings.html)
 

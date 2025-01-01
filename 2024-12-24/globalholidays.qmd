@@ -1,0 +1,205 @@
+---
+title: "Global Holidays"
+author: "Jo Hardin"
+date: "12/24/2024"
+format: 
+  html:
+    embed-resources: true
+execute:
+  warning: false
+  message: false
+---
+
+```{r}
+library(tidyverse) # ggplot, lubridate, dplyr, stringr, readr...
+library(praise)
+
+library(reticulate)
+use_python("/Users/jsh04747/miniforge3/bin/python3", required = TRUE)
+```
+
+
+Some notes to myself about how to install Python packages.
+
+```
+To install a package in Python:
+
+In R:
+reticulate::py_install("matplotlib")
+
+In bash:
+pip install matplotlib
+
+or
+
+python3 -m pip install matplotlib
+
+In Python:
+!pip install matplotlib
+```
+
+
+
+
+```{python}
+import pandas as pd
+
+import matplotlib.pyplot as plt
+import seaborn as sns
+```
+
+
+## The Data
+
+
+This week we're exploring how global holidays impact seasonal human mobility. We found the data via the article ["Global holiday datasets for understanding seasonal human mobility and population dynamics" by Shengjie Lai (et al)](https://www.nature.com/articles/s41597-022-01120-z) (thank you to @lgibson7 for finding the dataset).
+
+> Public and school holidays have important impacts on population mobility and dynamics across multiple spatial and temporal scales, subsequently affecting the transmission dynamics of infectious diseases and many socioeconomic activities. However, worldwide data on public and school holidays for understanding their changes across regions and years have not been assembled into a single, open-source and multitemporal dataset. To address this gap, an open access archive of data on public and school holidays in 2010–2019 across the globe at daily, weekly, and monthly timescales was constructed. Airline passenger volumes across 90 countries from 2010 to 2018 were also assembled to illustrate the usage of the holiday data for understanding the changing spatiotemporal patterns of population movements.
+
+Sources:
+
+Lai S., Sorichetta A. and WorldPop (2020). Global Public and School Holidays 2010-2019. Mapping seasonal denominator dynamics in low- and middle-income settings, and Exploring the seasonality of COVID-19, funded by The Bill and Melinda Gates Foundation.
+
+Lai S., Sorichetta A. and WorldPop (2020). Monthly volume of airline passengers in 90 countries 2010-2018. Mapping seasonal denominator dynamics in low- and middle-income settings, and Exploring the seasonality of COVID-19, funded by The Bill and Melinda Gates Foundation.
+
+
+## In R
+
+```{r}
+library(countrycode)
+monthly_passengers <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2024/2024-12-24/monthly_passengers.csv')
+
+iso_continent <- data.frame(
+  ISO3 = unique(countrycode::codelist$iso3c),
+  continent = countrycode(unique(countrycode::codelist$iso3c), "iso3c", "continent")
+)
+```
+
+
+
+```{r}
+#| fig-cap: Line plot showing the number of airline passengers across countries and year-month.
+#| fig-alt: Line plot with date on the x-axis and number of airline passengers on the y-axis. Each country is connected as a line plot and colored by continent. Date ranges from 2010 through 2018, and for each country, travel increases in the summer.
+
+
+plot_data <- monthly_passengers |> 
+  left_join(iso_continent, by = c("ISO3" = "ISO3")) |>
+  mutate(month_year = ymd(paste(Year, Month, "01", sep = "-"))) 
+
+plot_data |>
+  ggplot(aes(x = month_year, y = Total, group = ISO3, color = continent)) + 
+    geom_point(alpha = 0.5) +
+  geom_line() + 
+  geom_text(data = filter(plot_data, Year == 2010, Month == 1),
+            mapping = aes(label = ISO3, y = Total),
+            x = ymd(paste("2009", "07","01", sep = "-")),
+            size = 2) + 
+  scale_y_log10() +
+  xlim(c(ymd("2009-07-01"), ymd("2018-10-01"))) + 
+  labs(y = "Total number of air passengers in thousands",
+       x = "Date",
+       color = "Continent",
+       title = "Monthly volume of airline passengers across \ndifferent countries 2010-2018") + 
+  theme_bw()
+```
+
+
+## In Python
+
+```{python}
+monthly_passengers = pd.read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2024/2024-12-24/monthly_passengers.csv')
+
+print(monthly_passengers)
+```
+
+
+```
+pip install pycountry pycountry-convert
+```
+
+```{python}
+import pycountry_convert as pc
+import numpy as np
+
+def get_continent(iso3):
+    try:
+        # Convert ISO3 to ISO2
+        iso2 = pc.country_alpha3_to_country_alpha2(iso3)
+        # Get continent code
+        continent_code = pc.country_alpha2_to_continent_code(iso2)
+        # Map continent codes to names
+        continents = {
+            "AF": "Africa",
+            "AS": "Asia",
+            "EU": "Europe",
+            "NA": "North America",
+            "SA": "South America",
+            "OC": "Oceania",
+            "AN": "Antarctica"
+        }
+        return continents[continent_code]
+    except Exception:
+        return "Unknown"
+
+# Apply the function to the ISO3 column
+monthly_passengers['Continent'] = monthly_passengers['ISO3'].apply(get_continent)
+
+monthly_passengers['month_year'] = pd.to_datetime(monthly_passengers['Year'].astype(str) + '-' + monthly_passengers['Month'].astype(str), format='%Y-%m')
+
+
+
+print(monthly_passengers)
+
+```
+
+
+```{python}
+#| fig-cap: Line plot showing the number of airline passengers across countries and year-month.
+#| fig-alt: Line plot with date on the x-axis and number of airline passengers on the y-axis. Each country is connected as a line plot and colored by continent. Date ranges from 2010 through 2018, and for each country, travel increases in the summer.
+
+
+categories = monthly_passengers['Continent'].unique()
+colors = plt.cm.tab10(np.linspace(0, 1, len(categories)))  
+
+continent_to_color = {continent: i for i, continent in enumerate(categories)}
+handled_continents = set()
+
+plt.figure(figsize=(10, 6))
+
+
+for iso3 in monthly_passengers['ISO3'].unique():
+    country_data = monthly_passengers[monthly_passengers['ISO3'] == iso3]
+    continent = country_data['Continent'].iloc[0]
+    color = colors[continent_to_color[continent]]
+
+    label = continent if continent not in handled_continents else None
+    plt.plot(
+        country_data['month_year'],
+        country_data['Total'],
+        label=label,
+        color=color,
+        marker='o',
+        markersize=3, 
+        alpha=0.5)
+    handled_continents.add(continent) 
+
+  
+plt.xlabel('Date')
+plt.ylabel('Total number of air passengers in thousands')
+plt.title('Monthly volume of airline passengers across \ndifferent countries 2010-2018')
+plt.yscale('log')    
+plt.legend(title="Continent", loc='upper left', bbox_to_anchor=(1.05, 1), borderaxespad=0)
+plt.tight_layout()
+
+plt.show()
+```
+
+
+```{r}
+praise()
+```
+
+
+
+
+

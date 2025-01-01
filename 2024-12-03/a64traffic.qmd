@@ -1,0 +1,122 @@
+---
+title: "Traffic on A64 Highway"
+author: "Jo Hardin"
+date: "12/03/2024"
+format: 
+  html:
+    embed-resources: true
+execute:
+  warning: false
+  message: false
+---
+
+```{r}
+library(tidyverse) # ggplot, lubridate, dplyr, stringr, readr...
+library(praise)
+```
+
+
+## The Data
+
+This week we're exploring National Highways Traffic Flow data! National Highways operates and maintains motorways and major A roads in England. They directly monitor the speed and flow of roads using on road sensors, and the data can be accessed via the [National Highways API](https://webtris.nationalhighways.co.uk/api/swagger/ui/index).
+
+This week's data has vehicle size and speed information for May 2021 from four different road sensors on the A64 road. 
+
+* Do vehicles travel faster on certain days or at certain times?
+* What time of day do large vehicles use this road?
+* Do smaller vehicles travel faster?
+
+
+
+```{r}
+A64_traffic <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2024/2024-12-03/A64_traffic.csv') |> 
+  mutate(dow = wday(`Report Date`, label = TRUE)) |> 
+  mutate(holiday = ifelse(`Report Date` == ymd("2021-05-03") | `Report Date` == ymd("2021-05-31"), TRUE, FALSE)) |> 
+  mutate(status = ifelse(`Report Date` < "2021-05-17", "covid_strict", "covid_free")) |> 
+  mutate(label = case_when(
+    SiteId == 6867 ~ "Norton-on-Derwent",
+    SiteId == 7035 ~ "Between B1249 and A1039",
+    SiteId == 7042 ~ "York (north)",
+    SiteId == 7058 ~ "Filey"
+  ))
+```
+
+
+
+```{r}
+A64_traffic |> 
+  filter(dow == "Mon") |> 
+  filter(SiteId == 6867) |> 
+  ggplot(aes(x = `Time Period Ending`, y = `Total Volume`, color = holiday, group = `Report Date`, linetype = status)) + 
+  geom_line() + 
+  theme_bw()
+```
+
+
+```{r}
+#| fig-width: 13
+#| fig-height: 9
+#| fig-cap: The dashed lines represent days in May of 2021 where a COVID lockdown was in place. The left axis (in orange) represents the number of passenger vehicles at different places on the road.  The right axis (in blue) represents the number of big trucks at different places on the road. On May 17, 2021, the lockdown was lifted.  We see that the orange passengers cars started driving more after the lockdown was lifted. The larger vehicles did not change much across the restrictions, presumably because they were already out and about doing their work regardless of the restrictions. The grey vertical lines are at 8am, noon, and 5pm.
+#| fig-alt: A line plot showing the hourly traffic volume across day of the week and four different locations.  The traffic is broken down into passenger vehicles and big trucks, with many more passenger vehicles. The peak traffic time is around mid afternoon for passenger vehicles and late morning for big trucks. There was less traffic before COVID restrictions were lifted.
+
+A64_traffic |> 
+  #filter(SiteId == 6867) |> 
+  ggplot(aes(x = hour(`Time Period Ending`), y = `0 - 520 cm`, group = `Report Date`, linetype = status)) + 
+  geom_smooth(se = FALSE, color = "orange") + 
+  geom_smooth(aes(y = `1160+ cm`*10), color = "blue", se = FALSE) + 
+  geom_vline(xintercept = 8, color = "grey") + 
+  geom_vline(xintercept = 12, color = "grey") + 
+  geom_vline(xintercept = 17, color = "grey") + 
+  facet_grid(label~dow) + 
+  scale_y_continuous(
+    
+    # Features of the first axis
+    name = "Number of passenger vehicles",
+    
+    # Add a second axis and specify its features
+    sec.axis = sec_axis(~./10, name="Number of big trucks")
+  )  + 
+  theme_bw() +
+  theme(
+    axis.title.y = element_text(color = "orange", size=13),
+    axis.title.y.right = element_text(color = "blue", size=13)
+  ) +
+  labs(title = "More driving after COVID restrictions lifted",
+       x = "hour of the day",
+       color = "type of vehicle",
+       linetype = "COVID restriction") 
+```
+
+```{r}
+#| fig-width: 13
+#| fig-height: 9
+#| fig-cap: The dashed lines represent days in May of 2021 where a COVID lockdown was in place. For each location and day of the week, the average speed across the day is plotted. The grey vertical lines are at 8am, noon, and 5pm.
+#| fig-alt: A line plot showing the average miles per hour at different locations and on different days of the week. The slowest times are between 1pm to 3pm. At the location of North-on-Derwent it seems as though the traffic slows down quite a bit during rush hour. The location of Filey has a fairly constant average speed over all hours of the day.
+
+
+A64_traffic |> 
+  #filter(SiteId == 6867) |> 
+  ggplot(aes(x = `Time Period Ending`, y = `Avg mph`, group = `Report Date`, 
+             linetype = status, color = as.factor(label))) + 
+  geom_smooth(se = FALSE) + 
+  geom_vline(xintercept = hms("08:00:00"), color = "grey") + 
+  geom_vline(xintercept = hms("12:00:00"), color = "grey") + 
+  geom_vline(xintercept = hms("17:00:00"), color = "grey") + 
+  facet_grid(label~dow) + 
+  labs(title = "More driving after COVID restrictions lifted",
+       color = "location of traffic sensor",
+       linetype = "COVID restriction") + 
+  theme_bw() + 
+  theme(axis.text.x = element_text(angle = 45, hjust=1)) 
+```
+
+
+
+
+
+```{r}
+praise()
+```
+
+
+
