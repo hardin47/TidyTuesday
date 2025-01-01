@@ -3,16 +3,17 @@ title: "TidyTuesday Adventures"
 #subtitle: ""
 #date: ""
 author: "Jo Hardin"
-format: html
+format: 
+  html:
+    embed-resources: true
 toc: true # Table of contents
 execute: 
   echo: false
   warning: false
   message: false
-embed-resources: true
 ---
 
-The following each link to a different TidyTuesday analysis. Most of them are visualizations in R, but a few are models and a few are in Pyhton.  The link to this page is <a href = "https://hardin47.github.io/TidyTuesday/" target = "_blank">https://hardin47.github.io/TidyTuesday/</a>.
+The following each link to a different TidyTuesday analysis. Most of them are visualizations in R, but a few are models and a few are in Python.  The link to this page is <a href = "https://hardin47.github.io/TidyTuesday/" target = "_blank">https://hardin47.github.io/TidyTuesday/</a>.
 
 A few other places to see TidyTuesday compilations:
 
@@ -23,7 +24,7 @@ A few other places to see TidyTuesday compilations:
 
 ## 2024
 
-* 2024-12-24 <a href = "https://hardin47.github.io/TidyTuesday/2024-12-24/globalholidays.html" target = "_blank">Global Travel (in Python)</a> <a href = "https://hardin47.github.io/TidyTuesday/2024-12-24/globalholidays.html" target = "_blank"><img src="/2024-12-24/holidaytravel.png" alt="Thumbnail Description" style="width:100px;"/></a>
+* 2024-12-24 <a href = "https://hardin47.github.io/TidyTuesday/2024-12-24/globalholidays.html" target = "_blank">Global Travel (in Python)</a> <a href = "https://hardin47.github.io/TidyTuesday/2024-12-24/globalholidays.html" target = "_blank"><img src="2024-12-24/holidaytravel.png" alt="Thumbnail Description" style="width:100px;"/></a>
 
 
 * 2024-12-03 [Tidy Tuesday A64 road](https://hardin47.github.io/TidyTuesday/2024-12-03/a64traffic.html)
@@ -34,7 +35,7 @@ A few other places to see TidyTuesday compilations:
 
 * 2024-11-05 [Tidy Tuesday Democracy & Dictatorship](https://hardin47.github.io/TidyTuesday/2024-11-05/democracy.html)
 
-* 2024-10-29 <a href = "https://hardin47.github.io/TidyTuesday/2024-10-29/monstermovies.html" target = "_blank">Monster Movies (Regression Tree)</a> <a href = "https://hardin47.github.io/TidyTuesday/2024-10-29/monstermovies.html" target = "_blank"><img src="/2024-10-29/monster_tree.png" alt="Thumbnail Description" style="width:100px;"/></a>
+* 2024-10-29 <a href = "https://hardin47.github.io/TidyTuesday/2024-10-29/monstermovies.html" target = "_blank">Monster Movies (Regression Tree)</a> <a href = "https://hardin47.github.io/TidyTuesday/2024-10-29/monstermovies.html" target = "_blank"><img src="2024-10-29/monster_tree.png" alt="Thumbnail Description" style="width:100px;"/></a>
 
 * 2024-10-22 [Tidy Tuesday CIA Factbook](https://hardin47.github.io/TidyTuesday/2024-10-22/ciafact.html)
 
