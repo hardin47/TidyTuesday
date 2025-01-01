@@ -1,0 +1,28 @@
+---
+title: "TidyTuesday Adventures"
+#subtitle: ""
+#date: ""
+#author: "Jo Hardin"
+format: html
+toc: true # Table of contents
+execute: 
+  echo: false
+  warning: false
+  message: false
+---
+
+The following each link to a different TidyTuesday analysis. Most of them are visualizations in R, but a few are models and a few are in Pyhton.  The link to this page is <a href = "https://hardin47.github.io/TidyTuesday/" target = "_blank">https://hardin47.github.io/TidyTuesday/</a>.
+
+## 2024
+
+* 2024-12-24 [Tidy Tuesday Global Travel](https://hardin47.github.io/TidyTuesday/2024-12-24/globalholidays.html)
+
+* 2024-12-03 [Tidy Tuesday A64 road](https://hardin47.github.io/TidyTuesday/2024-12-03/a64traffic.html)
+
+* 2024-11-19 [Tidy Tuesday Bob's Burgers](https://hardin47.github.io/TidyTuesday/2024-11-19/bobsburgers.html)
+
+
+## 2023
+
+* 2024-11-19 [Tidy Tuesday Bob's Burgers](https://hardin47.github.io/TidyTuesday/2024-11-19/bobsburgers.html)
+
