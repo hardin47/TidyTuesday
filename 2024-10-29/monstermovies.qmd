@@ -176,11 +176,17 @@ Plotting the decision tree for the regression tree model.
 #| fig-alt: decision tree showing each of the branches which partitions the space of explanatory variables.  The prediction is given by the average rating of the films in the terminal node.  Documenteries, for example, have a predicted rating of 6.8 and moves that are Horror movies, sci-fi moves and got more than 6055 votes have a predicted rating of 6.6.
 #| fig-cap: A decision tree that shows the different partitions of the explanatory variables. The prediciton is given by the average rating of the films in the terminal node.
 
+
 movies_tree <- movie_wflow_cart |> 
   fit(data = monster_model) |> 
   extract_fit_parsnip()
 
+png("monster_tree.png", width = 800, height = 600, res = 150)
 rpart.plot(movies_tree$fit)
+dev.off()
+
+rpart.plot(movies_tree$fit)
+
 ```
 
 
