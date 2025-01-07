@@ -1,0 +1,90 @@
+---
+title: "Parfumo Fragrance"
+author: "Jo Hardin"
+date: "01/07/2025"
+format: 
+  html:
+    embed-resources: true
+execute:
+  warning: false
+  message: false
+---
+
+```{r}
+library(tidyverse) # ggplot, lubridate, dplyr, stringr, readr...
+library(praise)
+
+library(reticulate)
+use_python("/Users/jsh04747/miniforge3/bin/python3", required = TRUE)
+```
+
+
+
+```{python}
+import pandas as pd
+import numpy as np
+
+import matplotlib.pyplot as plt
+import seaborn as sns
+```
+
+A fantastic gallery of seaborn plot: https://seaborn.pydata.org/examples/index.html
+
+## The Data
+
+(First dataset of 2025 was to "bring your own data!", so I went back and found this one from December 12, 2024: https://github.com/rfordatascience/tidytuesday/tree/main/data/2024/2024-12-10)
+
+This week we're diving into the fascinating world of fragrances with a dataset sourced from [Parfumo](https://www.parfumo.com/), a vibrant community of perfume enthusiasts.  [Olga G.](https://www.kaggle.com/olgagmiufana1) webscraped these data from the various fragrance sections on the Parfumo website. Here is a description from the author:
+
+> This dataset contains detailed information about perfumes sourced from Parfumo, obtained through web scraping. It includes data on perfume ratings, olfactory notes (top, middle, and base notes), perfumers, year of release and other relevant characteristics of the perfumes listed on the Parfumo website.
+
+> The data provides a comprehensive look at how various perfumes are rated, which families of scents they belong to, and detailed breakdowns of the key olfactory components that define their overall profile
+
+```{python}
+parfumo = pd.read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2024/2024-12-10/parfumo_data_clean.csv')
+
+print(parfumo)
+```
+
+## Making a barplot
+
+First, I want to take the top 10 brands and label everything else "other."
+
+```{python}
+brand_counts = parfumo['Brand'].value_counts()
+top_brands = brand_counts.nlargest(10).index
+
+
+parfumo['TopBrand'] = parfumo['Brand'].apply(lambda x: x if x in top_brands else 'Other')
+
+parfumo_sub = parfumo[np.isfinite(parfumo['Release_Year'])]
+parfumo_sub = parfumo_sub[parfumo_sub['Release_Year'] >= 1900]
+
+parfumo_sub.loc[:, 'Decade'] = (np.floor(parfumo_sub['Release_Year'] / 10) * 10).astype(int)
+```
+
+
+
+```{python}
+#| fig-cap: 'Data scraped from <a href = "https://www.parfumo.com/" target = "_blank">parfumo</a> and filtered later than 1990.  Number of perfumes in the parfumo database by decade of release.'
+#| fig-alt: 'Bar plot with decade on the x-axis and count of number of perfumes released on the y-axis.  The 10 most popular brands are colored bars with the vast majority of the brands being "other." In more recent decades, there are more perfumes described in the parfumo database.'
+plt.figure(figsize=(10,6))
+
+sns.countplot(
+    data=parfumo_sub, 
+    x="Decade",  hue="TopBrand",
+    palette="dark", alpha=.6
+)
+plt.xlabel('')
+plt.ylabel('Number of perfumes released')
+plt.title('Most popular brands of perfume, release count per decade')
+plt.yscale('log')    
+plt.legend(title='Top Brand', loc='upper center', 
+           bbox_to_anchor=(0.5, -0.15), ncol=2, frameon=False)
+plt.tight_layout()
+
+plt.savefig("parfumo.png", dpi=300, bbox_inches='tight')
+
+plt.show()
+```
+

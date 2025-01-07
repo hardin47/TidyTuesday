@@ -21,6 +21,14 @@ A few other places to see TidyTuesday compilations:
 
 * Nicola Rennie <a href = "https://github.com/nrennie/tidytuesday" target = "_blank">#TidyTuesday</a>
 
+<br>
+<br>
+
+
+## 2025
+
+* 2025-01-07 <a href = "https://hardin47.github.io/TidyTuesday/2025-01-07/parfumo.html" target = "_blank">Parfumo Fragrance (in Python)</a> <a href = "https://hardin47.github.io/TidyTuesday/2025-01-07/parfumo.html" target = "_blank"><img src="2025-01-07/parfumo.png" alt="Thumbnail Description" style="width:100px;"/></a>
+
 
 ## 2024
 
