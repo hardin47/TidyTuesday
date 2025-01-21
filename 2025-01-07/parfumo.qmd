@@ -88,3 +88,7 @@ plt.savefig("parfumo.png", dpi=300, bbox_inches='tight')
 plt.show()
 ```
 
+```{r}
+praise()
+```
+

@@ -1,0 +1,72 @@
+---
+title: "Himalayan Mountaineering Expeditions"
+author: "Jo Hardin"
+date: "1/21/2025"
+format: html
+execute:
+  warning: false
+  message: false
+---
+
+```{r}
+library(tidyverse) # ggplot, lubridate, dplyr, stringr, readr...
+library(praise)
+```
+
+
+## The Data
+
+This week, we are exploring mountaineering data from the [Himalayan Dataset](https://www.himalayandatabase.com/index.html)!
+
+The Himalayan Database is a comprehensive archive documenting mountaineering expeditions in the Nepal Himalaya. It continues the pioneering work of [Elizabeth Hawley](https://www.himalayandatabase.com/history.html), a journalist who dedicated much of her life to cataloging climbing history in the region. Her meticulous records were initially compiled from a wide range of sources, including books, alpine journals, and direct correspondence with Himalayan climbers.
+
+
+```{r}
+exped_tidy <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2025/2025-01-21/exped_tidy.csv')
+peaks_tidy <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2025/2025-01-21/peaks_tidy.csv')
+
+```
+
+
+## Success?
+
+Using the 882 expeditions, we calculate the success rate as a function of group size and mountain range. There is a slight positive trend in that larger groups seem more likely to succeed (where succeed is defined as success on at least one of the four routes pursued).
+
+
+```{r}
+#| fig-cap: "For each of the seven mountain ranges (Everest is in the Khumbu-Rolwaling-Makalu range), the proprotion of teams (of a given size) who succeed is presented. There seems to be a moderate trend that larger teams are more successful."
+#| fig-alt: "Line plot with team size on the x axis and proportions of teams that succeeded on the y axis. Each point is sized by the number of expeditions with that particular team size. The plots are faceted by mountain range, and it is clear that the highest success rate and largest number of expeditions is in the Khumbu-Rolwaling-Makalu range which contains Mount Everest. There is a slight trend demonstrating that larger team sizes have higher success rates."
+#| fig-format: png
+
+exped_tidy |> 
+  full_join(peaks_tidy, by = "PEAKID") |> 
+  filter(TOTMEMBERS > 0) |> 
+  mutate(total = TOTMEMBERS + TOTHIRED, deaths = MDEATHS + HDEATHS,
+         prop_death = deaths / total,
+         success = SUCCESS1 | SUCCESS2 | SUCCESS3 | SUCCESS4) |> 
+  mutate(total_factor = case_when(
+    TOTMEMBERS <=  5 ~ 5,
+    TOTMEMBERS <= 10 ~ 10,
+    TOTMEMBERS <= 15 ~ 15,
+    TOTMEMBERS <= 20 ~ 20,
+    TRUE ~ 25
+  )) |> 
+  group_by(total_factor, REGION_FACTOR) |> 
+  mutate(n_exped = n(), prop_success = mean(success)) |> 
+  ggplot(aes(x = total_factor, y = prop_success, color = REGION_FACTOR)) + 
+  geom_point(aes(size = n_exped), alpha = 0.5) + 
+  geom_line() +
+  facet_wrap( ~ REGION_FACTOR) +
+  labs(x = "Team size (number of members)",
+       y = "proportion of teams who succeeded",
+       size = "number of\nexpeditions") + 
+  scale_colour_discrete(guide = "none")
+```
+
+
+
+
+```{r}
+praise()
+```
+
