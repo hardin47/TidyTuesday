@@ -1,0 +1,176 @@
+---
+title: "The Simpsons"
+author: "Jo Hardin"
+date: "2/4/2025"
+format: html
+execute:
+  warning: false
+  message: false
+embed-resources: true
+---
+
+```{r}
+library(tidyverse) # ggplot, lubridate, dplyr, stringr, readr...
+library(praise)
+```
+
+
+## The Data
+
+This week, we are going to explore a [Simpsons Dataset from Kaggle](https://www.kaggle.com/datasets/prashant111/the-simpsons-dataset).  Many thanks to [Prashant Banerjee](https://www.kaggle.com/prashant111) for making this dataset available to the public.  The Simpsons Dataset is composed of four files that contain the characters, locations, episode details, and script lines for approximately 600 Simpsons episodes.  Please note that episodes and script lines have been filtered to only include episodes from 2010 to 2016 in the episodes data to keep file size within GitHub limits!
+
+Here is some history on the Simpsons Dataset from the author:
+
+> Originally, this dataset was scraped by [Todd W. Schneider] for his post [The Simpsons by the Data](https://toddwschneider.com/posts/the-simpsons-by-the-data/), for which he made the scraper available on GitHub. Kaggle user William Cukierski used the scraper to upload the data set, which has been rehosted here.
+
+Thank you to [Nicolas Foss, Ed.D., MS with Iowa HHS](https://github.com/nicolasfoss) for curating this week's dataset.
+
+
+
+```{r}
+simpsons_characters <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2025/2025-02-04/simpsons_characters.csv')
+simpsons_episodes <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2025/2025-02-04/simpsons_episodes.csv')
+simpsons_locations <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2025/2025-02-04/simpsons_locations.csv')
+simpsons_script_lines <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2025/2025-02-04/simpsons_script_lines.csv')
+
+```
+
+
+
+##  
+
+
+```{r}
+simpsons <- simpsons_script_lines |> 
+  drop_na(character_id, episode_id) |> 
+  group_by(episode_id, character_id) |> 
+  summarize(num_lines = n(), 
+            num_words = sum(word_count, na.rm = TRUE)) |> 
+  mutate(prop_lines = num_lines / sum(num_lines), 
+         prop_words = num_words / sum(num_words))
+
+
+simpsons <- simpsons |> 
+  left_join(simpsons_episodes, by = c("episode_id" = "id")) |> 
+  left_join(simpsons_characters, by = c("character_id" = "id"))
+
+
+simpsons_fam <- simpsons |> 
+  filter(character_id %in% c(1, 2, 8, 9, 31))
+
+```
+
+
+```{r}
+# thanks to ChatGPT
+
+simpsons_palette <- c(
+  "Bar Rag"              = "#8B4513",  # Brown (Bar)
+  "Bart Simpson"         = "#FF000D",  # Yellow (Skin)
+  "Bender"              = "#A2AAAD",  # Gray (Metal body)
+  "C. Montgomery Burns"  = "#006747",  # Green (Suit)
+  "Chief Wiggum"        = "#0057B8",  # Blue (Police uniform)
+  "Comic Book Guy"      = "#F4A900",  # Orange (Shirt)
+  "Dan Gillick"         = "#F47983",  # Pink (Shirt)
+  "Edna Krabappel-Flanders" = "#A52A2A",  # Brown (Hair)
+  "Fat Tony"            = "#8B0000",  # Dark Red (Mafia suit)
+  "Gary Chalmers"       = "#1D4E89",  # Blue (Suit)
+  "Grampa Simpson"      = "#E0BC84",  # Golden Yellow (Skin)
+  "Homer Simpson"       = "#FED90F",  # Yellow (Skin)
+  "Krusty the Clown"    = "#BF40BF",  # Purple (Shirt)
+  "Lady Gaga"           = "#E0115F",  # Deep Pink
+  "Lisa Simpson"        = "#FFA500",  # Orange (Dress)
+  "Marge Simpson"       = "#0079C1",  # Blue (Hair)
+  "Milhouse Van Houten" = "#FF6700",  # Orange (Shirt)
+  "Moe Szyslak"         = "#4ECDC4",  # Teal (Apron)
+  "Ned Flanders"        = "#228B22",  # Green (Sweater)
+  "Nelson Muntz"        = "#C8102E",  # Red (Vest)
+  "Seymour Skinner"     = "#70327E",  # Purple (Suit)
+  "Sideshow Bob"        = "#9B4F96"   # Magenta (Hair)
+)
+```
+
+
+
+```{r}
+#| fig-cap: Each dot represents the character with the most lines in a given episode of the Simpsons. While Homer Simpson seems to have the most lines in many of the episodes, there is not a clear trend between character dominance and IMDb rating.
+#| fig-alt: Scatterplot with each dot representing the character with the most lines in a given episode. The x axis represents the proportion of lines of that character, the y axis represents the IMDb rating for that episode. Points are colored by character. Homer Simpson is often the character with the most lines, but there doesn't seem to be any trends between dominance of the character (represented by the proportion of their lines) and IMDb rating.
+
+library(pals)
+library(plotly)
+
+p <- simpsons |> 
+  group_by(episode_id) |> 
+  slice_max(prop_lines) |> 
+  ggplot(aes(x = prop_lines, y = imdb_rating, 
+             color = name,
+             text = name)) + 
+  geom_point(size = 3) +
+  scale_colour_manual(values=simpsons_palette) + 
+  labs(color = "character name",
+       x = "proportion of lines for major character",
+       y = "IMDb rating",
+       title = "Simpsons Lines + Ratings (2010-2016)") + 
+  theme_minimal() + 
+  theme(legend.position="none",
+        plot.title = element_text(size = 25, 
+                              face = "bold",
+                              family = "Permanent Marker"),
+        axis.title.x = element_text(size = 15,
+                                family = "Permanent Marker"),
+        axis.title.y = element_text(size = 15,
+                                family = "Permanent Marker")) 
+
+ggplotly(p, tooltip = "text") 
+```
+
+
+
+```{r}
+
+png(filename = "simpsons.png")
+simpsons |> 
+  group_by(episode_id) |> 
+  slice_max(prop_lines) |> 
+  ggplot(aes(x = prop_lines, y = imdb_rating, 
+             color = name,
+             text = name)) + 
+  geom_point(size = 3) +
+  scale_colour_manual(values=simpsons_palette) + 
+  labs(color = "character name",
+       x = "proportion of lines for major character",
+       y = "IMDb rating",
+       title = "Simpsons Lines + Ratings (2010-2016)") + 
+  theme_minimal() + 
+  theme(legend.position="none",
+        plot.title = element_text(size = 25, 
+                              face = "bold",
+                              family = "Permanent Marker"),
+        axis.title.x = element_text(size = 15,
+                                family = "Permanent Marker"),
+        axis.title.y = element_text(size = 15,
+                                family = "Permanent Marker")) 
+
+dev.off()
+
+```
+
+
+
+
+
+```{r}
+praise()
+```
+
+
+
+
+
+
+
+
+
+
+
+

@@ -28,6 +28,9 @@ A few other places to see TidyTuesday compilations:
 ## 2025
 
 
+* 2025-02-04 <a href = "https://hardin47.github.io/TidyTuesday/2025-02-04/simpsons.html" target = "_blank">The Simpsons</a> <a href = "https://hardin47.github.io/TidyTuesday/2025-02-04/simpsons.html" target = "_blank"><img src="2025-02-04/simpsons.png" alt="" style="width:100px;"/></a>
+
+
 * 2025-01-28 <a href = "https://hardin47.github.io/TidyTuesday/2025-01-28/waterinsecurity.html" target = "_blank">Water Insecurity</a> <a href = "https://hardin47.github.io/TidyTuesday/2025-01-28/waterinsecurity.html" target = "_blank"><img src="2025-01-28/waterinsecurity_files/figure-html/unnamed-chunk-7-1.png" alt="Bar plot with percent of population as water insecure on the x axis and state on the y axis.  Alaska is the state with the highest percentage of the population as water insecure, at 1.3%. South Dakota is the state with the lowest percentage of the population as water insecure, at close to zero percent." style="width:100px;"/></a>
 
 * 2025-01-21 <a href = "https://hardin47.github.io/TidyTuesday/2025-01-21/himalayas.html" target = "_blank">Himalayan Mountaineering Expeditions</a> <a href = "https://hardin47.github.io/TidyTuesday/2025-01-21/himalayas.html" target = "_blank"><img src="2025-01-21/himalayas_files/figure-html/unnamed-chunk-3-1.png" alt="Line plot with team size on the x axis and proportions of teams that succeeded on the y axis. Each point is sized by the number of expeditions with that particular team size. The plots are faceted by mountain range, and it is clear that the highest success rate and largest number of expeditions is in the Khumbu-Rolwaling-Makalu range which contains Mount Everest. There is a slight trend demonstrating that larger team sizes have higher success rates." style="width:100px;"/></a>
