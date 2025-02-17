@@ -1,0 +1,158 @@
+---
+title: "CDC Datasets"
+author: "Jo Hardin"
+date: "2/11/2025"
+format: html
+execute:
+  warning: false
+  message: false
+embed-resources: true
+---
+
+```{r}
+library(tidyverse) # ggplot, lubridate, dplyr, stringr, readr...
+library(ggpattern)
+library(praise)
+```
+
+
+## The Data
+
+This week we're exploring datasets that the Trump administration has purged. 
+
+The [Trump administration has ordered agencies to purge their websites of any references to topics such as LGBTQ+ rights](https://www.npr.org/sections/shots-health-news/2025/01/31/nx-s1-5282274/trump-administration-purges-health-websites). 
+
+
+An effort is underway to back up this publicly funded data before it is lost. 
+This week's dataset contains metadata about [CDC datasets backed up on archive.org](https://archive.org/download/20250128-cdc-datasets).
+
+> "The removal of HIV- and LGBTQ-related resources from the websites of the Centers for Disease Control and Prevention and other health agencies is deeply concerning and creates a dangerous gap in scientific information and data to monitor and respond to disease outbreaks," the Infectious Disease Society of America said in a statement. "Access to this information is crucial for infectious diseases and HIV health care professionals who care for people with HIV and members of the LGBTQ community and is critical to efforts to end the HIV epidemic."
+
+
+
+
+```{r}
+cdc_datasets <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2025/2025-02-11/cdc_datasets.csv')
+fpi_codes <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2025/2025-02-11/fpi_codes.csv')
+omb_codes <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2025/2025-02-11/omb_codes.csv')
+```
+
+
+
+## Combining data
+
+```{r}
+#| fig-width: 11
+#| fig-height: 10
+
+cdc_datasets |> 
+  select(program_code, public_access_level) |> 
+  left_join(fpi_codes, by = c("program_code" = "program_code_pod_format")) |> 
+  ggplot(aes(x = program_name, fill = program_name)) + 
+  geom_bar() + 
+  theme(legend.position="bottom",
+        axis.text.x = element_blank()) + 
+  guides(fill = guide_legend(nrow = 8)) + 
+  labs(x = "", y = "", fill = "")
+```
+
+
+```{r}
+cdc_datasets |> 
+  ggplot(aes(x = public_access_level)) + 
+  geom_bar() + 
+  coord_flip() + 
+  facet_wrap(~bureau_code) + 
+  theme_minimal() +
+  labs(y = "", x = "")
+```
+
+```{r}
+#| fig-width: 11
+#| fig-height: 10
+
+cdc_datasets |> 
+  select(program_code, public_access_level) |> 
+  ggplot(aes(x = program_code, fill = program_code,
+             pattern = public_access_level)) + 
+  geom_bar_pattern(color = "black", pattern_density = 0.15,) + 
+  theme(legend.position="bottom",
+        axis.text.x = element_blank()) + 
+  guides(fill = guide_legend(nrow = 11),
+         color = guide_legend(nrow = 16),
+         pattern_fill = guide_legend(nrow = 10),
+         pattern = guide_legend(nrow = 10)) + 
+  labs(x = "", y = "", fill = "", color = "", pattern_fill = "", pattern = "")
+```
+
+
+```{r}
+#| fig-width: 11
+#| fig-height: 10
+cdc_datasets |> 
+  select(program_code, public_access_level) |> 
+  left_join(fpi_codes, by = c("program_code" = "program_code_pod_format")) |> 
+  ggplot(aes(x = program_name, fill = program_name,
+             pattern = public_access_level)) + 
+  geom_bar_pattern(color = "black", pattern_density = 0.15,) + 
+  theme(legend.position="bottom",
+        axis.text.x = element_blank()) + 
+  guides(fill = guide_legend(nrow = 12),
+         color = guide_legend(nrow = 12),
+         pattern_fill = guide_legend(nrow = 12),
+         pattern = guide_legend(nrow = 12)) + 
+  labs(x = "", y = "", fill = "", color = "", pattern_fill = "", pattern = "")
+```
+
+```{r}
+#| fig-cap: We study datasets that have been very recently scrubbed from the CDC website (due to President Trump's executive orders). Across the main thematic category of the dataset, we can see which categories were more or less likely to have public data or no statement about the data privacy (NA). 
+#| fig-alt: Consider datasets that have recently been scrubbed from the CDC website due to Presdient Trump's executive orders. The bar chart has category of the data on the x-axis, and the bar is filled with shading for whether the data are non-public, public, public domain, or NA. The majority of datasets are public or NA, and the categories are homogenous with respect to the data privacy statement. The largest number of datasets come from National Notifiable Diseases Surveillance System (whose data do not have privacy labels); the second most datasets come from National Center for Health Statistics (whose data are public).
+#| fig-width: 11
+#| fig-height: 10
+
+
+cdc_datasets |> 
+  group_by(category) |>
+  mutate(count = n()) |> 
+  filter(count >= 15) |> 
+  ggplot(aes(x = category, fill = category,
+             pattern = public_access_level)) + 
+  geom_bar_pattern(color = "black") + 
+  theme(legend.position="bottom",
+        axis.text.x = element_blank()) + 
+  guides(fill = guide_legend(nrow = 8),
+         color = guide_legend(nrow = 8),
+         pattern_fill = guide_legend(nrow = 8),
+         pattern = guide_legend(nrow = 8)) + 
+  labs(x = "", y = "", fill = "", color = "", pattern_fill = "", pattern = "")
+
+```
+
+```{r}
+png(filename = "cdc_data.png")
+
+cdc_datasets |> 
+  group_by(category) |>
+  mutate(count = n()) |> 
+  filter(count >= 15) |> 
+  ggplot(aes(x = category, fill = category,
+             pattern = public_access_level)) + 
+  geom_bar_pattern(color = "black") + 
+  theme(legend.position="bottom",
+        axis.text.x = element_blank()) + 
+  guides(fill = guide_legend(nrow = 8),
+         color = guide_legend(nrow = 8),
+         pattern_fill = guide_legend(nrow = 8),
+         pattern = guide_legend(nrow = 8)) + 
+  labs(x = "", y = "", fill = "", color = "", pattern_fill = "", pattern = "")
+
+dev.off()
+
+```
+
+
+
+```{r}
+praise()
+```
+
