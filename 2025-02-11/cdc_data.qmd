@@ -111,7 +111,7 @@ cdc_datasets |>
 #| fig-height: 10
 
 
-cdc_datasets |> 
+p <- cdc_datasets |> 
   group_by(category) |>
   mutate(count = n()) |> 
   filter(count >= 15) |> 
@@ -126,25 +126,13 @@ cdc_datasets |>
          pattern = guide_legend(nrow = 8)) + 
   labs(x = "", y = "", fill = "", color = "", pattern_fill = "", pattern = "")
 
+p
 ```
 
 ```{r}
 png(filename = "cdc_data.png")
 
-cdc_datasets |> 
-  group_by(category) |>
-  mutate(count = n()) |> 
-  filter(count >= 15) |> 
-  ggplot(aes(x = category, fill = category,
-             pattern = public_access_level)) + 
-  geom_bar_pattern(color = "black") + 
-  theme(legend.position="bottom",
-        axis.text.x = element_blank()) + 
-  guides(fill = guide_legend(nrow = 8),
-         color = guide_legend(nrow = 8),
-         pattern_fill = guide_legend(nrow = 8),
-         pattern = guide_legend(nrow = 8)) + 
-  labs(x = "", y = "", fill = "", color = "", pattern_fill = "", pattern = "")
+p
 
 dev.off()
 

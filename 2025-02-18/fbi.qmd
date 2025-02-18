@@ -1,0 +1,214 @@
+---
+title: "Agencies from the FBI Crime Data API"
+author: "Jo Hardin"
+date: "2/18/2025"
+format: html
+execute:
+  warning: false
+  message: false
+  code-folding: true
+embed-resources: true
+---
+
+```{r}
+library(tidyverse) # ggplot, lubridate, dplyr, stringr, readr...
+library(ggpattern)
+library(praise)
+```
+
+
+## The Data
+
+
+This week we're exploring data from the [FBI Crime Data API](https://cde.ucr.cjis.gov/LATEST/webapp/#/pages/docApi)! Specifically, we’re looking at agency-level data across all 50 states in the USA. This dataset provides details on law enforcement agencies that have submitted data to the FBI’s Uniform Crime Reporting (UCR) Program and are displayed on the Crime Data Explorer (CDE).
+
+> Currently, the FBI produces four annual publications from data provided by more than 18,000 federal, state, county, city, university and college, and tribal law enforcement agencies voluntarily participating in the UCR program. 
+>
+> Crime data is dynamic. Offenses occur, arrests are made, and property is recovered every day. The FBI’s Crime Data Explorer, the digital front door for UCR data, is an attempt to reflect that fluidity in crime. The data presented there is updated regularly in a way that UCR publications previously could not be. Launched in 2017, the CDE’s content and features are updated and expanded continuously. CDE enables law enforcement agencies, researchers, journalists, and the public to more easily use and understand the massive amounts of UCR data using charts and graphs.
+
+
+
+```{r}
+agencies <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2025/2025-02-18/agencies.csv')
+```
+
+## Plotting agency location.
+
+Code taken (almost) directly from <a href = "https://stevenponce.netlify.app/data_visualizations/TidyTuesday/2025/tt_2025_07.html" target = "_blank">Steve Ponce.</a>
+
+
+### Tidy the data
+
+```{r}
+# Define constants
+continental_bounds <- list(
+    states_exclude = c("alaska", "hawaii"),
+    long = c(-125, -65),
+    lat = c(25, 50),
+    outlier_thresh = -125
+)
+
+# Get continental US map data
+continental_states <- map_data("state") |>
+    filter(!region %in% continental_bounds$states_exclude)
+
+# Function to check if point is within continental bounds
+is_continental <- function(long, lat, bounds) {
+    between(long, bounds$long[1], bounds$long[2]) &
+        between(lat, bounds$lat[1], bounds$lat[2])
+}
+
+# Process agencies data
+cleaned_agencies <- agencies |>
+    # Initial filtering
+    filter(
+        !agency_type %in% c(NA, "Unknown", "NA"),
+        !state %in% str_to_title(continental_bounds$states_exclude),
+        !(agency_type == "Other" & longitude < continental_bounds$outlier_thresh)
+    ) |>
+    # Filter to continental bounds
+    filter(is_continental(longitude, latitude, continental_bounds))
+
+# Calculate agency counts and create labels
+agency_counts <- cleaned_agencies |>
+    count(agency_type) |>
+    arrange(desc(n)) |>
+    mutate(
+        label = str_glue("{agency_type}\n(n = {format(n, big.mark=',')})"), 
+        pct_total = n/sum(n) * 100,
+        agency_type = factor(agency_type, levels = agency_type)
+    )
+
+# Prepare final dataset for plotting
+filtered_agencies <- cleaned_agencies |>
+    left_join(agency_counts |> select(agency_type, label),
+              by = "agency_type") |>
+    mutate(
+        # Set factor levels based on counts
+        agency_type = factor(agency_type, 
+                             levels = levels(agency_counts$agency_type)),
+        # Create labels for faceting
+        agency_label = factor(agency_type,
+                              levels = levels(agency_type),
+                              labels = agency_counts$label)
+    )
+
+# Extract total for use in plot
+total_agencies <- agency_counts$total_agencies[1]
+
+# Calculate summary statistics 
+summary_stats <- list(
+    total_agencies = sum(agency_counts$n),
+    num_categories = n_distinct(filtered_agencies$agency_type),
+    city_county_pct = round(100 * sum(agency_counts$n[1:2])/sum(agency_counts$n))
+)
+```
+
+
+### Visualize the data
+
+```{r}
+### |-  plot aesthetics ----
+# Get base colors with custom palette
+colors <-  c(
+        "City"                  = "#AD225E",         
+        "County"                = "#D67195",       
+        "State Police"          = "#228B7D",  
+        "Other State Agency"    = "#B8860B", 
+        "University or College" = "#2D439E",
+        "Other"                 = "#8B4513",         
+        "Tribal"                = "#666666"         
+    )
+
+### |-  titles and caption ----
+title_text <- str_glue("Geographic Distribution of U.S. Law Enforcement Agencies")
+
+subtitle_text <-  str_glue(
+    "Showing {format(summary_stats$total_agencies, big.mark=',')} agencies across {summary_stats$num_categories} categories\n",
+    "City and County agencies account for {summary_stats$city_county_pct}% of all agencies"
+)
+
+
+```
+
+
+```{r}
+#| fig-cap: For each of the seven types of FBI agencies, we plot where the agency is located. It is interesting to note the plethora of State Police agencies in Nebraska. Unsurprisingly, many of the Tribal agencies are in the western half of the US. The density of agencies roughly follows US population density. 
+#| fig-alt: Separately for each of seven types of FBI agencies (city, county, state police, other state agency, university, other, or tribal), the location of the agency is plotted on a US map. There are 11251 city agencies, the most of the seven types. There are only 185 tribal agencies, mostly in the west half of the united states. University agencies are spread throughout the US, and there are 671 of them.
+
+### |-  Map  ----
+p <- ggplot() +
+    # Geoms
+    geom_polygon(
+        data = continental_states, 
+        aes(x = long, y = lat, group = group),
+        fill = "gray95",     
+        color = "gray80", 
+        linewidth = 0.3
+    ) +
+    geom_point(
+        data = filtered_agencies,
+        aes(x = longitude, 
+            y = latitude,
+            color = agency_type,
+            alpha = agency_type),  
+        size = 0.5
+    ) +
+    
+    # Scales
+    scale_alpha_manual(
+        values = c(
+            "City" = 0.4,
+            "County" = 0.4,
+            "Other" = 0.7,
+            "Other State Agency" = 0.7,
+            "State Police" = 0.7,
+            "Tribal" = 0.8,    
+            "University or College" = 0.7
+        ),
+        guide = "none"
+    ) +
+    scale_color_manual(
+        values = colors,
+        guide = "none"
+    ) +
+    coord_fixed(
+        1.3,
+        xlim = continental_bounds$long,
+        ylim = continental_bounds$lat
+    ) +
+    
+    # Labs
+    labs(
+        x = NULL,
+        y = NULL,
+        title    = title_text,
+        subtitle = subtitle_text,
+        caption  = "data: FBI Crime Data API \n viz credit: Steven Ponce",
+    ) +
+    
+    # Facets 
+    facet_wrap(
+        ~agency_label, 
+        ncol = 3,
+        scales = "fixed"
+    ) +
+  theme_void()
+
+p
+```
+
+
+```{r}
+png(filename = "fbi.png")
+
+p
+
+dev.off()
+```
+
+
+```{r}
+praise()
+```
+

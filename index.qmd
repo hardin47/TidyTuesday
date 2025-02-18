@@ -27,6 +27,8 @@ A few other places to see TidyTuesday compilations:
 
 ## 2025
 
+* 2025-02-18 <a href = "https://hardin47.github.io/TidyTuesday/2025-02-18/fbi.html" target = "_blank">FBI Agencies</a> <a href = "https://hardin47.github.io/TidyTuesday/2025-02-18/fbi.html" target = "_blank"><img src="2025-02-18/fbi.png" alt="" style="width:100px;"/></a>
+
 * 2025-02-11 <a href = "https://hardin47.github.io/TidyTuesday/2025-02-11/cdc_data.html" target = "_blank">Missing CDC Data</a> <a href = "https://hardin47.github.io/TidyTuesday/2025-02-11/cdc_data.html" target = "_blank"><img src="2025-02-11/cdc_data.png" alt="" style="width:100px;"/></a>
 
 * 2025-02-04 <a href = "https://hardin47.github.io/TidyTuesday/2025-02-04/simpsons.html" target = "_blank">The Simpsons</a> <a href = "https://hardin47.github.io/TidyTuesday/2025-02-04/simpsons.html" target = "_blank"><img src="2025-02-04/simpsons.png" alt="" style="width:100px;"/></a>

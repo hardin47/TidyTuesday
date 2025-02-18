@@ -1,4 +1,4 @@
-* 2025-02-04 <a href = "https://hardin47.github.io/TidyTuesday/2025-02-04/simpsons.html" target = "_blank">Water Insecurity</a>
+* 2025-02-04 <a href = "https://hardin47.github.io/TidyTuesday/2025-02-04/simpsons.html" target = "_blank">The Simpsons</a>
 
 # Donuts, Data, and D'oh - A Deep Dive into The Simpsons
 
