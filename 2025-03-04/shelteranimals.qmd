@@ -1,0 +1,108 @@
+---
+title: "Long Beach Animal Shelter"
+author: "Jo Hardin"
+date: "3/04/2025"
+format: html
+execute:
+  warning: false
+  message: false
+  code-folding: true
+embed-resources: true
+---
+
+```{r}
+library(tidyverse) # ggplot, lubridate, dplyr, stringr, readr...
+library(praise)
+```
+
+
+## The Data
+
+This week we're exploring the [Long Beach Animal Shelter Data](https://data.longbeach.gov/explore/dataset/animal-shelter-intakes-and-outcomes/information/)! 
+
+The dataset comes from the [City of Long Beach Animal Care Services](https://www.longbeach.gov/acs/) via the [{animalshelter}](https://emilhvitfeldt.github.io/animalshelter/) R package.
+
+> This dataset comprises of the intake and outcome record from Long Beach Animal Shelter.
+
+
+```{r}
+longbeach <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2025/2025-03-04/longbeach.csv')
+```
+
+
+```{r}
+longbeach |> 
+  group_by(animal_type) |> 
+  summarize(n())
+```
+
+
+```{r}
+longbeach |> 
+  ggplot(aes(x = animal_type, fill = intake_type)) + 
+  geom_bar() + 
+  theme(axis.text.x = element_text(angle = 45, hjust=1)) + 
+  labs(x = "", y = "")
+```
+
+
+
+
+
+```{r}
+#| fig-cap: An alluvial plot to show how the type of animal goes through the shelter system, from intake to outcome. The vast majority of animals at the shelter are dogs and cats who are mostly stray animals.
+#| fig-alt: 'An alluvial plot with three strata: animal type, intake category, and outcome. We filtered to only consider cats, dogs, birds, and wild animals (the four groups that make up the majority of the animal types). Because dogs and cats are most prevalent, the most common intake type is stray. The cats and dogs both go to a variety of outcomes including adoption, rescue, euthanasia, transfer, and return to owner.'
+
+library(alluvial)
+data <- longbeach |> 
+  filter(animal_type %in% c("dog", "cat", "bird", "wild")) |> 
+  mutate(animal = fct_rev(fct_infreq(animal_type)),
+         intake = fct_rev(fct_infreq(fct_lump_n(intake_type, 5, other_level = "other"))),
+         outcome = fct_rev(fct_infreq(fct_lump_n(outcome_type, 5, other_level = "other")))) |> 
+  group_by(animal, intake, outcome) |> 
+  summarize(n = n()) |> 
+  drop_na()
+
+
+alluvial(data |> select(-n),
+         freq=data$n, border=NA, alpha = 0.5,
+         col=case_when(data$animal == "cat" ~ "#FFA500",
+                       data$animal == "dog" ~ "#8B4513",
+                       data$animal == "bird" ~ "#FFD700",
+                       TRUE ~ "#228B22"),
+         cex=0.75,
+         axis_labels = c("animal", "intake", "outcome"),
+        hide = data$n < 150)
+
+```
+
+
+
+
+```{r}
+#| echo: false
+
+png(filename = "animals.png", width = 550, height = 450)
+
+alluvial(data |> select(-n),
+         freq=data$n, border=NA, alpha = 0.5,
+         col=case_when(data$animal == "cat" ~ "#FFA500",
+                       data$animal == "dog" ~ "#8B4513",
+                       data$animal == "bird" ~ "#FFD700",
+                       TRUE ~ "#228B22"),
+         cex=0.75,
+         axis_labels = c("animal", "intake", "outcome"),
+        hide = data$n < 150)
+
+
+dev.off()
+```
+
+```{r}
+praise()
+```
+
+
+
+
+
