@@ -200,6 +200,9 @@ p
 
 
 ```{r}
+#| echo: false
+#| include: false
+
 png(filename = "fbi.png")
 
 p

@@ -127,6 +127,8 @@ ggplotly(p, tooltip = "text")
 
 
 ```{r}
+#| echo: false
+#| include: false
 
 png(filename = "simpsons.png")
 simpsons |> 

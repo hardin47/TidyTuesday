@@ -81,6 +81,7 @@ alluvial(data |> select(-n),
 
 ```{r}
 #| echo: false
+#| include: false
 
 png(filename = "animals.png", width = 550, height = 450)
 
