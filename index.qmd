@@ -27,6 +27,11 @@ A few other places to see TidyTuesday compilations:
 
 ## 2025
 
+* 2025-04-01 <a href = "https://hardin47.github.io/TidyTuesday/2025-04-01/pokemon.html" target = "_blank">Pokemon</a> <a href = "https://hardin47.github.io/TidyTuesday/2025-04-01/pokemon.html" target = "_blank"><img src="2025-04-01/pokemon.png" alt="" style="width:100px;"/></a>
+
+* 2025-03-25 <a href = "https://hardin47.github.io/TidyTuesday/2025-03-25/amazon_reports.html" target = "_blank">Text Data from Amazon's Annual Reports</a> <a href = "https://hardin47.github.io/TidyTuesday/2025-03-25/amazon_reports.html" target = "_blank"><img src="2025-03-25/amazon_reports.png" alt="" style="width:100px;"/></a>
+
+
 
 * 2025-03-04 <a href = "https://hardin47.github.io/TidyTuesday/2025-03-04/shelteranimals.html" target = "_blank">Long Beach Animal Shelter</a> <a href = "https://hardin47.github.io/TidyTuesday/2025-03-04/shelteranimals.html" target = "_blank"><img src="2025-03-04/animals.png" alt="" style="width:100px;"/></a>
 

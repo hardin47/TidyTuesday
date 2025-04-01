@@ -1,0 +1,247 @@
+---
+title: "Text Data from Amazon's Annual Reports"
+author: "Jo Hardin"
+date: "3/25/2025"
+format:
+  html:
+    code-fold: true
+execute:
+  warning: false
+  message: false
+  code-folding: true
+embed-resources: true
+---
+
+```{r}
+library(tidyverse) # ggplot, lubridate, dplyr, stringr, readr...
+library(praise)
+```
+
+
+## The Data
+
+This week we're exploring text data from 
+[Amazon's annual reports.](https://ir.aboutamazon.com/annual-reports-proxies-and-shareholder-letters/default.aspx)
+The PDFs were read into R using the {pdftools} R package, and explored by TidyTuesday
+participant Gregory Vander Vinne in 
+[a post on his website](https://gregoryvdvinne.github.io/Text-Mining-Amazon-Budgets.html).
+Note that stop words (e.g., "and", "the", "a") have been removed from the data.
+
+> As a publicly-traded company, Amazon releases an annual report every year (with a December 31st year end). An annual report is essentially a summary of the company’s performance over the past year. It includes details on how well the company did financially, what goals were achieved, and what challenges it faced.
+
+- How have the words used change over time? 
+
+- Are there meaningful changes in sentiment from year to year? 
+
+- Which words are likely to appear together in the same annual report?
+
+Thank you to [Gregory Vander Vinne](https://github.com/GregoryVdvinne) for curating this week's dataset.
+
+
+```{r}
+report_words_clean <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2025/2025-03-25/report_words_clean.csv')
+
+amazon <- read_csv("statista_amazon-net-income.csv")
+```
+
+
+
+## Most common words
+
+```{r}
+#| fig-cap: Top ten words 
+library(paletteer)
+cb_palette <- paletteer_d("ggthemes::Tableau_20")[1:15]
+
+report_words_clean |> 
+  group_by(year, word) |> 
+  summarize(count = n()) |> 
+  arrange(year, desc(count)) |> 
+  top_n(10) |> 
+  ggplot(aes(x = year, y = count, group = word, color = word)) + 
+  geom_line() + 
+  geom_point() + 
+  scale_color_manual(values = cb_palette)
+```
+
+
+
+
+
+```{r}
+library(tidytext)
+bing <- get_sentiments("bing")
+nrc <- get_sentiments("nrc")
+afinn <- get_sentiments("afinn") |> 
+  filter(!value %in% c("positive", "negative"))
+```
+
+
+```{r}
+report_words_clean |> 
+  group_by(year) |> 
+  #summarize(count = n()) |> 
+  left_join(afinn, by = c("word")) |> 
+  drop_na(value) |> 
+  summarize(ave_sentiment = mean(value)) |> 
+  full_join(amazon, by = c("year")) |> 
+  ggplot() + 
+  geom_line(aes(x = year, y = ave_sentiment*50000)) + 
+  geom_line(aes(x = year, y = net_income)) + 
+  scale_y_continuous(
+    "Amazon net income", 
+    sec.axis = sec_axis(~ . / 50000, name = "Average sentiment")
+  )
+```
+
+
+```{r}
+#| fig-cap: Proportion of words in each sentiment category for Amazon annual reports across time. No substantial temporal trends are seen.
+#| fig-alt: Bar chart with a separate bar for each year. The bar is filled with the proportion of words in each sentiment which are used in the Amazon annual reports. There have not been substantial changes in the sentiment of the reports over time.
+
+emotion_colors <- c(
+  "anger" = "#E63946",       # Red
+  "anticipation" = "#F4A261", # Orange
+  "disgust" = "#6A994E",      # Olive green
+  "fear" = "#5E548E",         # Dark purple
+  "joy" = "#F9C74F",          # Yellow
+  "sadness" = "#577590",      # Blue
+  "surprise" = "#F28482",     # Pink
+  "trust" = "#90BE6D"         # Green
+)
+
+
+
+report_words_clean |> 
+  group_by(year) |> 
+  left_join(nrc, by = c("word")) |> 
+  drop_na(sentiment) |> 
+  ggplot(aes(x = year, fill = sentiment)) + 
+  geom_bar(position = "fill") + 
+  scale_fill_manual(values = emotion_colors) + 
+  labs(y = "")
+```
+
+
+
+```{r}
+#| echo: false
+#| include: false
+
+png(filename = "amazon_reports.png", width = 550, height = 450)
+
+report_words_clean |> 
+  group_by(year) |> 
+  left_join(nrc, by = c("word")) |> 
+  drop_na(sentiment) |> 
+  ggplot(aes(x = year, fill = sentiment)) + 
+  geom_bar(position = "fill") + 
+  scale_fill_manual(values = emotion_colors) + 
+  labs(y = "")
+
+
+dev.off()
+```
+
+```{r}
+library(wordcloud2)
+library(htmltools)
+
+tagList(
+  tags$h3("anger", style = "color: #E63946; text-align: center;"),
+report_words_clean |> 
+  group_by(year) |> 
+  left_join(nrc, by = c("word")) |>
+  filter(sentiment == "anger") |> 
+  group_by(word) |> 
+  summarize(freq = n()) |> 
+  wordcloud2(data = _, color = "#E63946")
+)
+
+
+tagList(
+  tags$h3("anticipation", style = "color: #F4A261; text-align: center;"),
+report_words_clean |> 
+  group_by(year) |> 
+  left_join(nrc, by = c("word")) |>
+  filter(sentiment == "anticipation") |> 
+  group_by(word) |> 
+  summarize(freq = n()) |> 
+  wordcloud2(data = _, color = "#F4A261")
+)
+
+tagList(
+  tags$h3("disgust", style = "color: #6A994E; text-align: center;"),
+report_words_clean |> 
+  group_by(year) |> 
+  left_join(nrc, by = c("word")) |>
+  filter(sentiment == "disgust") |> 
+  group_by(word) |> 
+  summarize(freq = n()) |> 
+  wordcloud2(data = _, color = "#6A994E")
+)
+
+
+tagList(
+  tags$h3("fear", style = "color: #5E548E; text-align: center;"),
+report_words_clean |> 
+  group_by(year) |> 
+  left_join(nrc, by = c("word")) |>
+  filter(sentiment == "fear") |> 
+  group_by(word) |> 
+  summarize(freq = n()) |> 
+  wordcloud2(data = _, color = "#5E548E")
+)
+
+tagList(
+  tags$h3("joy", style = "color: #F9C74F; text-align: center;"),
+report_words_clean |> 
+  group_by(year) |> 
+  left_join(nrc, by = c("word")) |>
+  filter(sentiment == "joy") |> 
+  group_by(word) |> 
+  summarize(freq = n()) |> 
+  wordcloud2(data = _, color = "#F9C74F")
+)
+
+tagList(
+  tags$h3("sadness", style = "color: #577590; text-align: center;"),
+report_words_clean |> 
+  group_by(year) |> 
+  left_join(nrc, by = c("word")) |>
+  filter(sentiment == "sadness") |> 
+  group_by(word) |> 
+  summarize(freq = n()) |> 
+  wordcloud2(data = _, color = "#577590")
+)
+
+tagList(
+  tags$h3("surprise", style = "color: #F28482; text-align: center;"),
+report_words_clean |> 
+  group_by(year) |> 
+  left_join(nrc, by = c("word")) |>
+  filter(sentiment == "surprise") |> 
+  group_by(word) |> 
+  summarize(freq = n()) |> 
+  wordcloud2(data = _, color = "#F28482")
+)
+
+tagList(
+  tags$h3("trust", style = "color: #90BE6D; text-align: center;"),
+report_words_clean |> 
+  group_by(year) |> 
+  left_join(nrc, by = c("word")) |>
+  filter(sentiment == "trust") |> 
+  group_by(word) |> 
+  summarize(freq = n()) |> 
+  wordcloud2(data = _, color = "#90BE6D")
+)
+```
+
+
+
+
+
+
+
+

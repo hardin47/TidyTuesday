@@ -1,0 +1,112 @@
+---
+title: "Pokemon"
+author: "Jo Hardin"
+date: "4/01/2025"
+format:
+  html:
+    code-fold: true
+execute:
+  warning: false
+  message: false
+  code-folding: true
+embed-resources: true
+---
+
+```{r}
+library(tidyverse) # ggplot, lubridate, dplyr, stringr, readr...
+library(praise)
+```
+
+
+## The Data
+
+This week we are exploring Pokemon! This dataset is sourced from {pokemon} ([CRAN](https://cran.r-project.org/package=pokemon) | [github](https://github.com/williamorim/pokemon)), an R package which provides Pokemon information in both English and Brazilian Portuguese.
+
+> This package provides a dataset of Pokemon information in both English and Brazilian Portuguese. The dataset contains 949 rows and 22 columns, including information such as the Pokemon’s name, ID, height, weight, stats, type, and more.
+
+
+Thank you to [Frank Hull](https://github.com/frankiethull) for curating this week's dataset.
+
+
+
+```{r}
+pokemon_df <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2025/2025-04-01/pokemon_df.csv')
+```
+
+
+## Using color
+
+The Pokemon dataset came with Hex colors!! Such a cool and easy way to use the hex color values to color the points.
+
+
+```{r}
+#| fig-cap: Attack and defense values broken down by color and facet by type of Pokemon.
+#| fig-alt: Scatterplot with Pokemon attack points on the x-axis and defense points on the y-axis. The scatterplots are faceted by type of Pokemon (including fighting, fire, electric, etc.).
+
+pokemon_df |> 
+  ggplot(aes(x = attack, y = defense, color = color_1)) + 
+  geom_point() +
+  scale_color_identity() + 
+  facet_wrap(~type_1)
+```
+
+```{r}
+#| echo: false
+#| include: false
+
+png(filename = "pokemon.png", width = 550, height = 450)
+
+pokemon_df |> 
+  ggplot(aes(x = attack, y = defense, color = color_1)) + 
+  geom_point() +
+  scale_color_identity() + 
+  facet_wrap(~type_1)
+
+
+dev.off()
+```
+
+## Radar plots
+
+The goal here was to create a single spider line for each Pokemon, but to put a group of spider lines on a single polygon, faceted by type of Pokemon (e.g., fire, water, psychic, etc.).  I couldn't make it work.  :(
+
+We spent a lot of time on the spider plot, so today's work doesn't feel very satisfying. But on the flip side, I learned about `scale_color_identity()`, and I also learned some `map()` tricks (see below).
+
+```{r}
+library(ggradar)
+
+set.seed(47)
+pokemon_df |> 
+  sample_n(10) |> 
+  select(pokemon, weight, height, speed, attack, defense) |> 
+  drop_na() |> 
+  mutate(across(where(is.numeric), ~ (. - min(.)) / (max(.) - min(.))))  |> 
+  #rownames_to_column("group") |> 
+  rename(group = pokemon) |> 
+  ggradar() + 
+  facet_wrap(~`Group.1`)
+
+```
+
+
+
+```{r}
+pokemon_df |> 
+  sample_n(20) |> 
+  select(group = type_1, weight, height, speed, attack, defense) |> 
+  drop_na() |> 
+  mutate(across(where(is.numeric), ~ (. - min(.)) / (max(.) - min(.)))) |> 
+  (\(df) split(df, df$group))() |> 
+  map(~{.x |> 
+      select(-group) |> 
+      ggradar()})
+
+```
+
+
+```{r}
+praise()
+```
+
+
+
