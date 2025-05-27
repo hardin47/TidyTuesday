@@ -100,6 +100,26 @@ joined |>
 
 
 ```{r}
+#| echo: false
+#| include: false
+
+png(filename = "pixar.png", width = 550, height = 450)
+
+joined |> 
+  ggplot(aes(y = film_date, x = award_type, color = status)) + 
+  geom_point() + 
+  theme_minimal(base_family = "pixar") + 
+  theme(axis.text.x = element_blank(),
+        axis.text.y = element_blank(),
+        legend.position = "none")  +
+  labs(x = "", y = "", color = "") + 
+  scale_color_brewer(palette = "Set1")
+
+
+dev.off()
+```
+
+```{r}
 praise()
 ```
 
