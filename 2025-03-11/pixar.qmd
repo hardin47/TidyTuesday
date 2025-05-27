@@ -1,0 +1,107 @@
+---
+title: "Pixar Films"
+author: "Jo Hardin"
+date: "3/11/2025"
+format:
+  html:
+    code-fold: true
+execute:
+  warning: false
+  message: false
+  code-folding: true
+embed-resources: true
+---
+
+```{r}
+library(tidyverse) # ggplot, lubridate, dplyr, stringr, readr...
+library(ggrepel)
+library(pixarfilms)
+library(praise)
+```
+
+
+## The Data
+
+This week we're exploring Pixar films! The data this week comes from the {pixarfilms} R package by [Eric Leung](https://github.com/erictleung). 
+
+> R data package to explore Pixar films, the people, and reception data. This package contains six data sets provided mostly in part by [Wikipedia](https://en.wikipedia.org/wiki/List_of_Pixar_films).
+
+
+```{r}
+data(academy)
+data(box_office)
+data(genres)
+data(pixar_films)
+data(pixar_people)
+data(public_response)
+```
+
+## Some plots
+
+```{r}
+public_response |> 
+  ggplot(aes(x = rotten_tomatoes, y = metacritic)) + 
+  geom_point() + 
+  geom_label_repel(aes(label = film, color = cinema_score))
+```
+
+
+```{r}
+joined <- academy |> 
+  left_join(pixar_films, by = "film") |> 
+  mutate(film = fct_reorder(film, release_date, .desc = TRUE)) |> 
+  mutate(award_type = factor(award_type, 
+                                  levels = c("Best Picture",
+                                             "Animated Feature",
+                                             "Original Screenplay",
+                                             "Adapted Screenplay",
+                                             "Original Score",
+                                             "Original Song",
+                                             "Sound Editing",
+                                             "Sound Mixing",
+                                             "Other"))) |> 
+  mutate(status = factor(status,
+                         levels = c("Won", "Nominated", "Ineligible", 
+                                    "Award not yet introduced",
+                                    "Won Special Achievement"))) |>
+  mutate(year = year(release_date)) |> 
+  mutate(film_date = fct_reorder(paste0(film, " (", year, ")"),
+                                 release_date, .desc = TRUE))
+
+joined |> 
+  select(film, release_date, year, film_date)
+```
+
+
+```{r}
+library(showtext)
+font_add_google("Gochi Hand", "pixar") 
+showtext_auto()
+```
+
+```{r}
+#| fig-cap: Pixar films and their association to the Academy Awards.
+#| fig-alt: 'Scatterplot with academy award on the x-axis and Pixar film on the y-axis. There is a dot if there is information about the award for the given film. The dot is colored into one of four categories: won, nominated, ineligible, award not yet introduced, and won special achievement.'
+
+joined |> 
+  ggplot(aes(y = film_date, x = award_type, color = status)) + 
+  geom_point() + 
+  theme_minimal(base_family = "pixar") + 
+  theme(axis.text.x = 
+          element_text(angle = 45, 
+                       vjust = 0.5, 
+                       hjust=0.5, 
+                       size = 30),
+        axis.text.y = element_text(size = 30),
+        legend.text = element_text(size = 20))  +
+  labs(x = "", y = "", color = "") + 
+  scale_color_brewer(palette = "Set1")
+```
+
+
+```{r}
+praise()
+```
+
+
+

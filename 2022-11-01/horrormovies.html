@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.2.256">
+<meta name="generator" content="quarto-1.6.40">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
@@ -19,7 +19,7 @@ div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
 ul.task-list{list-style: none;}
 ul.task-list li input[type="checkbox"] {
   width: 0.8em;
-  margin: 0 0.8em 0.2em -1.6em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
 </style>
@@ -31,10 +31,10 @@ ul.task-list li input[type="checkbox"] {
 <script src="horrormovies_files/libs/quarto-html/tippy.umd.min.js"></script>
 <script src="horrormovies_files/libs/quarto-html/anchor.min.js"></script>
 <link href="horrormovies_files/libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="horrormovies_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<link href="horrormovies_files/libs/quarto-html/quarto-syntax-highlighting-549806ee2085284f45b00abea8c6df48.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="horrormovies_files/libs/bootstrap/bootstrap.min.js"></script>
 <link href="horrormovies_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="horrormovies_files/libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<link href="horrormovies_files/libs/bootstrap/bootstrap-973236bd072d72a04ee9cd82dcc9cb29.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 
 
 </head>
@@ -72,14 +72,10 @@ ul.task-list li input[type="checkbox"] {
   </div>
   
 
+
 </header>
 
-<div class="cell">
 
-</div>
-<div class="cell" data-context="setup">
-
-</div>
 <section id="quarto-shiny" class="level2">
 <h2 class="anchored" data-anchor-id="quarto-shiny">Quarto + Shiny</h2>
 <p>Finally got the refresh to work!!! The Shiny App is hosted at: <a href="https://hardin47.shinyapps.io/horrormovies/" target="_blank">https://hardin47.shinyapps.io/horrormovies/</a></p>
@@ -87,9 +83,6 @@ ul.task-list li input[type="checkbox"] {
 <section id="the-data" class="level2">
 <h2 class="anchored" data-anchor-id="the-data">The Data</h2>
 <p>Data set was extracted from <strong><a href="https://www.themoviedb.org">The Movie Datbase</a></strong> via the tmdb API using R <code>httr</code>.</p>
-<div class="cell" data-context="data">
-
-</div>
 </section>
 <section id="new-movie-titles" class="level2">
 <h2 class="anchored" data-anchor-id="new-movie-titles">New Movie Titles</h2>
@@ -99,24 +92,16 @@ ul.task-list li input[type="checkbox"] {
 <p>The Noun1 Adposition Determiner Adjective Noun2</p>
 </blockquote>
 <p>The sentence structure breakdown is done using the package <strong>udpipe</strong>.</p>
-<div class="cell" data-context="data">
-
-</div>
-<div class="cell" data-context="setup">
-
-</div>
-<div class="cell" data-context="setup">
-
-</div>
-<div class="cell" data-context="setup">
-
-</div>
 </section>
 <section id="make-one-poster" class="level2">
 <h2 class="anchored" data-anchor-id="make-one-poster">Make one poster:</h2>
 <div class="cell">
 <div class="cell-output-display">
-<p><img src="horrormovies_files/figure-html/unnamed-chunk-8-1.png" class="img-fluid" width="672"></p>
+<div>
+<figure class="figure">
+<p><img src="horrormovies_files/figure-html/unnamed-chunk-8-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
 </div>
 </div>
 </section>
@@ -129,9 +114,6 @@ ul.task-list li input[type="checkbox"] {
 <div class="cell-output-display">
 <div class="shiny-plot-output html-fill-item" id="HorrorMovie" style="width:100%;height:400px;"></div>
 </div>
-</div>
-<div class="cell" data-context="server">
-
 </div>
 <p>
 <script type="application/shiny-prerendered" data-context="server-start">
@@ -334,13 +316,12 @@ ojs_define <- function(..., .session = shiny::getDefaultReactiveDomain()) {
 </p>
 <!--html_preserve-->
 <script type="application/shiny-prerendered" data-context="dependencies">
-{"type":"list","attributes":{},"value":[]}
+{"type":"list","attributes":{},"value":[{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["htmltools-fill"]},{"type":"character","attributes":{},"value":["0.5.8.1"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["fill"]}]},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["fill.css"]},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["htmltools"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["0.5.8.1"]}]}]}
 </script>
 <!--/html_preserve-->
 <!--html_preserve-->
-
 <script type="application/shiny-prerendered" data-context="execution_dependencies">
-{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["packages"]}},"value":[{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["packages","version"]},"class":{"type":"character","attributes":{},"value":["data.frame"]},"row.names":{"type":"integer","attributes":{},"value":[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,90,91,92]}},"value":[{"type":"character","attributes":{},"value":["assertthat","backports","base","bit","bit64","broom","cellranger","cli","colorspace","compiler","crayon","data.table","datasets","DBI","dbplyr","digest","dplyr","ellipsis","evaluate","fansi","farver","fastmap","forcats","fs","gargle","generics","ggplot2","glue","googledrive","googlesheets4","graphics","grDevices","grid","gtable","haven","hms","htmltools","htmlwidgets","httpuv","httr","jsonlite","knitr","labeling","later","lattice","lifecycle","lubridate","magrittr","Matrix","methods","mime","modelr","munsell","parallel","pillar","pkgconfig","promises","purrr","R6","Rcpp","readr","readxl","reprex","rlang","rmarkdown","rstudioapi","rvest","scales","shiny","showtext","showtextdb","stats","stringi","stringr","sysfonts","tibble","tidyr","tidyselect","tidyverse","timechange","tools","tzdb","udpipe","utf8","utils","vctrs","vroom","withr","xfun","xml2","xtable","yaml"]},{"type":"character","attributes":{},"value":["0.2.1","1.4.1","4.2.0","4.0.5","4.0.5","1.0.2","1.1.0","3.5.0","2.0-3","4.2.0","1.5.2","1.14.6","4.2.0","1.1.3","2.2.1","0.6.31","1.0.10","0.3.2","0.19","1.0.3","2.1.1","1.1.0","0.5.2","1.5.2","1.2.1","0.1.3","3.4.0","1.6.2","2.0.0","1.0.1","4.2.0","4.2.0","4.2.0","0.3.1","2.5.1","1.1.2","0.5.4","1.6.0","1.6.7","1.4.4","1.8.4","1.41","0.4.2","1.3.0","0.20-45","1.0.3","1.9.0","2.0.3","1.5-3","4.2.0","0.12","0.1.10","0.5.0","4.2.0","1.8.1","2.0.3","1.2.0.1","1.0.0","2.5.1","1.0.9","2.1.3","1.4.1","2.0.2","1.0.6","2.19","0.14","1.0.3","1.2.1","1.7.4","0.9-5","3.0","4.2.0","1.7.8","1.5.0","0.8.8","3.1.8","1.2.1","1.2.0","1.3.2","0.1.1","4.2.0","0.3.0","0.8.10","1.2.2","4.2.0","0.5.1","1.6.0","2.5.0","0.36","1.3.3","1.8-4","2.3.6"]}]}]}
+{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["packages"]}},"value":[{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["packages","version"]},"class":{"type":"character","attributes":{},"value":["data.frame"]},"row.names":{"type":"integer","attributes":{},"value":[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72]}},"value":[{"type":"character","attributes":{},"value":["base","bit","bit64","cli","colorspace","compiler","crayon","data.table","datasets","digest","dplyr","evaluate","farver","fastmap","forcats","generics","ggplot2","glue","graphics","grDevices","grid","gtable","hms","htmltools","htmlwidgets","httpuv","jsonlite","knitr","labeling","later","lattice","lifecycle","lubridate","magrittr","Matrix","methods","mime","munsell","parallel","pillar","pkgconfig","promises","purrr","R6","Rcpp","readr","rlang","rmarkdown","rstudioapi","scales","shiny","showtext","showtextdb","stats","stringi","stringr","sysfonts","tibble","tidyr","tidyselect","tidyverse","timechange","tools","tzdb","udpipe","utils","vctrs","vroom","withr","xfun","xtable","yaml"]},{"type":"character","attributes":{},"value":["4.4.2","4.5.0","4.5.2","3.6.4","2.1-1","4.4.2","1.5.3","1.16.2","4.4.2","0.6.37","1.1.4","1.0.1","2.1.2","1.2.0","1.0.0","0.1.3","3.5.1","1.8.0","4.4.2","4.4.2","4.4.2","0.3.6","1.1.3","0.5.8.1","1.6.4","1.6.15","1.8.9","1.49","0.4.3","1.3.2","0.22-6","1.0.4","1.9.3","2.0.3","1.7-1","4.4.2","0.12","0.5.1","4.4.2","1.10.1","2.0.3","1.3.0","1.0.2","2.6.1","1.0.13-1","2.1.5","1.1.5","2.29","0.17.1","1.3.0","1.9.1","0.9-7","3.0","4.4.2","1.8.4","1.5.1","0.8.9","3.2.1","1.3.1","1.2.1","2.0.0","0.3.0","4.4.2","0.4.0","0.8.11","4.4.2","0.6.5","1.6.5","3.0.2","0.49","1.8-4","2.3.10"]}]}]}
 </script>
 <!--/html_preserve-->
 </section>
@@ -374,12 +355,15 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
     icon: icon
   };
   anchorJS.add('.anchored');
-  const clipboard = new window.ClipboardJS('.code-copy-button', {
-    target: function(trigger) {
-      return trigger.previousElementSibling;
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
     }
-  });
-  clipboard.on('success', function(e) {
+    return false;
+  }
+  const onCopySuccess = function(e) {
     // button target
     const button = e.trigger;
     // don't keep focus
@@ -411,11 +395,48 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
     }, 1000);
     // clear code selection
     e.clearSelection();
+  }
+  const getTextToCopy = function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+    text: getTextToCopy
   });
-  function tippyHover(el, contentFn) {
+  clipboard.on('success', onCopySuccess);
+  if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+    const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+      text: getTextToCopy,
+      container: window.document.getElementById('quarto-embedded-source-code-modal')
+    });
+    clipboardModal.on('success', onCopySuccess);
+  }
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp('/' + window.location.host + '/');
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
     const config = {
       allowHTML: true,
-      content: contentFn,
       maxWidth: 500,
       delay: 100,
       arrow: false,
@@ -425,8 +446,17 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       interactive: true,
       interactiveBorder: 10,
       theme: 'quarto',
-      placement: 'bottom-start'
+      placement: 'bottom-start',
     };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
     window.tippy(el, config); 
   }
   const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
@@ -438,9 +468,244 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       try { href = new URL(href).hash; } catch {}
       const id = href.replace(/^#\/?/, "");
       const note = window.document.getElementById(id);
-      return note.innerHTML;
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
     });
   }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
   const findCites = (el) => {
     const parentEl = el.parentElement;
     if (parentEl) {
@@ -481,6 +746,7 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 });
 </script>
 </div> <!-- /content -->
+
 
 
 
