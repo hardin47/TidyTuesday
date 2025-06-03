@@ -1,0 +1,110 @@
+---
+title: "Project Gutenberg"
+author: "Jo Hardin"
+date: "6/03/2025"
+format:
+  html:
+    code-fold: true
+execute:
+  warning: false
+  message: false
+  code-folding: true
+embed-resources: true
+---
+
+```{r}
+library(tidyverse) # ggplot, lubridate, dplyr, stringr, readr...
+library(praise)
+```
+
+
+## The Data
+
+This week we're exploring books from Project Gutenberg and the {[gutenbergr](https://docs.ropensci.org/gutenbergr/)} R package!
+
+> [{gutenbergr} allows you to] Download and process public domain works in the 
+> Project Gutenberg collection <https://www.gutenberg.org/>. Includes metadata 
+> for all Project Gutenberg works, so that they can be searched and retrieved.
+
+Thank you to [Jon Harmon, Data Science Learning Community](https://github.com/jonthegeek) for curating this week's dataset.
+
+```{r}
+gutenberg_authors <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2025/2025-06-03/gutenberg_authors.csv')
+gutenberg_languages <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2025/2025-06-03/gutenberg_languages.csv')
+gutenberg_metadata <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2025/2025-06-03/gutenberg_metadata.csv')
+gutenberg_subjects <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2025/2025-06-03/gutenberg_subjects.csv')
+
+```
+
+
+```{r}
+gutenberg_subjects |> 
+  filter(subject_type == "lcc") |> 
+  group_by(subject) |> 
+  summarize(count = n()) |> 
+  arrange(desc(count))
+```
+
+
+```{r}
+gutenberg_metadata |> 
+  filter(stringr::str_detect(gutenberg_bookshelf, "(?i)Child"))
+```
+
+
+```{r}
+#| fig-cap: For each author, their lifespan and number of books in Project Gutenberg are provided. The shape of the point is given by whether the document is (at least partly) in English
+#| fig-alt: A scatterplot with each dot as an author of a document in Project Gutenberg. The x axis is the lifespan of the author. The y axis is the number of documents in Project Gutenberg by that author. The point is colored by when the author died, the vast majority of authors died since 1800. The shape fo the point is given by whether the document is at least partly in English. The vast majority of documents are in English.
+
+gut_sum <- gutenberg_authors |> 
+  select(gutenberg_author_id, author, birthdate, deathdate) |> 
+  filter(!is.na(deathdate)) |> 
+  left_join(select(gutenberg_metadata, gutenberg_id, title, gutenberg_author_id, language), 
+       by = "gutenberg_author_id") |> 
+  mutate(lifespan = deathdate - birthdate) |> 
+  distinct() |> 
+  group_by(author) |> 
+  summarize(n_books = n(), lifespan = min(lifespan), 
+            deathdate = min(deathdate),
+            language = first(language)) |> 
+  mutate(english = str_detect(language, "en")) 
+
+p <- gut_sum |> 
+  ungroup() |> 
+  ggplot(aes(x = lifespan, y = n_books, color = deathdate, text = author)) + 
+  geom_point(aes(shape = english), alpha = 0.4) +
+  labs(x = "lifespan", y = "",
+       title = "number of books in Project Gutenberg",
+       color = "year of death",
+       shape = "English") 
+
+  
+plotly::ggplotly(p)  
+```
+
+
+
+```{r}
+#| echo: false
+#| include: false
+
+png(filename = "gutenberg.png", width = 550, height = 450)
+
+gut_sum |> 
+  ungroup() |> 
+  ggplot(aes(x = lifespan, y = n_books, color = deathdate, text = author)) + 
+  geom_point(aes(shape = english), alpha = 0.4) +
+  labs(x = "lifespan", y = "",
+       title = "number of books in Project Gutenberg",
+       color = "year of death",
+       shape = "English") 
+
+
+dev.off()
+```
+
+
+```{r}
+praise()
+```
+
