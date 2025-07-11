@@ -27,6 +27,10 @@ A few other places to see TidyTuesday compilations:
 
 ## 2025
 
+
+* 2025-07-08 <a href = "https://hardin47.github.io/TidyTuesday/2025-07-08/xkcd_color.html" target = "_blank">xkcd Color Survey</a> <a href = "https://hardin47.github.io/TidyTuesday/2025-07-08/xkcd_color.html" target = "_blank"><img src="2025-07-08/xkcd_color.png" alt="Five standard colors - purple, green, blue, pink, and brown were given as labels to many thousands of different hues of colors. There is a large range of different colors for each of the standard labelings. The purple label was given to almost 90,000 different hex colors." style="width:100px;"/></a>
+
+
 * 2025-06-03 <a href = "https://hardin47.github.io/TidyTuesday/2025-06-03/gutenberg.html" target = "_blank">Project Gutenberg</a> <a href = "https://hardin47.github.io/TidyTuesday/2025-06-03/gutenberg.html" target = "_blank"><img src="2025-06-03/gutenberg.png" alt="A scatterplot with each dot as an author of a document in Project Gutenberg. The x axis is the lifespan of the author. The y axis is the number of documents in Project Gutenberg by that author. The point is colored by when the author died, the vast majority of authors died since 1800. The shape fo the point is given by whether the document is at least partly in English. The vast majority of documents are in English." style="width:100px;"/></a>
 
 * 2025-04-01 <a href = "https://hardin47.github.io/TidyTuesday/2025-04-01/pokemon.html" target = "_blank">Pokemon</a> <a href = "https://hardin47.github.io/TidyTuesday/2025-04-01/pokemon.html" target = "_blank"><img src="2025-04-01/pokemon.png" alt="Scatterplot with Pokemon attack points on the x-axis and defense points on the y-axis. The scatterplots are faceted by type of Pokemon (including fighting, fire, electric, etc.)." style="width:100px;"/></a>

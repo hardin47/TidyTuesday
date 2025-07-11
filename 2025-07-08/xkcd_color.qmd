@@ -1,0 +1,124 @@
+---
+title: "xkcd Color Survey"
+author: "Jo Hardin"
+date: "07/08/2025"
+format: 
+  html:
+    embed-resources: true
+execute:
+  warning: false
+  message: false
+---
+
+```{r}
+library(tidyverse) # ggplot, lubridate, dplyr, stringr, readr...
+library(praise)
+
+library(reticulate)
+use_python("/Users/jsh04747/miniforge3/bin/python3", required = TRUE)
+```
+
+```{r}
+answers <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2025/2025-07-08/answers.csv')
+color_ranks <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2025/2025-07-08/color_ranks.csv')
+users <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2025/2025-07-08/users.csv')
+```
+
+```{python}
+import pandas as pd
+import numpy as np
+
+import matplotlib.pyplot as plt
+import seaborn as sns
+```
+
+```{python}
+answers = pd.read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2025/2025-07-08/answers.csv')
+color_ranks = pd.read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2025/2025-07-08/color_ranks.csv')
+users = pd.read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2025/2025-07-08/users.csv')
+
+answers
+```
+
+```{python}
+plt.figure(figsize=(10,6))
+
+orders = answers['rank'].value_counts().index
+colors = ['#15b01a', '#0343df', '#7e1e9c', '#ff81c0', '#653700']
+
+sns.countplot(
+  data = answers,
+  x = "rank",
+  order = orders,
+  palette = colors
+)
+plt.xlabel('rank of color')
+plt.ylabel('')
+plt.title('Highest ranked colors')
+plt.legend(title='xkcd color survey', loc='upper center', 
+           bbox_to_anchor=(0.5, -0.15), ncol=2, frameon=False)
+plt.tight_layout()
+
+plt.show()
+```
+
+
+```{r}
+answers |> 
+  sample_n(1000) |> 
+  ggplot(aes(y = user_id, x = rank, color = hex)) + 
+  geom_point() + 
+  scale_color_identity()
+```
+
+
+```{r}
+color_data <- answers |> 
+  inner_join(filter(users, spam_prob < 0.05), by = c("user_id" = "user_id")) |>
+  select(hex, rank) |> 
+  distinct() |> 
+  group_by(rank) |> 
+  mutate(dec = broman::hex2dec(stringr::str_remove(hex, "#")),
+         hues = grDevices::rgb2hsv(grDevices::col2rgb(hex))["h", ]) |> 
+  arrange(hues) |> 
+  mutate(idx = row_number()) |> 
+  mutate(rank2 = case_when(
+    rank == 1 ~ "purple",
+    rank == 2 ~ "green",
+    rank == 3 ~ "blue",
+    rank == 4 ~ "pink",
+    rank == 5 ~ "brown"))
+```
+
+```{r}
+#| fig-cap: "Each vertical line is a color that was shown to a user who called that color, for example, 'purple'. The graph shows the range of colors that were labeled by users as 'purple', 'green', 'blue', 'pink', and 'brown'. The x-axis represents the number of unique hex colors given the standard color labeling."
+#| fig-alt: "Five standard colors - purple, green, blue, pink, and brown were given as labels to many thousands of different hues of colors. There is a large range of different colors for each of the standard labelings. The purple label was given to almost 90,000 different hex colors."
+
+color_data |> 
+  ggplot(aes(x = idx, xend = idx, y = rank - 0.45, yend = rank + 0.45, color = hex)) + 
+  geom_segment() + 
+  scale_y_continuous(breaks = color_data$rank, labels = color_data$rank2, trans = "reverse") + 
+  scale_color_identity() +
+  labs(x = "", y = "")
+```
+```{r}
+#| echo: false
+#| include: false
+
+png(filename = "xkcd_color.png", width = 550, height = 450)
+
+color_data |> 
+  ggplot(aes(x = idx, xend = idx, y = rank - 0.45, yend = rank + 0.45, color = hex)) + 
+  geom_segment() + 
+  scale_y_continuous(breaks = color_data$rank, labels = color_data$rank2, trans = "reverse") + 
+  scale_color_identity() +
+  labs(x = "", y = "")
+
+
+dev.off()
+```
+
+
+```{r}
+praise()
+```
