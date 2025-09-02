@@ -27,6 +27,8 @@ A few other places to see TidyTuesday compilations:
 
 ## 2025
 
+* 2025-09-02 <a href = "https://hardin47.github.io/TidyTuesday/2025-09-02/frogs.html" target = "_blank">Australian frogs</a> <a href = "https://hardin47.github.io/TidyTuesday/2025-09-02/frogs.html" target = "_blank"><img src="2025-09-02/frogs.png" alt="Observed Australian frogs broken down by genus and time of year. Each observed frog is represented as a dot on a map of Australia." style="width:100px;"/></a>
+
 
 * 2025-07-08 <a href = "https://hardin47.github.io/TidyTuesday/2025-07-08/xkcd_color.html" target = "_blank">xkcd Color Survey</a> <a href = "https://hardin47.github.io/TidyTuesday/2025-07-08/xkcd_color.html" target = "_blank"><img src="2025-07-08/xkcd_color.png" alt="Five standard colors - purple, green, blue, pink, and brown were given as labels to many thousands of different hues of colors. There is a large range of different colors for each of the standard labelings. The purple label was given to almost 90,000 different hex colors." style="width:100px;"/></a>
 

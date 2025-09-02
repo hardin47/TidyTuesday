@@ -1,0 +1,167 @@
+---
+title: "Australian Frogs"
+author: "Jo Hardin"
+date: "09/02/2025"
+format: html
+execute:
+  warning: false
+  message: false
+---
+
+
+```{r}
+library(tidyverse) # ggplot, lubridate, dplyr, stringr, readr...
+library(praise)
+```
+
+
+## The Data
+
+This week we're exploring 2023 data from the sixth annual release of [FrogID data](https://www.frogid.net.au/explore). 
+
+FrogID is an Australian frog call identification initiative. The FrogID mobile app allows citizen scientists to record and submit frog calls for museum experts to identify. Since 2017, FrogID data has contributed to over 30 scientific papers exploring frog ecology, taxonomy, and conservation.
+
+> Australia is home to a unique and diverse array of frog species found almost nowhere else on Earth, with 257 native species distributed throughout the continent. But Australia’s frogs are in peril – almost one in five species are threatened with extinction due to threats such as climate change, urbanisation, disease, and the spread of invasive species.
+
+```{r}
+frogID_data <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2025/2025-09-02/frogID_data.csv') |> 
+  mutate(month = month(eventDate),
+         season = case_when(
+           month %in% c(12, 1, 2) ~ "winter",
+           month %in% c(3, 4, 5) ~ "spring",
+           month %in% c(6, 7, 8) ~ "summer",
+           month %in% c(9, 10, 11) ~ "fall"
+         ))
+frog_names <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2025/2025-09-02/frog_names.csv')
+
+all_frogs <- frogID_data |>
+  left_join(frog_names, by = "scientificName") |> 
+  mutate(genus = stringr::str_extract(scientificName, "^\\w+"))
+```
+
+
+## New color palette
+
+```{r}
+library(Polychrome)
+
+set.seed(47)
+mycols <- createPalette(26, c("#ff0000", "#00ff00", "#0000ff"))
+
+names(mycols) <- all_frogs |> select(genus) |> unique() |> pull()
+```
+
+
+
+## A map
+
+```{r}
+library(maps)
+australia_map <- map(database = "world", region = "Australia",
+                     plot = FALSE)
+```
+
+
+```{r}
+#| fig-cap: "Citizen science observed frogs in Australia in 2023."
+#| fig-alt: "Observed Australian frogs broken down by genus and time of year. Each observed frog is represented as a dot on a map of Australia."
+
+ggplot(data = australia_map, 
+       aes(x = long, y = lat, group = group)) +
+  geom_polygon(fill = "white", color = "blue") + 
+  geom_point(data = all_frogs,
+             aes(x = decimalLongitude, 
+                 y = decimalLatitude, 
+                 color = genus),
+             size = 1,
+             inherit.aes = FALSE) +
+  theme_minimal() + 
+  theme(
+        panel.background = element_rect(fill = "lightsteelblue"), 
+        panel.grid.major = element_line(color = "lightsteelblue"), 
+        panel.grid.minor = element_line(color = "lightsteelblue2"), 
+        axis.text = element_text(color = "black"),      
+        axis.title = element_text(color = "black") ) +
+  ggtitle("Frogs in Australia") + 
+  facet_wrap(~season) + 
+  labs(x = "", y = "") +
+  scale_color_manual(values = mycols)
+
+```
+
+
+
+```{r}
+#| fig-cap: "Citizen science observed frogs in Australia in 2023."
+#| fig-alt: "Observed Australian frogs broken down by genus and time of year. Each observed frog is represented as a dot on a map of Australia."
+
+library(plotly)
+p <- ggplot(data = australia_map, 
+       aes(x = long, y = lat, group = group)) +
+  geom_polygon(fill = "white", color = "blue") + 
+  geom_point(data = all_frogs,
+             aes(x = decimalLongitude, 
+                 y = decimalLatitude, 
+                 color = genus,
+                 text = paste("common name:", commonName)),
+             size = 1,
+             inherit.aes = FALSE) +
+  theme_minimal() + 
+  theme(
+        panel.background = element_rect(fill = "lightsteelblue"), 
+        panel.grid.major = element_line(color = "lightsteelblue"), 
+        panel.grid.minor = element_line(color = "lightsteelblue2"), 
+        axis.text = element_text(color = "black"),      
+        axis.title = element_text(color = "black") ) +
+  ggtitle("Frogs in Australia") + 
+  facet_wrap(~season) + 
+  labs(x = "", y = "") +
+  scale_color_manual(values = mycols)
+  
+  
+ggplotly(p, tooltip = "genus") 
+```
+
+
+
+
+```{r}
+#| echo: false
+#| include: false
+
+png(filename = "frogs.png", width = 550, height = 450)
+
+ggplot(data = australia_map, 
+       aes(x = long, y = lat, group = group)) +
+  geom_polygon(fill = "white", color = "blue") + 
+  geom_point(data = all_frogs,
+             aes(x = decimalLongitude, 
+                 y = decimalLatitude, 
+                 color = genus),
+             size = 1,
+             inherit.aes = FALSE) +
+  theme_minimal() + 
+  theme(
+        panel.background = element_rect(fill = "lightsteelblue"), 
+        panel.grid.major = element_line(color = "lightsteelblue"), 
+        panel.grid.minor = element_line(color = "lightsteelblue2"), 
+        axis.text = element_text(color = "black"),      
+        axis.title = element_text(color = "black") ) +
+  ggtitle("Frogs in Australia") + 
+  facet_wrap(~season) + 
+  labs(x = "", y = "") +
+  scale_color_manual(values = mycols)
+
+
+dev.off()
+```
+
+
+```{r}
+praise()
+```
+
+
+
+
+
