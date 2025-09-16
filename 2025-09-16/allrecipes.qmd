@@ -18,16 +18,7 @@ fontawesome::fa_html_dependency()
 ```
 
 
-
-```{r}
-sysfonts::font_add_google("MedievalSharp", "MedievalSharp")
-showtext::showtext_auto()
-
-my_font <- "MedievalSharp"
-```
-
-
-```{css, echo=FALSE}
+```{css}
 .star {
   font-size: 16px;
 }
