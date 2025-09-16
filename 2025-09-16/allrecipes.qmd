@@ -1,0 +1,112 @@
+---
+title: "Allrecipes"
+author: "Jo Hardin"
+date: "09/16/2025"
+format: html
+execute:
+  warning: false
+  message: false
+---
+
+
+```{r}
+library(tidyverse) # ggplot, lubridate, dplyr, stringr, readr...
+library(praise)
+library(DT)
+library(fontawesome)
+fontawesome::fa_html_dependency()
+```
+
+
+
+```{r}
+sysfonts::font_add_google("MedievalSharp", "MedievalSharp")
+showtext::showtext_auto()
+
+my_font <- "MedievalSharp"
+```
+
+
+```{css, echo=FALSE}
+.star {
+  font-size: 16px;
+}
+.star.full {
+  color: gold;
+}
+.star.empty {
+  color: lightgray;
+}
+.star.half {
+  background: linear-gradient(90deg, gold 50%, lightgray 50%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+```
+
+
+## The Data
+
+This week we're exploring a curated collection of recipes collected from Allrecipes.com!
+The data this week comes from the [tastyR package](https://cran.r-project.org/package=tastyR) (a dataset assembled from Allrecipes.com) and was prepared for analysis in R. Fields have been cleaned and standardized where possible to make comparisons and visual exploration straightforward.
+
+> A collection of recipe datasets scraped from https://www.allrecipes.com/, containing two complementary datasets: `allrecipes` with 14,426 general recipes, and `cuisines` with 2,218 recipes categorized by country of origin. Both datasets include comprehensive recipe information such as ingredients, nutritional facts (calories, fat, carbs, protein), cooking times (preparation and cooking), ratings, and review metadata. All data has been cleaned and standardized, ready for analysis.
+
+```{r}
+all_recipes <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2025/2025-09-16/all_recipes.csv')
+cuisines <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2025/2025-09-16/cuisines.csv') |> 
+  mutate(name_link = paste0('<a href = "',url,'">',name,'</a>')) |> 
+  rename(cuisine = country) |> 
+  mutate(full = floor(avg_rating + 0.25),
+         half = ifelse((avg_rating + 0.25 - full) >= 0.5, 1, 0),
+         empty = 5 - full - half) |> 
+  mutate(stars = ifelse(is.na(avg_rating), NA,
+                              paste0( 
+    strrep('<span style="color: gold;">&#9733;</span>', full),   # ★
+    strrep('<span style="color: gold;"><i class="fa-solid fa-star-half"></i></span>', half),    # optional placeholder for half
+    strrep('<span style="color: lightgray;">&#9733;</span>', empty) # ☆ in grey
+  
+)))
+```
+
+
+
+## Interactive table
+
+In order to obtain information from the `cuisines` data frame (which contains country information), we set up an interactive data table. You can sort and filter the rows in each of the columns, and you can keep or remove columns as you choose.
+
+```{r}
+cuisines |> 
+  select(name_link, stars, cuisine, calories, fat, carbs,
+         protein, avg_rating, total_ratings, reviews,
+         prep_time, cook_time, total_time, servings) |> 
+  janitor::clean_names(case = "title") |> 
+  DT::datatable(escape = FALSE,
+                class = 'display',
+                extensions = 'Buttons',
+                rownames = FALSE,
+                filter = 'top',
+                options = list(
+                  dom = 'Bfrtip',
+                  buttons = list(
+                    list(extend = 'colvis', 
+                         text = 'select nutritional info',
+                         columns = c(3:6)),
+                    list(extend = 'colvis', 
+                         text = 'select rating info',
+                         columns = c(7:9)),                    
+                    list(extend = 'colvis', 
+                         text = 'select cook info',
+                         columns = c(10:13))  
+                    ),
+                  columnDefs = list(list(visible = FALSE,
+                                         targets = c(3:13)))
+                ))
+```
+
+
+
+```{r}
+praise()
+```
+

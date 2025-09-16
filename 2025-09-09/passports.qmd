@@ -1,0 +1,139 @@
+---
+title: "Henley Passport Index Data"
+author: "Jo Hardin"
+date: "09/09/2025"
+format: html
+execute:
+  warning: false
+  message: false
+---
+
+
+```{r}
+library(tidyverse) # ggplot, lubridate, dplyr, stringr, readr...
+library(praise)
+library(jsonlite)
+library(plotly)
+library(sf)
+library(rnaturalearth)
+library(rnaturalearthdata)
+```
+
+
+## The Data
+
+This week we are exploring data from the [Henley Passport Index API](api.henleypassportindex.com/api/v3/countries). 
+The [Henley Passport Index](https://www.henleyglobal.com/passport-index/about) is produced by Henley & Partners and captures 
+the number of countries to which travelers in possession of each passport in the world may enter visa free. 
+
+```{r}
+country_lists <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2025/2025-09-09/country_lists.csv')
+rank_by_year <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2025/2025-09-09/rank_by_year.csv')
+
+```
+
+
+
+
+```{r}
+travel_perms <- country_lists |> 
+  pivot_longer(
+    cols = c(visa_required, visa_online, visa_on_arrival, 
+             visa_free_access, electronic_travel_authorisation),
+    names_to = "visa_type",
+    values_to = "json_str"
+ ) |> 
+  mutate(
+    json_parsed = map(json_str, ~ fromJSON(.)[[1]])
+) |> 
+  unnest(json_parsed, names_sep = "_") |> 
+  select(-json_str) |> 
+  rename(from = code, from_name = country,
+         to = json_parsed_code, to_name = json_parsed_name) |> 
+  mutate(from = ifelse(from_name == "Namibia", "NA", from)) #|> 
+ #mutate(visa_type = case_when(
+ #  visa_type == "visa_required" ~ "visa_required",
+ #  visa_type == "visa_online" ~ "visa_required",
+ #  visa_type == "visa_on_arrival" ~ "visa_required",
+ #  visa_type == "visa_free_access" ~ "easy_access",
+ #  visa_type == "electronic_travel_authorisation" ~ "easy_access"
+ #)) |> 
+ #  distinct()
+
+travel_perms
+```
+
+Adding the home countries so that they show up on the map.
+
+```{r}
+home_countries <- travel_perms |> 
+  select(from, from_name) |> 
+  distinct() |> 
+  mutate(visa_type = "domestic",
+         to = from,
+         to_name = from_name)
+
+travel_perms <- travel_perms |> rbind(home_countries)
+```
+
+
+
+
+
+
+
+## Plotting
+
+```{r}
+world <- ne_countries(scale = "medium", returnclass = "sf")
+
+world_data <- world |> 
+  left_join(travel_perms, by = c("iso_a2_eh" = "to"))
+
+world_data |> 
+  filter(from == "MX") |> 
+ggplot() +
+  geom_sf(aes(fill = visa_type)) +
+  theme_minimal() + 
+  labs(title = "Visa connections for Mexicans")
+```
+
+
+```{r}
+plot_ly() |> 
+  add_sf(
+    data = world_data |> filter(from == "MX"),
+    split = ~iso_a2_eh,
+    color = ~visa_type,
+    text = ~paste0("Country: ", to_name, "<br>Visa: ", visa_type)#,
+    #hoveron = "fills"
+  ) |> 
+  layout(title = "Visa connections for Mexicans",
+         showlegend = FALSE)
+```
+
+
+
+
+
+```{r}
+#| echo: false
+#| include: false
+
+png(filename = "passports.png", width = 550, height = 450)
+
+world_data |> 
+  filter(from == "MX") |> 
+ggplot() +
+  geom_sf(aes(fill = visa_type)) +
+  theme_minimal() + 
+  labs(title = "Visa connections for Mexicans")
+
+
+dev.off()
+```
+
+
+```{r}
+praise()
+```
