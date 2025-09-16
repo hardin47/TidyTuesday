@@ -19,6 +19,8 @@ fontawesome::fa_html_dependency()
 
 
 ```{css}
+#| echo: fenced
+
 .star {
   font-size: 16px;
 }
