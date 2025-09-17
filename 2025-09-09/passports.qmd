@@ -37,9 +37,11 @@ rank_by_year <- readr::read_csv('https://raw.githubusercontent.com/rfordatascien
 
 ```{r}
 travel_perms <- country_lists |> 
+  janitor::clean_names() %>%
+  setNames(gsub("_", " ", names(.))) |> 
   pivot_longer(
-    cols = c(visa_required, visa_online, visa_on_arrival, 
-             visa_free_access, electronic_travel_authorisation),
+    cols = c(`visa required`, `visa online`, `visa on arrival`, 
+             `visa free access`, `electronic travel authorisation`),
     names_to = "visa_type",
     values_to = "json_str"
  ) |> 
@@ -50,7 +52,7 @@ travel_perms <- country_lists |>
   select(-json_str) |> 
   rename(from = code, from_name = country,
          to = json_parsed_code, to_name = json_parsed_name) |> 
-  mutate(from = ifelse(from_name == "Namibia", "NA", from)) #|> 
+  mutate(from = ifelse(from_name == "Namibia", "NA", from)) 
  #mutate(visa_type = case_when(
  #  visa_type == "visa_required" ~ "visa_required",
  #  visa_type == "visa_online" ~ "visa_required",
@@ -84,7 +86,14 @@ travel_perms <- travel_perms |> rbind(home_countries)
 
 ## Plotting
 
+Would be great to have the plot be interactive so that the type of visa needed for travel is based on any country which is clicked on. Instead, we've created static map with information for Mexican travelers.
+
+The interactive version of the plot (for any country's travel restrictions) is too big for **plotly**. It could be done using a **Shiny** app.
+
 ```{r}
+#| fig.cap: "Each country is filled based on the type of visa needed for Mexican travelers. Note that Mexico is colored differently because domestic travel does not require a visa."
+#| fig.alt: "World map with countries colored according to the type of visa needed for Mexican travelers."
+
 world <- ne_countries(scale = "medium", returnclass = "sf")
 
 world_data <- world |> 
@@ -95,11 +104,15 @@ world_data |>
 ggplot() +
   geom_sf(aes(fill = visa_type)) +
   theme_minimal() + 
-  labs(title = "Visa connections for Mexicans")
+  labs(title = "Visa connections for Mexicans",
+       fill = "visa type")
 ```
 
 
 ```{r}
+#| fig.cap: "Each country is filled based on the type of visa needed for Mexican travelers. Note that Mexico is colored differently because domestic travel does not require a visa."
+#| fig.alt: "World map with countries colored according to the type of visa needed for Mexican travelers."
+
 plot_ly() |> 
   add_sf(
     data = world_data |> filter(from == "MX"),
@@ -127,7 +140,8 @@ world_data |>
 ggplot() +
   geom_sf(aes(fill = visa_type)) +
   theme_minimal() + 
-  labs(title = "Visa connections for Mexicans")
+  labs(title = "Visa connections for Mexicans",
+       fill = "visa type")
 
 
 dev.off()

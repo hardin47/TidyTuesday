@@ -31,7 +31,7 @@ A few other places to see TidyTuesday compilations:
 * 2025-09-16 <a href = "https://hardin47.github.io/TidyTuesday/2025-09-16/allrecipes.html" target = "_blank">Allrecipies</a> <a href = "https://hardin47.github.io/TidyTuesday/2025-09-16/allrecipes.html" target = "_blank"><img src="2025-09-16/allrecipes.jpg" alt="In order to obtain information from the `cuisines` data frame (which contains country information), we set up an interactive data table. You can sort and filter the rows in each of the columns, and you can keep or remove columns as you choose." style="width:100px;"/></a>
 
 
-* 2025-09-09 <a href = "https://hardin47.github.io/TidyTuesday/2025-09-09/passports.html" target = "_blank">Henley Passport Index</a> <a href = "https://hardin47.github.io/TidyTuesday/2025-09-09/passports.html" target = "_blank"><img src="2025-09-09/passports.png" alt="" style="width:100px;"/></a>
+* 2025-09-09 <a href = "https://hardin47.github.io/TidyTuesday/2025-09-09/passports.html" target = "_blank">Henley Passport Index</a> <a href = "https://hardin47.github.io/TidyTuesday/2025-09-09/passports.html" target = "_blank"><img src="2025-09-09/passports.png" alt="World map with countries colored according to the type of visa needed for Mexican travelers." style="width:100px;"/></a>
 
 * 2025-09-02 <a href = "https://hardin47.github.io/TidyTuesday/2025-09-02/frogs.html" target = "_blank">Australian frogs</a> <a href = "https://hardin47.github.io/TidyTuesday/2025-09-02/frogs.html" target = "_blank"><img src="2025-09-02/frogs.png" alt="Observed Australian frogs broken down by genus and time of year. Each observed frog is represented as a dot on a map of Australia." style="width:100px;"/></a>
 
