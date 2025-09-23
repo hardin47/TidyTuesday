@@ -1,0 +1,158 @@
+---
+title: "FIDE Chess Player Ratings"
+author: "Jo Hardin"
+date: "09/23/2025"
+format: html
+execute:
+  warning: false
+  message: false
+---
+
+
+```{r}
+library(tidyverse) # ggplot, lubridate, dplyr, stringr, readr...
+library(praise)
+library(DT)
+library(fontawesome)
+fontawesome::fa_html_dependency()
+```
+
+
+
+```{r}
+fide_ratings_august_OG <- read_csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2025/2025-09-23/fide_ratings_august.csv")
+fide_ratings_september_OG <- read_csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2025/2025-09-23/fide_ratings_september.csv")
+
+```
+
+
+```{r}
+fide_ratings_august <- fide_ratings_august_OG |> 
+  #filter(games > 0) |>
+  mutate(level = case_when(title %in% c("GM", "WGM") | wtitle == "WGM" ~ "Grand Master",
+                           title %in% c("IM", "WIM") | wtitle == "WIM" ~ "International Master",
+                           title %in% c("FM", "WFM") | wtitle == "WFM" ~ "Fide Master",
+                           title %in% c("CM", "WCM") | wtitle == "WCM" ~ "Candidate Master",
+                           rating <= 1400 ~ "Beginner",
+                           rating <= 1800 ~ "Intermediate",
+                           TRUE ~ "Advanced")) |> 
+  mutate(level = factor(level, levels = c("Grand Master", "International Master", 
+                           "Fide Master", "Candidate Master", 
+                           "Advanced", "Intermediate",
+                           "Beginner")))
+
+```
+
+
+```{r}
+fide_ratings_august |> 
+  filter(fed %in% c("ESP", "GER", "USA")) |>  
+  ggplot(aes(x = fed, fill = level)) + 
+  geom_bar(position = "dodge")
+```
+
+## Joining August & September
+
+
+```{r}
+fide_ratings <- fide_ratings_august_OG |> 
+  inner_join(fide_ratings_september_OG, by = "id") |> 
+  mutate(level_aug = case_when(title.x %in% c("GM", "WGM") | wtitle.x == "WGM" ~ "Grand Master",
+                           title.x %in% c("IM", "WIM") | wtitle.x == "WIM" ~ "International Master",
+                           title.x %in% c("FM", "WFM") | wtitle.x == "WFM" ~ "Fide Master",
+                           title.x %in% c("CM", "WCM") | wtitle.x == "WCM" ~ "Candidate Master",
+                           rating.x <= 1400 ~ "Beginner",
+                           rating.x <= 1800 ~ "Intermediate",
+                           TRUE ~ "Advanced")) |> 
+  mutate(level_aug = factor(level_aug, levels = c("Grand Master", "International Master", 
+                           "Fide Master", "Candidate Master", 
+                           "Advanced", "Intermediate",
+                           "Beginner"))) |>
+  mutate(level_sep = case_when(title.y %in% c("GM", "WGM") | wtitle.y == "WGM" ~ "Grand Master",
+                           title.y %in% c("IM", "WIM") | wtitle.y == "WIM" ~ "International Master",
+                           title.y %in% c("FM", "WFM") | wtitle.y == "WFM" ~ "Fide Master",
+                           title.y %in% c("CM", "WCM") | wtitle.y == "WCM" ~ "Candidate Master",
+                           rating.y <= 1400 ~ "Beginner",
+                           rating.y <= 1800 ~ "Intermediate",
+                           TRUE ~ "Advanced")) |> 
+  mutate(level_sep = factor(level_sep, levels = c("Grand Master", "International Master", 
+                           "Fide Master", "Candidate Master", 
+                           "Advanced", "Intermediate",
+                           "Beginner"))) |> 
+  mutate(rating_diff = rating.y - rating.x)
+
+```
+
+
+Below are all the people who did not play any games in September or August, yet their rating across the two months changed. No idea why!
+
+```{r}
+#| fig_cap: "Rating changes across August and September for individuals who played zero games in either August or September."
+#| fig_alt: "A scatterplot showing the difference in ratings for players across their level of play. However, the observations have been filtered to only include people who did not play any games in September or August yet their rating across the two months changed."
+
+fide_ratings |> 
+  filter(games.x == 0, games.y == 0, rating_diff != 0) |> 
+  ggplot(aes(x = level_sep, y = rating_diff)) +
+  geom_point(aes(color = fed.x)) + 
+  ggrepel::geom_text_repel(aes(label = name.x), size = 2) + 
+  labs(y = "", 
+       x = "",
+       color = "country",
+       title = "September - August rating", 
+       subtitle = "players with zero games and rating change") + 
+  scale_color_brewer(palette = "Dark2") + 
+  theme_minimal()
+```
+
+Maybe the 35 peopel who changed (but didn't play any games), actually **did** play some games, which weren't recorded. Seems likely to be a recording error.
+
+
+```{r}
+fide_ratings |> 
+  filter(games.x == 0, games.y == 0) |> 
+  mutate(rate0 = ifelse(rating_diff == 0 , "no change", "change")) |>  
+  group_by(rate0) |> 
+  summarize(n())
+```
+
+
+```{r}
+fide_ratings |> 
+  slice_max(order_by = abs(rating_diff), n = 25) |> 
+  select(name.x, rating.x, games.x, rating.y, games.y, title.x, title.y, rating_diff)
+```
+
+
+
+```{r}
+#| echo: false
+#| include: false
+
+png(filename = "chess.png", width = 550, height = 450)
+
+fide_ratings |> 
+  filter(games.x == 0, games.y == 0, rating_diff != 0) |> 
+  ggplot(aes(x = level_sep, y = rating_diff)) +
+  geom_point(aes(color = fed.x)) + 
+  ggrepel::geom_text_repel(aes(label = name.x), size = 2) + 
+  labs(y = "", 
+       x = "",
+       color = "country",
+       title = "September - August rating", 
+       subtitle = "players with zero games and rating change") + 
+  scale_color_brewer(palette = "Dark2") + 
+  theme_minimal()
+
+
+dev.off()
+```
+
+
+```{r}
+praise()
+```
+
+
+
+
+
