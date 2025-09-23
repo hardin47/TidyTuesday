@@ -104,7 +104,7 @@ fide_ratings |>
   theme_minimal()
 ```
 
-Maybe the 35 peopel who changed (but didn't play any games), actually **did** play some games, which weren't recorded. Seems likely to be a recording error.
+Maybe the 35 people who changed (but didn't play any games), actually **did** play some games, which weren't recorded. Seems likely to be a recording error.
 
 
 ```{r}

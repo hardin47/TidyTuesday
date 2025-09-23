@@ -106,7 +106,7 @@ cdc_datasets |>
 
 ```{r}
 #| fig-cap: We study datasets that have been very recently scrubbed from the CDC website (due to President Trump's executive orders). Across the main thematic category of the dataset, we can see which categories were more or less likely to have public data or no statement about the data privacy (NA). 
-#| fig-alt: Consider datasets that have recently been scrubbed from the CDC website due to Presdient Trump's executive orders. The bar chart has category of the data on the x-axis, and the bar is filled with shading for whether the data are non-public, public, public domain, or NA. The majority of datasets are public or NA, and the categories are homogenous with respect to the data privacy statement. The largest number of datasets come from National Notifiable Diseases Surveillance System (whose data do not have privacy labels); the second most datasets come from National Center for Health Statistics (whose data are public).
+#| fig-alt: Consider datasets that have recently been scrubbed from the CDC website due to President Trump's executive orders. The bar chart has category of the data on the x-axis, and the bar is filled with shading for whether the data are non-public, public, public domain, or NA. The majority of datasets are public or NA, and the categories are homogeneous with respect to the data privacy statement. The largest number of datasets come from National Notifiable Diseases Surveillance System (whose data do not have privacy labels); the second most datasets come from National Center for Health Statistics (whose data are public).
 #| fig-width: 11
 #| fig-height: 10
 
