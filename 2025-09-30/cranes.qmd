@@ -1,0 +1,114 @@
+---
+title: "Crane Observations at Lake Hornborgasjön, Sweden"
+author: "Jo Hardin"
+date: "09/30/2025"
+format: html
+execute:
+  warning: false
+  message: false
+---
+
+
+```{r}
+library(tidyverse) # ggplot, lubridate, dplyr, stringr, readr...
+library(praise)
+library(DT)
+library(fontawesome)
+fontawesome::fa_html_dependency()
+```
+
+
+
+## The Data
+
+This week we are exploring [crane observations at Lake Hornborgasjön in Sweden](https://www.hornborga.com/naturen/transtatistik/).
+For more than 30 years, cranes stopping at the Lake Hornborgasjön ('Lake Hornborga') in Västergötland, Sweden have been counted from the 
+[Hornborgasjön field station](https://www.hornborga.com/naturen/tranor/) in the spring and the fall as they pass by during their yearly migration. 
+
+```{r}
+cranes <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2025/2025-09-30/cranes.csv') |> 
+  mutate(year = year(date),
+         md = mdy(paste0(format(date, "%m-%d"), "2000", sep = "-")))
+```
+
+
+There are two migration seasons, one in spring and one in fall. Each of the two migration seasons seems to be getting earlier in the year.
+
+```{r}
+#| fig.cap: "Number of cranes seen at Lake Hornborgasjön, Sweden during each of spring and fall migration. Grey bars indicate that the weather was too poor for data collection."
+#| fig.alt: "Scatterplot with year on the x-axis and day of the year on the y-axis. Each point is colored by the number of cranes observed on that day. There are two migration seasons, one in spring and one in fall. Each of the two migration seasons seems to be getting earlier in the year."
+
+cranes |> 
+  ggplot(aes(x = year, y = md, color = observations)) + 
+  geom_segment(aes(x = year - 0.3, xend = year + 0.3, y = md, yend = md)) +
+  scale_color_gradient(low = "lightyellow", high = "#CC5500") +
+  guides(color = guide_colorbar(
+    direction = "horizontal",   # make it horizontal
+    barwidth = 10,              # horizontal length
+    barheight = 1,               # vertical thickness
+    title.position = "top"
+  )) +
+  theme_minimal() + 
+  theme(panel.grid.minor.y = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        panel.grid.major.y = element_line(linetype = "dashed"),
+        panel.grid.major.x = element_line(linetype = "solid"),
+        legend.position = c(0.77, 0.5))+
+  labs(x = "", y = "", color = "number of cranes observed") + 
+  scale_y_date(
+    breaks = ymd(c("2000-03-01", "2000-04-01", "2000-05-01",
+                   "2000-06-01", "2000-07-01", "2000-08-01",
+                   "2000-09-01", "2000-10-01", "2000-11-01")),
+    date_labels = "%b"  # Jan, Apr, Jul, Oct
+  ) +
+  scale_x_continuous(breaks = seq(1995, 2025, by = 5))
+
+```
+
+
+
+```{r}
+#| echo: false
+#| include: false
+
+png(filename = "cranes.png", width = 550, height = 450)
+
+cranes |> 
+  ggplot(aes(x = year, y = md, color = observations)) + 
+  geom_segment(aes(x = year - 0.3, xend = year + 0.3, y = md, yend = md)) +
+  scale_color_gradient(low = "lightyellow", high = "#CC5500") +
+  guides(color = guide_colorbar(
+    direction = "horizontal",   # make it horizontal
+    barwidth = 10,              # horizontal length
+    barheight = 1,               # vertical thickness
+    title.position = "top"
+  )) +
+  theme_minimal() + 
+  theme(panel.grid.minor.y = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        panel.grid.major.y = element_line(linetype = "dashed"),
+        panel.grid.major.x = element_line(linetype = "solid"),
+        legend.position = c(0.77, 0.5))+
+  labs(x = "", y = "", color = "number of cranes observed") + 
+  scale_y_date(
+    breaks = ymd(c("2000-03-01", "2000-04-01", "2000-05-01",
+                   "2000-06-01", "2000-07-01", "2000-08-01",
+                   "2000-09-01", "2000-10-01", "2000-11-01")),
+    date_labels = "%b"  # Jan, Apr, Jul, Oct
+  ) +
+  scale_x_continuous(breaks = seq(1995, 2025, by = 5))
+
+
+
+dev.off()
+```
+
+
+
+```{r}
+praise()
+```
+
+
+
+

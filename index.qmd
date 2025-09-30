@@ -30,6 +30,8 @@ A few other places to see TidyTuesday compilations:
 ## 2025
 
 
+* 2025-09-30 <a href = "https://hardin47.github.io/TidyTuesday/2025-09-30/cranes.html" target = "_blank">Crane Observations at Lake Hornborgasjön, Sweden</a> <a href = "https://hardin47.github.io/TidyTuesday/2025-09-30/cranes.html" target = "_blank"><img src="2025-09-30/cranes.png" alt="Scatterplot with year on the x-axis and day of the year on the y-axis. Each point is colored by the number of cranes observed on that day. There are two migration seasons, one in spring and one in fall. Each of the two migration seasons seems to be getting earlier in the year." style="width:100px;"/></a>
+
 * 2025-09-23 <a href = "https://hardin47.github.io/TidyTuesday/2025-09-23/chess.html" target = "_blank">FIDE Chess Player Ratings</a> <a href = "https://hardin47.github.io/TidyTuesday/2025-09-23/chess.html" target = "_blank"><img src="2025-09-23/chess.png" alt="A scatterplot showing the difference in ratings for players across their level of play. However, the observations have been filtered to only include people who did not play any games in September or August yet their rating across the two months changed." style="width:100px;"/></a>
 
 * 2025-09-16 <a href = "https://hardin47.github.io/TidyTuesday/2025-09-16/allrecipes.html" target = "_blank">Allrecipies</a> <a href = "https://hardin47.github.io/TidyTuesday/2025-09-16/allrecipes.html" target = "_blank"><img src="2025-09-16/allrecipes.jpg" alt="In order to obtain information from the `cuisines` data frame (which contains country information), we set up an interactive data table. You can sort and filter the rows in each of the columns, and you can keep or remove columns as you choose." style="width:100px;"/></a>
