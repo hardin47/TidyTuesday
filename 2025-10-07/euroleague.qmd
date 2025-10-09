@@ -1,0 +1,151 @@
+---
+title: "EuroLeague Basketball"
+author: "Jo Hardin"
+format: 
+  html:
+    embed-resources: true
+execute:
+  warning: false
+  message: false
+---
+
+
+```{r}
+library(tidyverse) # ggplot, lubridate, dplyr, stringr, readr...
+library(praise)
+library(DT)
+library(fontawesome)
+fontawesome::fa_html_dependency()
+```
+
+This week we’re exploring **EuroLeague Basketball**, the premier men’s club basketball competition in Europe.  
+
+The dataset contains information on EuroLeague teams, including their country, home city, arena, seating capacity, and historical performance (Final Four appearances and titles won).  
+
+The dataset is curated from publicly available sources such as Wikipedia and official EuroLeague records, and was packaged in the [EuroleagueBasketball R package](https://github.com/natanast/EuroleagueBasketball), with documentation available at [natanast.github.io/EuroleagueBasketball](https://natanast.github.io/EuroleagueBasketball/).
+
+> "The EuroLeague is the top-tier European professional basketball club competition, widely regarded as the most prestigious competition in European basketball." — EuroLeague
+
+
+## The Data
+
+```{r}
+euroleague_basketball <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2025/2025-10-07/euroleague_basketball.csv') |> 
+  mutate(capacity = str_split(Capacity, ", ")) |> 
+  unnest(capacity) |> 
+  mutate(capacity = as.numeric(str_replace_all(capacity, ",", ""))) |> 
+  mutate(lastrank = as.numeric(str_extract(`Last season`, "\\d+")),
+         lastrank = ifelse(is.na(lastrank), 20, lastrank)) |> 
+  select(Team, Country, capacity, lastrank, FinalFour_Appearances, Titles_Won, everything())
+```
+
+
+
+##
+
+```{r}
+library(GGally)
+
+ggparcoord(data = euroleague_basketball, 
+           columns = 3:6,
+           alphaLines = 1,
+           groupColumn = 2,
+           scale = "uniminmax") + 
+  scale_x_discrete(labels = colnames(euroleague_basketball)[3:6])
+```
+
+
+
+
+```{r}
+#| fig.alt: 'Parallel coordinate plot comparing EuroLeague basketball teams. The variables shown are team, country, stadium capacity, 2024-2025 rank, number of final four appearances, and number of titles won. There are a few Greek teams and Spanish teams which seem to have dominated the league in the past few decades.'
+#| fig.cap: 'The two Greek teams Panathinaikos and Olympiacos seem to dominate the basketball EuroLeauge. Panathinaikos and Dubai Basketball have the biggest stadiums.'
+
+library(plotly)
+
+euro_plot_data <- euroleague_basketball[,1:6] |> 
+  mutate(country_id = as.numeric(factor(Country)),
+         team_id = as.numeric(factor(Team))) 
+
+
+euro_plot_data |> 
+plot_ly(
+  type = 'parcoords',
+  line = list(color = ~country_id,
+              colorscale = 'Rainbow'),
+  dimensions = list(
+    list(label = "Team", values = ~team_id,
+         tickvals = unique(euro_plot_data$team_id),
+         ticktext = unique(euro_plot_data$Team)),
+    list(label = "Country", values = ~country_id,
+         tickvals = unique(euro_plot_data$country_id),
+         ticktext = unique(euro_plot_data$Country)),
+    list(label = "Capacity",  values = ~capacity),
+    list(label = "2024-2025 Rank", values = ~lastrank,
+         range = c(max(euro_plot_data$lastrank, na.rm = TRUE),
+                   min(euro_plot_data$lastrank, na.rm = TRUE))),
+    list(label = "FinalFour", values = ~FinalFour_Appearances),
+    list(label = "Titles",  values = ~Titles_Won)
+  )
+) |> 
+layout(autosize = FALSE, width = 750, height = 400,
+       margin = list(
+        l = 150,  # Left margin
+        r = 50,   # Right margin (optional)
+        b = 80,   # Bottom margin (optional)
+        t = 120   # Top margin (optional)
+      ),
+      title = "EuroLeague Outcomes")
+
+
+
+```
+
+```{r}
+#| echo: false
+#| include: false
+
+library(htmlwidgets)
+library(webshot2)
+
+
+p<- euro_plot_data |> 
+plot_ly(
+  type = 'parcoords',
+  line = list(color = ~country_id,
+              colorscale = 'Rainbow'),
+  dimensions = list(
+    list(label = "Team", values = ~team_id,
+         tickvals = unique(euro_plot_data$team_id),
+         ticktext = unique(euro_plot_data$Team)),
+    list(label = "Country", values = ~country_id,
+         tickvals = unique(euro_plot_data$country_id),
+         ticktext = unique(euro_plot_data$Country)),
+    list(label = "Capacity",  values = ~capacity),
+    list(label = "2024-2025 Rank", values = ~lastrank,
+         range = c(max(euro_plot_data$lastrank, na.rm = TRUE),
+                   min(euro_plot_data$lastrank, na.rm = TRUE))),
+    list(label = "FinalFour", values = ~FinalFour_Appearances),
+    list(label = "Titles",  values = ~Titles_Won)
+  )
+) |> 
+layout(autosize = FALSE, width = 750, height = 400,
+       margin = list(
+        l = 150,  # Left margin
+        r = 50,   # Right margin (optional)
+        b = 80,   # Bottom margin (optional)
+        t = 120   # Top margin (optional)
+      ),
+      title = "EuroLeague Outcomes") 
+
+saveWidget(p, "euroleague_thumbnail.html")
+webshot("euroleague_thumbnail.html", file = "euroleague.png", vwidth = 750, vheight = 400)
+
+```
+
+
+
+```{r}
+praise()
+```
+

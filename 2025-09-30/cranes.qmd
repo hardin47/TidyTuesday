@@ -2,10 +2,13 @@
 title: "Crane Observations at Lake Hornborgasjön, Sweden"
 author: "Jo Hardin"
 date: "09/30/2025"
-format: html
+format: 
+  html:
+    embed-resources: true
 execute:
   warning: false
   message: false
+  
 ---
 
 
