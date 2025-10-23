@@ -29,6 +29,9 @@ A few other places to see TidyTuesday compilations:
 
 ## 2025
 
+* 2025-10-21 <a href = "https://hardin47.github.io/TidyTuesday/2025-10-21/climate.html" target = "_blank">UK Meteorological & Climate Datal</a> <a href = "https://hardin47.github.io/TidyTuesday/2025-10-21/climate.html" target = "_blank"><img src="2025-10-21/climate.png" alt="High temperatures recorded for each month and each year since about 2000 in Aberporth. The values are presented in a spiral so that we can see how the temperature changes across year while keeping month constant. There are slighlty higher temperatures in recent years across each month." style="width:100px;"/></a>
+
+
 * 2025-10-07 <a href = "https://hardin47.github.io/TidyTuesday/2025-10-07/euroleague.html" target = "_blank">EuroLeague Basketball</a> <a href = "https://hardin47.github.io/TidyTuesday/2025-10-07/euroleague.html" target = "_blank"><img src="2025-10-07/euroleague.png" alt="Parallel coordinate plot comparing EuroLeague basketball teams. The variables shown are team, country, stadium capacity, 2024-2025 rank, number of final four appearances, and number of titles won. There are a few Greek teams and Spanish teams which seem to have dominated the league in the past few decades." style="width:100px;"/></a>
 
 * 2025-09-30 <a href = "https://hardin47.github.io/TidyTuesday/2025-09-30/cranes.html" target = "_blank">Crane Observations at Lake Hornborgasjön, Sweden</a> <a href = "https://hardin47.github.io/TidyTuesday/2025-09-30/cranes.html" target = "_blank"><img src="2025-09-30/cranes.png" alt="Scatterplot with year on the x-axis and day of the year on the y-axis. Each point is colored by the number of cranes observed on that day. There are two migration seasons, one in spring and one in fall. Each of the two migration seasons seems to be getting earlier in the year." style="width:100px;"/></a>

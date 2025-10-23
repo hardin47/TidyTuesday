@@ -4,7 +4,7 @@ author: "Jo Hardin"
 format: 
   html:
     embed-resources: true
-runtime: shiny
+    code-fold: true
 execute:
   warning: false
   message: false
@@ -50,28 +50,13 @@ station_meta <- readr::read_csv('https://raw.githubusercontent.com/rfordatascien
 ```
 
 
+## Spiral plot
+
+For each month of each year, we can plot the amount of rain or sun or temperature. Notice that amount of sun hasn't changed much over the years, but rain and temperature have. That is, the darkest arc for high and low temperature in any piece of pie is toward the later years. Rain is sort of all over the place, it doesn't really show that rain is necessarily decreasing (or increasing).
 
 
+### High temperature (in Aberporth)
 
-```{r}
-historic_station_met |> 
-  filter(station == "aberporth") |> 
-  filter(year >= 2000) |> 
-  mutate(date = ymd(paste(year, month, "01", sep = "-")),
-         day_of_year = yday(date),
-         # Handle December specially - extend to end of year instead of next year
-         ymd_month = if_else(month == 12, 
-                             ymd(paste(year, "12", "31", sep = "-")),
-                             date %m+% months(1)),
-         day_month = yday(ymd_month)) |> 
-  ggplot() +
-  geom_segment(aes(x = day_of_year, xend = day_month, 
-                   y = date, yend = ymd_month, color = rain), linewidth = 2) +
-  #scale_color_gradient(low = "white", high = "darkblue") +
-  scale_color_gradient2("BlPu") + 
-  coord_polar() + 
-  theme_void()
-```
 
 
 ```{r}
@@ -89,9 +74,126 @@ year_annotations <- list(
 ```
 
 ```{r}
+#| fig.alt: "High temperatures recorded for each month and each year since about 2000 in Aberporth. The values are presented in a spiral so that we can see how the temperature changes across year while keeping month constant. There are slighlty higher temperatures in recent years across each month."
+
 historic_station_met |> 
   filter(station == "aberporth") |> 
-  #filter(year == 2000) |> 
+  filter(year >= 2000) |> 
+  mutate(date = ymd(paste(year, month, "01", sep = "-")),
+         day_of_year = yday(date),
+         # Handle December specially - extend to end of year instead of next year
+         ymd_month = if_else(month == 12, 
+                             ymd(paste(year, "12", "31", sep = "-")),
+                             date %m+% months(1)),
+         day_month = yday(ymd_month)) |> 
+  ggplot() +
+  geom_segment(aes(x = day_of_year, xend = day_month, 
+                   y = date, yend = ymd_month, color = tmax), linewidth = 2) +
+  scale_color_gradient(low = "white", high = "darkgreen") +
+  annotate("text", 
+           label = paste0(year_annotations$year, "\u2192"), 
+           x = year_annotations$x, 
+           y = year_annotations$y, 
+           family = "Arial",
+           size = 2, hjust = c(1.1, 1.2, 1.3, 1.4)) +#, hjust = 0.15) +
+
+  coord_polar() + 
+  theme_void() +
+  scale_x_continuous(minor_breaks = month_breaks, 
+                     breaks = month_breaks[c(3, 6, 9, 12)],
+                     labels = c("March", "June", "Sep.", "Dec.")) +
+  theme(
+    plot.background = element_rect(color = NA, fill = "white"),
+    panel.grid.major.x = element_line(color = "grey", size = .5, linetype = "dotted"),
+    panel.grid.minor.x = element_line(color = "grey", size = .5, linetype = "dotted"),
+    axis.text.x = element_text(color = base_grey, size = 10)
+  ) + 
+  labs(title = "High temperature (in Aberporth)")
+```
+
+### Low temperature (in Aberporth)
+
+```{r}
+historic_station_met |> 
+  filter(station == "aberporth") |> 
+  filter(year >= 2000) |> 
+  mutate(date = ymd(paste(year, month, "01", sep = "-")),
+         day_of_year = yday(date),
+         # Handle December specially - extend to end of year instead of next year
+         ymd_month = if_else(month == 12, 
+                             ymd(paste(year, "12", "31", sep = "-")),
+                             date %m+% months(1)),
+         day_month = yday(ymd_month)) |> 
+  ggplot() +
+  geom_segment(aes(x = day_of_year, xend = day_month, 
+                   y = date, yend = ymd_month, color = tmin), linewidth = 2) +
+  scale_color_gradient(low = "white", high = "maroon") +
+  annotate("text", 
+           label = paste0(year_annotations$year, "\u2192"), 
+           x = year_annotations$x, 
+           y = year_annotations$y, 
+           family = "Arial",
+           size = 2, hjust = c(1.1, 1.2, 1.3, 1.4)) +#, hjust = 0.15) +
+
+  coord_polar() + 
+  theme_void() +
+  scale_x_continuous(minor_breaks = month_breaks, 
+                     breaks = month_breaks[c(3, 6, 9, 12)],
+                     labels = c("March", "June", "Sep.", "Dec.")) +
+  theme(
+    plot.background = element_rect(color = NA, fill = "white"),
+    panel.grid.major.x = element_line(color = "grey", size = .5, linetype = "dotted"),
+    panel.grid.minor.x = element_line(color = "grey", size = .5, linetype = "dotted"),
+    axis.text.x = element_text(color = base_grey, size = 10)
+  ) + 
+  labs(title = "Low temperature (in Aberporth)")
+```
+
+
+
+### Rain (in Aberporth)
+
+```{r}
+historic_station_met |> 
+  filter(station == "aberporth") |> 
+  filter(year >= 2000) |> 
+  mutate(date = ymd(paste(year, month, "01", sep = "-")),
+         day_of_year = yday(date),
+         # Handle December specially - extend to end of year instead of next year
+         ymd_month = if_else(month == 12, 
+                             ymd(paste(year, "12", "31", sep = "-")),
+                             date %m+% months(1)),
+         day_month = yday(ymd_month)) |> 
+  ggplot() +
+  geom_segment(aes(x = day_of_year, xend = day_month, 
+                   y = date, yend = ymd_month, color = rain), linewidth = 2) +
+  scale_color_gradient(low = "white", high = "darkblue") +
+  annotate("text", 
+           label = paste0(year_annotations$year, "\u2192"), 
+           x = year_annotations$x, 
+           y = year_annotations$y, 
+           family = "Arial",
+           size = 2, hjust = c(1.1, 1.2, 1.3, 1.4)) +#, hjust = 0.15) +
+
+  coord_polar() + 
+  theme_void() +
+  scale_x_continuous(minor_breaks = month_breaks, 
+                     breaks = month_breaks[c(3, 6, 9, 12)],
+                     labels = c("March", "June", "Sep.", "Dec.")) +
+  theme(
+    plot.background = element_rect(color = NA, fill = "white"),
+    panel.grid.major.x = element_line(color = "grey", size = .5, linetype = "dotted"),
+    panel.grid.minor.x = element_line(color = "grey", size = .5, linetype = "dotted"),
+    axis.text.x = element_text(color = base_grey, size = 10)
+  ) + 
+  labs(title = "Rain (in Aberporth)")
+```
+
+
+
+```{r}
+historic_station_met |> 
+  filter(station == "aberporth") |> 
   mutate(date = ymd(paste(year, month, "01", sep = "-")),
          day_of_year = yday(date),
          # Handle December specially - extend to end of year instead of next year
@@ -119,178 +221,59 @@ historic_station_met |>
     panel.grid.major.x = element_line(color = "grey", size = .5, linetype = "dotted"),
     panel.grid.minor.x = element_line(color = "grey", size = .5, linetype = "dotted"),
     axis.text.x = element_text(color = base_grey, size = 10)
-  )
+  ) + 
+  labs(title = "Sun (in Aberporth)")
 ```
 
-
-```{r}
-#| eval: false
-data <- historic_station_met
-categories <- levels(as.factor(historic_station_met$station))
-
-# Create one ggplotly trace per category
-plots <- lapply(categories, function(cat) {
-  df_cat <- historic_station_met |> 
-  #filter(station == as.character(cat)) |> 
-  filter(station == "aberporth") |> 
-  mutate(date = ymd(paste(year, month, "01", sep = "-")),
-         day_of_year = yday(date),
-         ymd_month = if_else(month == 12, 
-                             ymd(paste(year, "12", "31", sep = "-")),
-                             date %m+% months(1)),
-         day_month = yday(ymd_month)) 
-
-  p_cat <- ggplot(df_cat) +
-  geom_segment(aes(x = day_of_year, xend = day_month, 
-                   y = as.numeric(date), yend = as.numeric(ymd_month), color = sun), linewidth = 2) +
-  scale_color_gradient(low = "yellow", high = "red", na.value = "white") +
-  coord_polar() + 
-  theme_void() +
-  #scale_x_continuous(minor_breaks = month_breaks, 
-  #                   breaks = month_breaks[c(3, 6, 9, 12)],
-  #                   labels = c("March", "June", "Sep.", "Dec.")) +
-  theme(
-    plot.background = element_rect(color = NA, fill = "white"),
-    panel.grid.major.x = element_line(color = "grey", size = .5, linetype = "dotted"),
-    panel.grid.minor.x = element_line(color = "grey", size = .5, linetype = "dotted"),
-    axis.text.x = element_text(color = base_grey, size = 10)
-  )
-   ggplotly(p_cat)
-})
-```
-
-```{r}
-#| eval: false
-
-# Extract traces (plotly objects can be lists of traces)
-all_traces <- sapply(plots, function(x) x$x$data)
-all_traces <- unlist(all_traces, recursive = FALSE)
-
-# Create initial figure with all traces
-fig <- plotly::plot_ly()
-for (tr in all_traces) fig$x$data <- append(fig$x$data, list(tr))
-
-# Define visibility (only the first category visible)
-visible_list <- rep(FALSE, length(all_traces))
-visible_list[1:length(plots[[1]]$x$data)] <- TRUE
-
-fig <- fig |>
-  layout(
-    updatemenus = list(list(
-      buttons = lapply(seq_along(categories), function(i) {
-        vis <- rep(FALSE, length(all_traces))
-        trace_counts <- vapply(plots, function(x) length(x$x$data), numeric(1))
-        start_idx <- sum(trace_counts[seq_len(i - 1)]) + 1
-        end_idx <- sum(trace_counts[seq_len(i)])
-        idx <- seq(start_idx, end_idx)
-        vis[idx] <- TRUE
-        list(
-          method = "update",
-          args = list(list(visible = vis)),
-          label = as.character(categories[i])
-        )
-      }),
-      direction = "down",
-      x = 0.1, y = 1.15
-    ))
-  )
-
-
-fig
-```
-
-
-
-
-```{r}
-#| eval: false
-
-library(ggplot2)
-library(plotly)
-library(dplyr)
-library(lubridate)
-
-df_cat <- historic_station_met |> 
-  filter(station == "aberporth") |> 
-  mutate(
-    date = ymd(paste(year, month, "01", sep = "-")),
-    day_of_year = yday(date),
-    ymd_month = if_else(
-      month == 12, 
-      ymd(paste(year, "12", "31", sep = "-")),
-      date %m+% months(1)
-    ),
-    day_month = yday(ymd_month)
-  )
-
-p_cat <- ggplot(df_cat) +
-  geom_segment(aes(x = day_of_year, xend = day_month, 
-                   y = date, yend = ymd_month, color = sun), linewidth = 2) +
-  scale_color_gradient(low = "yellow", high = "red", na.value = "white") +
-  coord_polar() + 
-  theme_void() +
-  theme(
-    plot.background = element_rect(color = NA, fill = "white"),
-    panel.grid.major.x = element_line(color = "grey", size = .5, linetype = "dotted"),
-    panel.grid.minor.x = element_line(color = "grey", size = .5, linetype = "dotted"),
-    axis.text.x = element_text(color = base_grey, size = 10)
-  )
-
-ggplotly(p_cat)
-
-```
-
-
-```{r}
-selectInput(
-inputId = "station",
-label = "Choose station:",
-choices = unique(historic_station_met$station)
-)
-
-
-renderPlot({
-df_cat <- historic_station_met %>%
-filter(station == input$station) %>%
-mutate(
-date = ymd(paste(year, month, "01", sep = "-")),
-day_of_year = yday(date),
-ymd_month = if_else(
-month == 12,
-ymd(paste(year, "12", "31", sep = "-")),
-date %m+% months(1)
-),
-day_month = yday(ymd_month)
-)
-
-ggplot(df_cat) +
-geom_segment(
-aes(
-x = day_of_year, xend = day_month,
-y = as.numeric(date), yend = as.numeric(ymd_month),
-color = sun
-),
-linewidth = 2
-) +
-scale_color_gradient(low = "yellow", high = "red", na.value = "white") +
-coord_polar() +
-theme_void() +
-theme(
-plot.background = element_rect(color = NA, fill = "white"),
-panel.grid.major.x = element_line(color = "grey", size = 0.5, linetype = "dotted"),
-panel.grid.minor.x = element_line(color = "grey", size = 0.5, linetype = "dotted"),
-axis.text.x = element_text(color = base_grey, size = 10)
-)
-})
-
-
-
-```
-
-
+Sadly, plotly won't work with `coord_polar()`. So we can't create a pulldown menu for the station. We could if we used shiny, but that isn't in the cards for today. 
 
 ```{r}
 praise()
+```
+
+
+```{r}
+#| echo: false
+#| include: false
+
+png(filename = "climate.png", width = 550, height = 450)
+
+historic_station_met |> 
+  filter(station == "aberporth") |> 
+  filter(year >= 2000) |> 
+  mutate(date = ymd(paste(year, month, "01", sep = "-")),
+         day_of_year = yday(date),
+         # Handle December specially - extend to end of year instead of next year
+         ymd_month = if_else(month == 12, 
+                             ymd(paste(year, "12", "31", sep = "-")),
+                             date %m+% months(1)),
+         day_month = yday(ymd_month)) |> 
+  ggplot() +
+  geom_segment(aes(x = day_of_year, xend = day_month, 
+                   y = date, yend = ymd_month, color = tmax), linewidth = 2) +
+  scale_color_gradient(low = "white", high = "darkgreen") +
+  annotate("text", 
+           label = paste0(year_annotations$year, "\u2192"), 
+           x = year_annotations$x, 
+           y = year_annotations$y, 
+           family = "Arial",
+           size = 2, hjust = c(1.1, 1.2, 1.3, 1.4)) +#, hjust = 0.15) +
+
+  coord_polar() + 
+  theme_void() +
+  scale_x_continuous(minor_breaks = month_breaks, 
+                     breaks = month_breaks[c(3, 6, 9, 12)],
+                     labels = c("March", "June", "Sep.", "Dec.")) +
+  theme(
+    plot.background = element_rect(color = NA, fill = "white"),
+    panel.grid.major.x = element_line(color = "grey", size = .5, linetype = "dotted"),
+    panel.grid.minor.x = element_line(color = "grey", size = .5, linetype = "dotted"),
+    axis.text.x = element_text(color = base_grey, size = 10)
+  ) + 
+  labs(title = "High temperature (in Aberporth)")
+
+
+dev.off()
 ```
 
 
