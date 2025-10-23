@@ -225,7 +225,7 @@ historic_station_met |>
   labs(title = "Sun (in Aberporth)")
 ```
 
-Sadly, plotly won't work with `coord_polar()`. So we can't create a pulldown menu for the station. We could if we used shiny, but that isn't in the cards for today. 
+Sadly, plotly won't work with `coord_polar()`. So we can't create a pull down menu for the station. We could if we used shiny, but that isn't in the cards for today. 
 
 ```{r}
 praise()
