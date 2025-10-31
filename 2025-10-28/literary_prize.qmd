@@ -1,0 +1,260 @@
+---
+title: "Selected British Literary Prizes"
+author: "Jo Hardin"
+format: 
+  html:
+    embed-resources: true
+    code-fold: true
+execute:
+  warning: false
+  message: false
+---
+
+
+```{r}
+library(tidyverse) # ggplot, lubridate, dplyr, stringr, readr...
+library(praise)
+library(ggsankey)
+library(patchwork)
+```
+
+
+## The Data
+
+This week we are exploring data related to the Selected British Literary Prizes (1990-2022) dataset which comes from the [Post45 Data Collective](https://data.post45.org/posts/british-literary-prizes/). 
+
+> "This dataset contains primary categories of information on individual authors comprising gender, sexuality, UK residency, ethnicity, geography and details of educational background, 
+> including institutions where the authors acquired their degrees and their fields of study. Along with other similar projects, we aim to provide information to assess the cultural, 
+> social and political factors determining literary prestige. Our goal is to contribute to greater transparency in discussions around diversity and equity in literary prize cultures." 
+
+Additional metadata discussion relating to the ethnicity, gender and sexuality, and educational classification variables is [available on the Post45 site](https://data.post45.org/posts/british-literary-prizes/). Follow them on BlueSky at [@post45data.bsky.social](https://bsky.app/profile/post45data.bsky.social), and here on GitHub at [@Post45-Data-Collective](https://github.com/Post45-Data-Collective).
+
+Thank you to [Georgios Karamanis](https://github.com/gkaramanis) for the [dataset suggestion](https://github.com/rfordatascience/tidytuesday/issues/893)!
+
+In relation to ethical considerations, the authors note that...
+
+> "All of the information in this dataset is publicly available. Information about a writer’s location, gender identity, race, ethnicity, or education from scholarly and public sources can be sensitive.
+> The data provided here enables the study of broad patterns and is not intended as definitive."
+
+- In which genres are women, Black, Asian and ethnically diverse writers most likely to be shortlisted and/or awarded?
+- Have prizes improved their record on gender and/or ethnic representation in shortlists and awardees?
+- Is there a connection between specific educational credentials and/or educational institutions and writers’ chances of being shortlisted or winning?
+
+Thank you to [Jen Richmond](https://github.com/jenrichmond) for curating this week's dataset.
+
+
+
+
+```{r}
+prizes <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2025/2025-10-28/prizes.csv') |> 
+  mutate(highest_degree = ifelse(is.na(highest_degree), "unknown", 
+                                 highest_degree)) |> 
+  mutate(highest_degree = forcats::fct_recode(highest_degree,  
+                                 "a none" = "none", "b unknown" = "unknown", 
+                                 "c Diploma" = "Diploma", 
+                                 "d Certificate of Education" = "Certificate of Education", 
+                                 "e Bachelors" = "Bachelors", 
+                                 "f Masters" = "Masters", 
+                                 "g Juris Doctor" = "Juris Doctor", 
+                                 "h MD" = "MD", 
+                                 "i Doctorate" = "Doctorate",
+                                 "j Postgraduate" = "Postgraduate")) |>
+  rename(ethnicity_full = ethnicity,
+         ethnicity = ethnicity_macro,
+         degree = highest_degree)
+```
+
+
+
+
+## Sankey plot
+
+
+```{r}
+booker <- prizes |>  
+  filter(prize_name == "Booker Prize") |> 
+  ggsankey::make_long(gender, ethnicity, degree)
+```
+
+
+
+```{r}
+p1 <- ggplot(booker, aes(x = x, next_x = next_x, 
+                node = node, next_node = next_node, 
+                fill = factor(node), label = node)) +
+  geom_sankey(flow.alpha = 0.6, node.color = "gray30") +
+  geom_sankey_label(size = 3, color = "white", fill = "gray40") +
+  scale_fill_viridis_d() +
+  theme_sankey(base_size = 18) +
+  labs(x = NULL) +
+  theme(legend.position = "none",
+        plot.title = element_text(size = 14)) + 
+  labs(title = "Booker Prize")
+```
+
+
+### Women's Prize for Fiction
+
+
+```{r}
+women_fiction <- prizes |>  
+  filter(prize_name == "Women's Prize for Fiction") |> 
+  ggsankey::make_long(gender, ethnicity, degree)
+```
+
+
+
+```{r}
+
+p2 <- ggplot(women_fiction, aes(x = x, next_x = next_x, 
+                node = node, next_node = next_node, 
+                fill = factor(node), label = node)) +
+  geom_sankey(flow.alpha = 0.6, node.color = "gray30") +
+  geom_sankey_label(size = 3, color = "white", fill = "gray40") +
+  scale_fill_viridis_d() +
+  theme_sankey(base_size = 18) +
+  labs(x = NULL) +
+  theme(legend.position = "none",
+        plot.title = element_text(size = 14)) +
+  labs(title = "Women's Prize for Fiction")
+```
+
+
+### Baillie Gifford Prize for Non-Fiction
+
+
+```{r}
+baillie <- prizes |>  
+  filter(prize_name == "Baillie Gifford Prize for Non-Fiction") |> 
+  ggsankey::make_long(gender, ethnicity, degree)
+```
+
+
+
+```{r}
+
+p3 <- ggplot(baillie, aes(x = x, next_x = next_x, 
+                node = node, next_node = next_node, 
+                fill = factor(node), label = node)) +
+  geom_sankey(flow.alpha = 0.6, node.color = "gray30") +
+  geom_sankey_label(size = 3, color = "white", fill = "gray40") +
+  scale_fill_viridis_d() +
+  theme_sankey(base_size = 18) +
+  labs(x = NULL) +
+  theme(legend.position = "none",
+        plot.title = element_text(size = 14)) +
+  labs(title = "Baillie Gifford Prize \nfor Non-Fiction")
+```
+
+
+
+### Man Booker Prize
+
+
+```{r}
+man_booker <- prizes |>  
+  filter(prize_name == "Man Booker Prize") |> 
+  ggsankey::make_long(gender, ethnicity, degree)
+```
+
+
+
+```{r}
+
+p4 <- ggplot(man_booker, aes(x = x, next_x = next_x, 
+                node = node, next_node = next_node, 
+                fill = factor(node), label = node)) +
+  geom_sankey(flow.alpha = 0.6, node.color = "gray30") +
+  geom_sankey_label(size = 3, color = "white", fill = "gray40") +
+  scale_fill_viridis_d() +
+  theme_sankey(base_size = 18) +
+  labs(x = NULL) +
+  theme(legend.position = "none",
+        plot.title = element_text(size = 14)) +
+  labs(title = "Man Booker Prize")
+```
+
+
+### Gold Dagger
+
+
+```{r}
+gold_dagger <- prizes |>  
+  filter(prize_name == "Gold Dagger") |> 
+  ggsankey::make_long(gender, ethnicity, degree)
+```
+
+```{r}
+
+p5 <- ggplot(gold_dagger, aes(x = x, next_x = next_x, 
+                node = node, next_node = next_node, 
+                fill = factor(node), label = node)) +
+  geom_sankey(flow.alpha = 0.6, node.color = "gray30") +
+  geom_sankey_label(size = 3, color = "white", fill = "gray40") +
+  scale_fill_viridis_d() +
+  theme_sankey(base_size = 18) +
+  labs(x = NULL) +
+  theme(legend.position = "none",
+        plot.title = element_text(size = 14)) +
+  labs(title = "Gold Dagger")
+```
+
+
+### Ted Hughes Award for New Work in Poetry
+
+
+```{r}
+hughes <- prizes |>  
+  filter(prize_name == "Ted Hughes Award for New Work in Poetry") |> 
+  ggsankey::make_long(gender, ethnicity, degree)
+```
+
+```{r}
+
+p6 <- ggplot(hughes, aes(x = x, next_x = next_x, 
+                node = node, next_node = next_node, 
+                fill = factor(node), label = node)) +
+  geom_sankey(flow.alpha = 0.6, node.color = "gray30") +
+  geom_sankey_label(size = 3, color = "white", fill = "gray40") +
+  scale_fill_viridis_d() +
+  theme_sankey(base_size = 18) +
+  labs(x = NULL) +
+  theme(legend.position = "none",
+        plot.title = element_text(size = 14)) +
+  labs(title = "Ted Hughes Award \nfor New Work in Poetry")
+```
+
+
+
+
+
+```{r}
+#| fig.height: 15
+#| fig.alt: Sankey plot showing the breakdown of proportions with respect to gender, ethnicity, and highest degree awarded for six different British literary awards. The awards have different distributions for all the variables, for example the Baillie Gifford Prize for Non-Fiction has a reasonably large proportion of awardees with doctorates.
+#| fig.cap: Sankey plots to show the breakdown of proportions with respect to gender, ethnicity, and highest degree awarded for six different British literary awards.
+
+(p1 + p2) / (p3 + p4) / (p5 + p6)
+```
+
+
+```{r}
+#| echo: false
+#| include: false
+
+png(filename = "literary_prize.png", width = 550, height = 450)
+
+p1
+
+dev.off()
+```
+
+
+```{r}
+praise()
+```
+
+
+
+
+
+

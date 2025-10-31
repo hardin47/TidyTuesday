@@ -29,6 +29,9 @@ A few other places to see TidyTuesday compilations:
 
 ## 2025
 
+* 2025-10-28 <a href = "https://hardin47.github.io/TidyTuesday/2025-10-28/literary_prize.html" target = "_blank">Selected British Literary Prizes</a> <a href = "https://hardin47.github.io/TidyTuesday/2025-10-28/literary_prize.html" target = "_blank"><img src="2025-10-28/literary_prize.png" alt="Sankey plot showing the breakdown of proportions with respect to gender, ethnicity, and highest degree awarded for six different British literary awards. The awards have different distributions for all the variables, for example the Baillie Gifford Prize for Non-Fiction has a reasonably large proportion of awardees with doctorates." style="width:100px;"/></a>
+
+
 * 2025-10-21 <a href = "https://hardin47.github.io/TidyTuesday/2025-10-21/climate.html" target = "_blank">UK Meteorological & Climate Data</a> <a href = "https://hardin47.github.io/TidyTuesday/2025-10-21/climate.html" target = "_blank"><img src="2025-10-21/climate.png" alt="High temperatures recorded for each month and each year since about 2000 in Aberporth. The values are presented in a spiral so that we can see how the temperature changes across year while keeping month constant. There are slighlty higher temperatures in recent years across each month." style="width:100px;"/></a>
 
 
