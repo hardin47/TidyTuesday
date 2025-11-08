@@ -1,6 +1,7 @@
 ---
 title: "Selected British Literary Prizes"
 author: "Jo Hardin"
+date: October 28, 2025
 format: 
   html:
     embed-resources: true

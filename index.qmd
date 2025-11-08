@@ -19,7 +19,7 @@ A few other places to see TidyTuesday compilations:
 
 * Steven Ponce <a href = "https://stevenponce.netlify.app/data_visualizations.html" target = "_blank">Data Visualizations</a>
 
-* Nicola Rennie <a href = "https://github.com/nrennie/tidytuesday" target = "_blank">#TidyTuesday</a>
+* Nicola Rennie <a href = "https://github.com/nrennie/tidytuesday" target = "_blank">#TidyTuesday</a>.  Also, check our her <a href = "https://nrennie.rbind.io/data-science-resources/" target = "_blank">data science resources</a>.
 
 * Carl Börstell <a href = "https://github.com/borstell/tidytuesday/tree/main" target = "_blank">tidytuesday</a>
 
