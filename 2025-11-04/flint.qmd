@@ -30,7 +30,7 @@ This week we are exploring lead levels in water samples collected in Flint, Mich
 
 > The Flint lead data provide a compelling example for introducing students to simple univariate descriptive statistics. In addition, they provide examples for discussion of sampling and data collection, as well as ethical data handling.
 
-The data this week includes samples collected by the Michigan Department of Environment (MDEQ) and data from a citizen science project coordinated by Prof Marc Edwards and colleagues at Virginia Tech. Community-sourced samples were collected after concerns were raised about the MDEQ excluding samples from their data. You can read about the ["murky" story behind this data here](https://academic.oup.com/jrssig/article/14/2/16/7029247).
+The data this week includes samples collected by the Michigan Department of Environmental Quality (MDEQ) and data from a citizen science project coordinated by Prof Marc Edwards and colleagues at Virginia Tech. Community-sourced samples were collected after concerns were raised about the MDEQ excluding samples from their data. You can read about the ["murky" story behind this data here](https://academic.oup.com/jrssig/article/14/2/16/7029247).
 
 ```{r}
 flint_mdeq <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2025/2025-11-04/flint_mdeq.csv')
@@ -101,11 +101,19 @@ p <- ggplot(df2, aes(x = lead.x, y = y)) +
   geom_text(data = labels,
             aes(x = x, y = y, label = label),
             inherit.aes = FALSE) +
+  geom_hline(yintercept = 0) +
   ylim(-3, 12) + 
   xlim(0, 107) + 
+  theme_minimal() +
+  theme(
+    axis.text.y = element_blank(),
+    axis.ticks.y = element_blank(),
+    panel.grid = element_blank(),
+    axis.text.x = element_text(size = 12), margin = margin(b = 10)) +
   transition_manual(frame) +
-  theme_void() 
-
+  labs(title = "Lead measurements in 71 water samples",
+       x = "amount of lead in parts per billion",
+       y = "")
 ```
 
 ```{r}
@@ -246,10 +254,19 @@ p2 <- ggplot(df2.2, aes(x = lead2.x, y = y)) +
   geom_text(data = labels2,
             aes(x = x, y = y, label = label),
             inherit.aes = FALSE) +
+  geom_hline(yintercept = 0) +
   ylim(-3, 12) + 
   xlim(0, 107) + 
+  theme_minimal() +
+  theme(
+    axis.text.y = element_blank(),
+    axis.ticks.y = element_blank(),
+    panel.grid = element_blank(),
+    axis.text.x = element_text(size = 12), margin = margin(b = 10)) +
   transition_manual(frame) +
-  theme_void() 
+  labs(title = "Lead measurements in 69 (altered) water samples",
+       x = "amount of lead in parts per billion",
+       y = "")
 
 ```
 
@@ -326,6 +343,46 @@ window.addEventListener('scroll', () => {
 </script>
 ```
 
+
+
+```{r}
+#| echo: false
+#| include: false
+
+p3 <-  df2 |> 
+  filter(frame == 85) |> 
+  ggplot(aes(x = lead.x, y = y)) +
+  geom_point(color = "steelblue", 
+             size = 7, alpha = 0.4) +
+  geom_segment(data = ref_lines,
+               aes(x = x, xend = xend, y = y, 
+                   yend = yend), 
+               linetype = c(1,2),
+               inherit.aes = FALSE,
+               color = "black")  +
+  geom_text(data = labels,
+            aes(x = x, y = y, label = label),
+            inherit.aes = FALSE) +
+  geom_hline(yintercept = 0) +
+  ylim(-3, 12) + 
+  xlim(0, 107) + 
+  theme_minimal() +
+  theme(
+    axis.text.y = element_blank(),
+    axis.ticks.y = element_blank(),
+    panel.grid = element_blank(),
+    axis.text.x = element_text(size = 12), margin = margin(b = 10)) +
+  labs(title = "Lead measurements in original 71 water samples",
+       x = "amount of lead in parts per billion",
+       y = "")
+
+png(filename = "flint.png", width = 550, height = 450)
+
+p3
+
+dev.off()
+
+```
 
 ```{r}
 praise()
