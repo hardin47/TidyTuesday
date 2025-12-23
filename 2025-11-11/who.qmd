@@ -1,0 +1,101 @@
+---
+title: "WHO TB burden data: incidence, mortality, and population"
+author: "Jo Hardin"
+date: November 11, 2025
+format: 
+  html:
+    embed-resources: true
+    code-fold: true
+execute:
+  warning: false
+  message: false
+---
+
+
+```{r}
+library(tidyverse) # ggplot, lubridate, dplyr, stringr, readr...
+library(praise)
+```
+
+## The Data
+
+
+```{r}
+who_tb_data <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2025/2025-11-11/who_tb_data.csv')
+```
+
+
+```{r}
+who_plot <- who_tb_data |> 
+  group_by(year, g_whoregion) |> 
+    summarise(
+    total_pop = sum(e_pop_num, na.rm = TRUE),
+    total_inc = sum(e_inc_num, na.rm = TRUE),
+    total_mort = sum(e_mort_num, na.rm = TRUE),
+    total_hiv = sum(e_mort_tbhiv_num, na.rm = TRUE)
+  ) |>
+  ungroup() |>
+  mutate(
+    inc100k = 100000 * (total_inc / total_pop),
+    mort100k = 100000 * (total_mort / total_pop),
+    hiv_mort = (total_hiv / total_mort))
+```
+
+
+
+```{r}
+#| fig.cap: "Area plot showing the number of TB cases and deaths per 100K population (left axis). Line plot showing the percent of TB deaths who were HIV positive."
+#| fig.alt: "For each continent, an area plot shows the number of TB cases and deaths per 100K population (left axis), and a line plot shows the percent of TB deaths who were HIV positive, both plots have year on the x-axis. All TB cases and deaths are decreasing over time, but Africa and Southeast-Asia have considerably more cases and deaths than other continents. In Africa, the percent of TB deaths who are HIV positive are decreasing, and in Europe the percent of TB deaths who are HIV positive are increasing. Other continents seem to have a somewhat flat rate of TB deaths who are HIV positive."
+
+library(scales)
+
+scale <- 500
+highlight_col <- "#1A7A89"
+
+who_plot |> 
+  ggplot(aes(x = year))  + 
+  geom_area(aes(y = inc100k, color = "TB cases per 100k"), fill = highlight_col, alpha = 0.3) + 
+  geom_area(aes(y = mort100k, color = "TB deaths per 100k"), fill = highlight_col) + 
+  geom_line(aes(y = hiv_mort*scale, color = "% of TB deaths w HIV+")) + 
+  scale_y_continuous(sec.axis = sec_axis(~./scale, name = "% of TB deaths w HIV",
+                                         labels = scales::percent_format(accuracy = 1))) + 
+  labs(x = "", y = "TB per 100k", color = "") +
+  facet_wrap(~g_whoregion) + 
+  theme_minimal() + 
+  theme(legend.position = "bottom") +
+  scale_color_manual(values = c("black", highlight_col, highlight_col))
+```
+
+
+```{r}
+#| echo: false
+#| include: false
+
+p <- 
+who_plot |> 
+  ggplot(aes(x = year))  + 
+  geom_area(aes(y = inc100k, color = "TB cases per 100k"), fill = highlight_col, alpha = 0.3) + 
+  geom_area(aes(y = mort100k, color = "TB deaths per 100k"), fill = highlight_col) + 
+  geom_line(aes(y = hiv_mort*scale, color = "% of TB deaths w HIV+")) + 
+  scale_y_continuous(sec.axis = sec_axis(~./scale, name = "% of TB deaths w HIV",
+                                         labels = scales::percent_format(accuracy = 1))) + 
+  labs(x = "", y = "TB per 100k", color = "") +
+  facet_wrap(~g_whoregion) + 
+  theme_minimal() + 
+  theme(legend.position = "bottom") +
+  scale_color_manual(values = c("black", highlight_col, highlight_col))
+
+
+png(filename = "who.png", width = 550, height = 450)
+
+p
+
+dev.off()
+
+```
+
+
+```{r}
+praise()
+```
+

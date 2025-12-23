@@ -1,0 +1,119 @@
+---
+title: "Sechselaeuten spring festival"
+author: "Jo Hardin"
+date: December 02, 2025
+format: 
+  html:
+    embed-resources: true
+    code-fold: true
+execute:
+  warning: false
+  message: false
+---
+
+
+```{r}
+library(tidyverse) # ggplot, lubridate, dplyr, stringr, readr...
+library(praise)
+library(tidytext)
+library(rvest)
+```
+
+
+## The Data
+
+### Can an exploding snowman predict the summer season?
+
+This week we're exploring the weather prediction of Zurich's infamous exploding snowman!
+
+> The Boeoegg is a snowman effigy made of cotton wool and stuffed with fireworks, created every year for Zurich's "Sechselaeuten" spring festival. The saying goes that the quicker the Boeoeg's head explodes, the finer the summer will be. 
+
+- Check the burn duration of our snowman against the average summer temperature. Does folk science stand its ground against hard science?
+- Can you find a number of successive years so that our snowman's predictions seem more accurate? 
+- Does our snowman's forecasting ability improve if you choose climate variables other than temperature?
+- What happened in the years for which there was no duration recorded? You can check the Wikipedia entry for "Sechselaeuten" for some funny anecdotes!
+
+Thank you to [Matt](https://github.com/econmaett) for curating this week's dataset.
+
+
+```{r}
+sechselaeuten <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2025/2025-12-02/sechselaeuten.csv') |> 
+  filter(year > 1950)
+
+global <- read_csv("https://www.ncei.noaa.gov/access/monitoring/climate-at-a-glance/global/time-series/globe/land_ocean/tavg/12/0/1923-2025/data.csv", 
+     skip = 3) |> 
+  mutate(year = as.numeric(str_sub(Date, 1, 4)),
+         month = as.numeric(str_sub(Date, 5, 6)))
+```
+
+Using data from <a href = "https://www.ncei.noaa.gov/access/monitoring/climate-at-a-glance/global/time-series/globe/land_ocean/tavg/12/0/1923-2025/" target = "_blank">NOAA</a>, we can find the average global temperature difference (per month) from the 1901-2000 average. The variable `temp` represents the degrees different (in Celsius) from the 1901-2000 average for each of the summers in the Sechselaeuten dataset.
+
+```{r}
+summer <- global |> 
+  filter(month %in% c(7, 8, 9)) |> 
+  group_by(year) |> 
+  summarize(temp = mean(Anomaly))
+
+global_snowman <- sechselaeuten |> 
+  inner_join(summer, by = "year")
+```
+While the lore suggests that the time to explosion might predict the weather in the following summer, it also seems plausible that the temperature might predict the time to explosion. While not a strong predictive model, it does seems as though the variables are correlated.  (I think the average temp is averaged over all months in the year prior???)
+
+```{r}
+#| fig.cap: "Scatterplot of time to The Boeoegg explosion versus average monthly air temp in Zurich."
+#| fig.alt: "Scatterplot of time to The Boeoegg explosion versus average monthly air temp in Zurich. The variables are moderately positively correlated."
+
+global_snowman |> 
+  ggplot(aes(y = duration, x = tre200m0, color = year)) + 
+  geom_text(aes(color = year), label = "snowman", size = 3,
+            family = "Font Awesome 5 Free Solid") +
+  labs(x = "Average monthly air temp, Celsius",
+       y = "Time from ignition until explosion, minutes")
+```
+
+
+Looking at a few more variable relationships:
+
+```{r}
+global_snowman |> 
+  ggplot(aes(x = year, y = duration)) + 
+  geom_point()
+
+global_snowman |> 
+  ggplot(aes(x = temp, y = duration)) + 
+  geom_point() + 
+  labs(x = "")
+
+cor(global_snowman$duration, global_snowman$temp, use = "pairwise.complete.obs")
+cor(global_snowman$duration, global_snowman$year, use = "pairwise.complete.obs")
+cor(global_snowman$duration, global_snowman$tre200m0, use = "pairwise.complete.obs")
+```
+
+
+
+
+```{r}
+#| echo: false
+#| include: false
+
+p <- global_snowman |> 
+  ggplot(aes(y = duration, x = tre200m0, color = year)) + 
+  geom_text(aes(color = year), label = "snowman", size = 3,
+            family = "Font Awesome 5 Free Solid") +
+  labs(x = "Average monthly air temp, Celsius",
+       y = "Time from ignition until explosion, minutes")
+
+png(filename = "snowman.png", width = 550, height = 450)
+
+p
+
+dev.off()
+
+```
+
+
+
+```{r}
+praise()
+```
+

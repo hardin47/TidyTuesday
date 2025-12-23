@@ -19,7 +19,7 @@ A few other places to see TidyTuesday compilations:
 
 * Steven Ponce <a href = "https://stevenponce.netlify.app/data_visualizations.html" target = "_blank">Data Visualizations</a>
 
-* Nicola Rennie <a href = "https://github.com/nrennie/tidytuesday" target = "_blank">#TidyTuesday</a>.  Also, check our her <a href = "https://nrennie.rbind.io/data-science-resources/" target = "_blank">data science resources</a>.
+* Nicola Rennie <a href = "https://github.com/nrennie/tidytuesday" target = "_blank">#TidyTuesday</a>.  Also, check our her <a href = "https://nrennie.rbind.io/data-science-resources/" target = "_blank">data science resources</a>. And she has now created a <a href = "https://nrennie.rbind.io/viz-gallery/" target = "_blank">Data Visualization Gallery</a>. 
 
 * Carl Börstell <a href = "https://github.com/borstell/tidytuesday/tree/main" target = "_blank">tidytuesday</a>
 
@@ -28,6 +28,15 @@ A few other places to see TidyTuesday compilations:
 
 
 ## 2025
+
+* 2025-12-02 <a href = "https://hardin47.github.io/TidyTuesday/2025-12-02/snowman.html" target = "_blank">Sechselaeuten spring festival</a> <a href = "https://hardin47.github.io/TidyTuesday/2025-12-02/snowman.html" target = "_blank"><img src="2025-12-02/snowman.png" alt="Scatterplot of time to The Boeoegg explosion versus average monthly air temp in Zurich. The variables are moderately positively correlated." style="width:100px;"/></a>
+
+* 2025-11-18 <a href = "https://hardin47.github.io/TidyTuesday/2025-11-18/holmes.html" target = "_blank">The Complete Sherlock Holmes</a> <a href = "https://hardin47.github.io/TidyTuesday/2025-11-18/holmes.html" target = "_blank"><img src="2025-11-18/holmes.png" alt="" style="width:100px;"/></a>
+
+* 2025-11-11 <a href = "https://hardin47.github.io/TidyTuesday/2025-11-11/who.html" target = "_blank">WHO TB burden data</a> <a href = "https://hardin47.github.io/TidyTuesday/2025-11-11/who.html" target = "_blank"><img src="2025-11-11/who.png" alt="For each continent, an area plot shows the number of TB cases and deaths per 100K population (left axis), and a line plot shows the percent of TB deaths who were HIV positive, both plots have year on the x-axis. All TB cases and deaths are decreasing over time, but Africa and Southeast-Asia have considerably more cases and deaths than other continents. In Africa, the percent of TB deaths who are HIV positive are decreasing, and in Europe the percent of TB deaths who are HIV positive are increasing. Other continents seem to have a somewhat flat rate of TB deaths who are HIV positive." style="width:100px;"/></a>
+
+* 2025-11-04 <a href = "https://hardin47.github.io/TidyTuesday/2025-11-04/flint.html" target = "_blank">Lead concentration in Flint water samples in 2015</a> <a href = "https://hardin47.github.io/TidyTuesday/2025-11-04/flint.html" target = "_blank"><img src="2025-11-04/flint.png" alt="" style="width:100px;"/></a>
+
 
 * 2025-10-28 <a href = "https://hardin47.github.io/TidyTuesday/2025-10-28/literary_prize.html" target = "_blank">Selected British Literary Prizes</a> <a href = "https://hardin47.github.io/TidyTuesday/2025-10-28/literary_prize.html" target = "_blank"><img src="2025-10-28/literary_prize.png" alt="Sankey plot showing the breakdown of proportions with respect to gender, ethnicity, and highest degree awarded for six different British literary awards. The awards have different distributions for all the variables, for example the Baillie Gifford Prize for Non-Fiction has a reasonably large proportion of awardees with doctorates." style="width:100px;"/></a>
 

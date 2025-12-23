@@ -1,0 +1,140 @@
+---
+title: "The Complete Sherlock Holmes"
+author: "Jo Hardin"
+date: November 18, 2025
+format: 
+  html:
+    embed-resources: true
+    code-fold: false
+execute:
+  warning: false
+  message: false
+---
+
+
+```{r}
+library(tidyverse) # ggplot, lubridate, dplyr, stringr, readr...
+library(praise)
+library(tidytext)
+library(rvest)
+```
+
+
+## The Data
+This week we're exploring the complete line-by-line text of the Sherlock Holmes stories and novels, made available through the {[sherlock](https://github.com/EmilHvitfeldt/sherlock)} R package by Emil Hvitfeldt. The dataset includes the full collection of Holmes texts, organized by book and line number, and is ideal for stylometry, sentiment analysis, and literary exploration.
+
+> "The name is Sherlock Holmes and the address is 221B Baker Street." Holmes is a consulting detective known for his keen observation, logical reasoning, and use of forensic science to solve complex cases. Created by Sir Arthur Conan Doyle, Holmes has become one of the most famous fictional detectives in literature.
+
+- Are there patterns in how Watson narrates versus how Holmes speaks?
+- How does sentence length vary between stories?
+- Can we detect shifts in tone when Watson is the narrator versus when Holmes speaks directly?
+- Does sentiment shift as the mystery unfolds?
+
+Thank you to [Darakhshan Nehal](https://github.com/darakhshannehal) for curating this week's dataset.
+
+
+
+
+
+```{r}
+holmes <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2025/2025-11-18/holmes.csv') |> 
+  mutate(book = tolower(book)) |> 
+  mutate(book = str_squish(book))
+```
+
+
+First we find the dates of each of the Sherlock Holmes texts from Wikipedia.  Using regular expressions, we are able to pull out the dates.
+
+```{r}
+holmes_wiki <- read_html("https://en.wikipedia.org/wiki/Canon_of_Sherlock_Holmes") |> 
+  html_elements("p+ ol li , p+ ol a") |> 
+  html_text() |> 
+  as_tibble() |> 
+  filter(!is.na(str_extract(value, "\\d{4}"))) |> 
+  mutate(date = str_extract(value, "\\d{4}")) |> 
+  mutate(title = str_extract(value, '^"?([^"(]+)"?')) |> 
+  mutate(title = str_replace_all(title, '"', '')) |> 
+  mutate(title = tolower(title)) |> 
+  mutate(title = str_squish(title))
+
+
+holmes <- holmes |> 
+  left_join(holmes_wiki, by = c("book" = "title"))
+```
+
+
+Next we use the AFINN sentiment analysis to identify the sentiment (or sentiments) associated with each line in the text.
+
+```{r}
+
+afinn_sentiments <- tidytext::get_sentiments("afinn") 
+nrc_sentiments <- tidytext::get_sentiments("nrc") |> 
+  filter(sentiment != "positive", sentiment != "negative")
+
+sent_data <- holmes |> 
+  tidytext::unnest_tokens(words, text) |> 
+  anti_join(stop_words, by = c("words" = "word")) |> 
+  left_join(nrc_sentiments, by = c("words" = "word"), relationship = "many-to-many") |> 
+  group_by(date, sentiment) |> 
+  summarize(n = n()) |> 
+  filter(!is.na(sentiment)) |> 
+  mutate(prop = n / sum(n)) |> 
+  mutate(date = as.numeric(date))
+
+```
+
+```{r}
+#| fig.cap: "Sentiment proportion over all lines from books published in a given year."
+#| fig.alt: "We consider each of the following sentiments: anger, anticipation, disgust, fear, joy, sadness, surprise and trust. For each sentiment, the proportion of lines expressing that sentiment is calculated across all of the books in a given year. None of the sentiments seem to decrease or increase much over time. Trust is the highest senitment, and surprise and disgust are the lowest sentiments."
+
+sent_data |> 
+  ggplot(aes(x = date, y = prop)) + 
+  geom_line(aes(color = sentiment)) + 
+  geom_point(aes(color = sentiment)) + 
+  scale_color_brewer(palette = "Dark2") + 
+  geom_vline(xintercept = c(1893, 1903)) + 
+  labs(title = "proportion of each sentiment",
+       y = "", x = "") + 
+  geom_text(label = "Holmes dies", x = 1894, y = 0.22) +
+  geom_text(label = "Holmes resurrected", x = 1904, y = 0.22)
+```
+
+It was too hard to put all the titles on the graph, so we list them here, by date.
+
+```{r}
+holmes |> 
+  distinct(date, book) |> 
+  filter(!is.na(date)) |> 
+  arrange(date) |> 
+  gt::gt()
+```
+
+
+
+```{r}
+#| echo: false
+#| include: false
+
+p <- sent_data |> 
+  ggplot(aes(x = date, y = prop)) + 
+  geom_line(aes(color = sentiment)) + 
+  geom_point(aes(color = sentiment)) + 
+  scale_color_brewer(palette = "Dark2") + 
+  geom_vline(xintercept = c(1893, 1903)) + 
+  labs(title = "proportion of each sentiment",
+       y = "", x = "") + 
+  geom_text(label = "Holmes dies", x = 1894, y = 0.22) +
+  geom_text(label = "Holmes resurrected", x = 1904, y = 0.22)
+
+png(filename = "holmes.png", width = 550, height = 450)
+
+p
+
+dev.off()
+
+```
+
+```{r}
+praise()
+```
+
