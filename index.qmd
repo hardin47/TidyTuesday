@@ -27,6 +27,10 @@ A few other places to see TidyTuesday compilations:
 <br>
 
 
+## 2026
+
+* 2026-01-27 <a href = "https://hardin47.github.io/TidyTuesday/2026-01-27/Brazil_co.html" target = "_blank">Brazilian Companies</a> <a href = "https://hardin47.github.io/TidyTuesday/2026-01-27/Brazil_co.html" target = "_blank"><img src="2026-01-27/Brazil_co.png" alt="A coxcomb plot (which contains the same information as a bar chart) showing 12 different owner qualifications and the 25th, 50th, 75th, 90th, and 95th quantiles for the declared share capital within companies of each owner qualification. Owner qualification of 'director' have companies worth the most, whereas 'owner' companies are worth the least.  The highest value companies are worth close to one trillion Brazilian reals. For those companies with individual owners, the 95th and 99th quantiles are meaningfully different. For those companies with ownership of legal representative, the 95th and 99th quantiles are practically the same." style="width:100px;"/></a>
+
 ## 2025
 
 * 2025-12-02 <a href = "https://hardin47.github.io/TidyTuesday/2025-12-02/snowman.html" target = "_blank">Sechselaeuten spring festival</a> <a href = "https://hardin47.github.io/TidyTuesday/2025-12-02/snowman.html" target = "_blank"><img src="2025-12-02/snowman.png" alt="Scatterplot of time to The Boeoegg explosion versus average monthly air temp in Zurich. The variables are moderately positively correlated." style="width:100px;"/></a>

@@ -1,0 +1,139 @@
+---
+title: "Brazilian Companies"
+author: "Jo Hardin"
+date: January 27, 2025
+format: 
+  html:
+    embed-resources: true
+    code-fold: true
+execute:
+  warning: false
+  message: false
+---
+
+
+```{r}
+library(tidyverse) # ggplot, lubridate, dplyr, stringr, readr...
+library(praise)
+library(tidytext)
+library(rvest)
+```
+
+
+## The Data
+
+This week we’re exploring  **Brazilian Companies**, curated from Brazil’s open **CNPJ (Cadastro Nacional da Pessoa Jurídica)** records published by the **Brazilian Ministry of Finance / Receita Federal** on the national open-data portal ([dados.gov.br](https://dados.gov.br/dados/conjuntos-dados/cadastro-nacional-da-pessoa-juridica---cnpj)).
+
+> The CNPJ open data is a large-scale public registry of Brazilian legal entities. For this dataset, the raw company records were cleaned and enriched with lookup tables (legal nature, owner qualification, and company size), then filtered to retain firms above a share-capital threshold so the analysis focuses on meaningful variation in capital stock.
+
+* Which **legal nature** categories concentrate the highest total and average capital stock?
+* How does **company size** relate to capital stock (and how skewed is it)?
+* Do specific **owner qualification** groups dominate high-capital companies?
+* What patterns emerge when comparing the **top capital-stock tail** across categories (legal nature, size, qualification)?
+
+Thank you to [Marcelo Silva](https://github.com/MarcleoSilva) for curating this week's dataset.
+
+
+```{r}
+companies <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2026/2026-01-27/companies.csv') |> 
+  mutate(owner = case_when(
+    owner_qualification == "Administrator / Manager" ~ "Manager",
+    owner_qualification == "Attorney-in-fact / Legal Representative (Power of Attorney)" ~ "Legal Representative",
+    owner_qualification == "Beneficial Owner (individual) resident or domiciled in Brazil" ~ "Individual Owner",
+    owner_qualification == "Director / Officer" ~ "Director",
+    owner_qualification == "Entrepreneur / Business Owner" ~ "Entrepreneur",
+    owner_qualification == "Executor / Estate Administrator" ~ "Executor",
+    owner_qualification == "Intervenor / Court-appointed Administrator" ~ "Intervenor",
+    owner_qualification == "Judicial Administrator (Court-appointed)" ~ "Judicial",
+    owner_qualification == "Liquidator" ~ "Liquidator",
+    owner_qualification == "Managing Partner / Partner-Administrator" ~ "Partner",
+    owner_qualification == "Ostensible Partner (Managing partner in a silent partnership)" ~ "Ostensible Partner",
+    owner_qualification == "President / Chair" ~ "President",
+    owner_qualification == "Sole Owner of an Individual Real Estate Company" ~ "Owner"
+  ))
+```
+
+# Looking at capital broken down by owner qualification
+
+
+```{r}
+companies |> 
+  group_by(owner_qualification) |> 
+  summarize(n())
+```
+
+
+
+```{r}
+quantile_data <- companies |> 
+  filter(owner_qualification != "Intervenor / Court-appointed Administrator") |> 
+  group_by(owner) |> 
+  mutate(capital_stock = log(capital_stock, 10)) |> 
+  summarize(q25 = quantile(capital_stock, p = 0.25),
+            q50 = quantile(capital_stock, p = 0.50),
+            q75 = quantile(capital_stock, p = 0.75),
+            q95 = quantile(capital_stock, p = 0.95),
+            q99 = quantile(capital_stock, p = 0.99)) |> 
+  mutate(total = q99, q99 = q99 - q95, q95 = q95 - q75, q75 = q75 - q50, q50 = q50 - q25) |> 
+  mutate(owner = forcats::fct_reorder(owner, total, .desc = TRUE)) |> 
+  select(-total) |> 
+  pivot_longer(cols = q25:q99, names_to = "percentile", values_to = "quantile")
+```
+
+The coxcomb plot was fun to make, but it probably would have been better as a bar plot.  We don't get any additional information when transformed into polar coordinates.
+
+```{r}
+#| fig.cap: 'Each piece of pie represents a different owner qualification.  Within the pie, the quantiles of the declared share capital is given in Brazilian reals. Owner qualification of "director" have companies worth the most, whereas "owner" companies are worth the least.  The values of the declared share capital are given in log10 units.'
+#| fig.alt: 'A coxcomb plot (which contains the same information as a bar chart) showing 12 different owner qualifications and the 25th, 50th, 75th, 90th, and 95th quantiles for the declared share capital within companies of each owner qualification. Owner qualification of "director" have companies worth the most, whereas "owner" companies are worth the least.  The highest value companies are worth close to one trillion Brazilian reals. For those companies with individual owners, the 95th and 99th quantiles are meaningfully different. For those companies with ownership of legal representative, the 95th and 99th quantiles are practically the same.'
+
+
+
+brazil_palette <- c("#009739", "#84CC16", "#FFDF00", "#002776", "#4DA6FF")
+
+
+quantile_data |> 
+  mutate(percentile = forcats::fct_rev(percentile)) |> 
+  ggplot(aes(x = owner, y = quantile, fill = percentile)) + 
+  geom_bar(stat = "identity") + 
+  scale_y_continuous(labels = scales::label_math(expr = 10^.x)) +
+  coord_polar() + 
+  scale_fill_manual(values = brazil_palette) + 
+  theme_test() + 
+  labs(x = "", y = "",
+       fill = "Declared Share Capital\n Quantile (Brazilian Real)")
+
+```
+
+
+
+```{r}
+#| echo: false
+#| include: false
+
+p <- quantile_data |> 
+  mutate(percentile = forcats::fct_rev(percentile)) |> 
+  ggplot(aes(x = owner, y = quantile, fill = percentile)) + 
+  geom_bar(stat = "identity") + 
+  scale_y_continuous(labels = scales::label_math(expr = 10^.x)) +
+  coord_polar() + 
+  scale_fill_manual(values = brazil_palette) + 
+  theme_test() + 
+  labs(x = "", y = "",
+       fill = "Declared Share Capital\n Quantile (Brazilian Real)")
+
+
+png(filename = "Brazil_co.png", width = 550, height = 450)
+
+p
+
+dev.off()
+
+```
+
+
+
+```{r}
+praise()
+```
+
+
