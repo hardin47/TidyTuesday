@@ -29,6 +29,8 @@ A few other places to see TidyTuesday compilations:
 
 ## 2026
 
+* 2026-02-03 <a href = "https://hardin47.github.io/TidyTuesday/2026-02-03/edibleplants.html" target = "_blank">Edible Plants</a> <a href = "https://hardin47.github.io/TidyTuesday/2026-02-03/edibleplants.html" target = "_blank"><img src="2026-02-03/edibleplants.png" alt="A mosaic plot to show the proportional breakdown of the three variables sunlight, water, and temperature hardiness from the Edible Plant database. The largest proportion of water use across the plants is medium water use. Very few of the Tender plants have high water use. Only a few of the plants have partial shade as their ideal amount of sunlight." style="width:100px;"/></a>
+
 * 2026-01-27 <a href = "https://hardin47.github.io/TidyTuesday/2026-01-27/Brazil_co.html" target = "_blank">Brazilian Companies</a> <a href = "https://hardin47.github.io/TidyTuesday/2026-01-27/Brazil_co.html" target = "_blank"><img src="2026-01-27/Brazil_co.png" alt="A coxcomb plot (which contains the same information as a bar chart) showing 12 different owner qualifications and the 25th, 50th, 75th, 90th, and 95th quantiles for the declared share capital within companies of each owner qualification. Owner qualification of 'director' have companies worth the most, whereas 'owner' companies are worth the least.  The highest value companies are worth close to one trillion Brazilian reals. For those companies with individual owners, the 95th and 99th quantiles are meaningfully different. For those companies with ownership of legal representative, the 95th and 99th quantiles are practically the same." style="width:100px;"/></a>
 
 ## 2025

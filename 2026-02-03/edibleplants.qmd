@@ -1,0 +1,131 @@
+---
+title: "Edible Plants"
+author: "Jo Hardin"
+date: February 3, 2025
+format: 
+  html:
+    embed-resources: true
+    code-fold: true
+execute:
+  warning: false
+  message: false
+---
+
+```{r}
+library(tidyverse) # ggplot, lubridate, dplyr, stringr, readr...
+library(praise)
+library(tidytext)
+library(rvest)
+library(GGally)
+```
+
+
+## The Data
+
+This week we're exploring edible plants! The Edible Plant Database (EPD) is an outcome of the GROW Observatory, a European Citizen Science project on growing food, soil moisture sensing and land monitoring. It contains information on 146 edible plant species, including their ideal growing conditions and time to harvest and germination.
+
+> The Edible Plant Database provides data based on geographical location and growing season to answer questions such as "What can I plant now" and "what can I plant that will yield a crop on some future date".
+
+* Do plants that require more sunlight also require higher temperatures?
+* What cultivation classes require the most water?
+
+Thank you to [Nicola Rennie](https://github.com/nrennie) for curating this week's dataset.
+
+
+```{r}
+edible_plants <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2026/2026-02-03/edible_plants.csv') |> 
+  mutate(genus = stringr::str_extract(taxonomic_name, "^\\w+")) |> 
+  mutate(nutrients2 = tolower(stringr::str_extract(nutrients, "^\\w+"))) |> 
+  mutate(temp_class2 = case_when(
+    temperature_class == "Very hard" ~ "Very hardy",
+    temperature_class == "Very tender" ~ "Tender",
+    TRUE ~ temperature_class
+  )) |> 
+  mutate(water = tolower(water)) |> 
+  mutate(nutrients2 = forcats::fct_relevel(nutrients2, c("low", "medium", "high")),
+         temp_class2 = forcats::fct_relevel(temp_class2, c("Tender", "Half hardy", "Hardy", "Very hardy")),
+         water = forcats::fct_relevel(water, c("low", "medium", "high"))) |> 
+  mutate(sunlight = tolower(sunlight)) |> 
+  mutate(sunlight = case_when(
+    sunlight == "full sun/partial shade/ full shade" ~ "full sun/partial shade",
+    sunlight == "full sun/partial shade/full shade" ~ "full sun/partial shade",
+    TRUE ~ sunlight
+  ))
+```
+
+
+```{r}
+edible_plants |> 
+  group_by(sunlight) |> 
+  summarize(n())
+```
+
+
+
+
+
+```{r}
+edible_plants_genus <- edible_plants |> 
+  group_by(genus) |> 
+  mutate(count = n()) |> 
+  filter(count > 3)
+
+edible_plants_genus  |> 
+  group_by(genus) |> 
+  summarize(n())
+```
+
+
+
+```{r}
+#| fig.cap: The data come from the Edible Plant database, including 146 edible plant species. The ideal growing conditions are provided, including information about sunlight, water, and temperature hardiness. The mosaic plot shows the proportional breakdown of the three variables sunlight, water, and temperature hardiness.
+#| fig.alt: A mosaic plot to show the proportional breakdown of the three variables sunlight, water, and temperature hardiness from the Edible Plant database. The largest proportion of water use across the plants is medium water use. Very few of the Tender plants have high water use. Only a few of the plants have partial shade as their ideal amount of sunlight.
+
+
+# devtools::install_github("haleyjeppson/ggmosaic")
+library(ggmosaic)
+
+edible_plants |> 
+  filter(water != "very high", water != "very low") |>
+  mutate(water = forcats::fct_drop(water)) |> 
+  ggplot() +
+  geom_mosaic(aes(x = product(sunlight, temp_class2), fill = water))  +
+  theme_minimal() +
+  theme(axis.text.x=element_text(angle = 45, hjust = 1)) + 
+  labs(y="", x="water level:temperature hardiness", 
+       title = "Breakdown of ideal conditions for edible plants",
+       subtitle = "amount of sunlight",
+       fill = "water level") 
+
+```
+
+```{r}
+#| echo: false
+#| include: false
+
+p <- edible_plants |> 
+  filter(water != "very high", water != "very low") |>
+  mutate(water = forcats::fct_drop(water)) |> 
+  ggplot() +
+  geom_mosaic(aes(x = product(sunlight, temp_class2), fill = water))  +
+  theme_minimal() +
+  theme(axis.text.x=element_text(angle = 45, hjust = 1)) + 
+  labs(y="", x="water level:temperature hardiness", 
+       title = "Breakdown of ideal conditions for edible plants",
+       subtitle = "amount of sunlight",
+       fill = "water level") 
+
+
+png(filename = "edibleplants.png", width = 550, height = 450)
+
+p
+
+dev.off()
+
+```
+
+
+```{r}
+praise()
+```
+
