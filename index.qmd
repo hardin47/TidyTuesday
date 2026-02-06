@@ -23,6 +23,8 @@ A few other places to see TidyTuesday compilations:
 
 * Carl Börstell <a href = "https://github.com/borstell/tidytuesday/tree/main" target = "_blank">tidytuesday</a>
 
+* Rajo <a href = "https://github.com/rajodm/TidyTuesday/" target = "_blank">TidyTuesday</a>
+
 <br>
 <br>
 
