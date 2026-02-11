@@ -85,7 +85,7 @@ sent_data <- holmes |>
 
 ```{r}
 #| fig.cap: "Sentiment proportion over all lines from books published in a given year."
-#| fig.alt: "We consider each of the following sentiments: anger, anticipation, disgust, fear, joy, sadness, surprise and trust. For each sentiment, the proportion of lines expressing that sentiment is calculated across all of the books in a given year. None of the sentiments seem to decrease or increase much over time. Trust is the highest senitment, and surprise and disgust are the lowest sentiments."
+#| fig.alt: "We consider each of the following sentiments: anger, anticipation, disgust, fear, joy, sadness, surprise and trust. For each sentiment, the proportion of lines expressing that sentiment is calculated across all of the books in a given year. None of the sentiments seem to decrease or increase much over time. Trust is the highest sentiment, and surprise and disgust are the lowest sentiments."
 
 sent_data |> 
   ggplot(aes(x = date, y = prop)) + 

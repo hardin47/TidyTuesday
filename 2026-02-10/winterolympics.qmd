@@ -1,0 +1,156 @@
+---
+title: "Winter Olympics"
+author: "Jo Hardin"
+date: February 10, 2026
+format: 
+  html:
+    embed-resources: true
+    code-fold: true
+execute:
+  warning: false
+  message: false
+---
+
+```{r}
+library(tidyverse) # ggplot, lubridate, dplyr, stringr, readr...
+library(praise)
+```
+
+
+## The Data
+
+This week we're exploring the event schedule for the 2026 Winter Olympics in Milan-Cortina, Italy. The dataset contains detailed information about all 1,866 Olympic events, including both competition and training sessions across various winter sport disciplines.
+
+The dataset provides comprehensive scheduling information with start and end times in both local and UTC timezones, venue details, and metadata about each event such as whether it's a medal event or training session. This dataset captures the full scope of Olympic events taking place from early February through the closing ceremonies, including the new ski mountaineering event.
+
+> Ciao from Milano Cortina 2026
+
+Some questions to explore:
+- Which sport disciplines have the most events scheduled?
+- How are medal events distributed across the days of the Olympics?
+- What is the typical duration of different types of events?
+- Which venues host the most events?
+- How does the schedule vary by day of the week?
+- What proportion of scheduled sessions are training versus competition?
+
+For more information about how the data was collected and example code for creating the table in R or Python you can go to this repository: <https://github.com/chendaniely/olympics-2026>
+
+
+```{r}
+schedule <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2026/2026-02-10/schedule.csv') |> 
+  select(discipline_code, discipline_name, event_code, 
+         event_description, start_datetime_utc, end_datetime_utc,
+         is_medal_event, venue_name, location_name, session_code, start_time) |> 
+  distinct() |> 
+  mutate(week = lubridate::week(start_datetime_utc),
+         day = lubridate::yday(start_datetime_utc)) |> 
+  mutate(where = case_when(
+    discipline_name == "Curling" ~ "Inside",
+    discipline_name == "Figure Skating" ~ "Inside",
+    discipline_name == "Ice Hockey" ~ "Inside",
+    discipline_name == "Short Track Speed Skating" ~ "Inside",
+    discipline_name == "Speed Skating" ~ "Inside",
+    TRUE ~ "Outside"),
+    surface = case_when(
+      discipline_name == "Bobsleigh" ~ "Ice",
+      discipline_name == "Curling" ~ "Ice",
+      discipline_name == "Figure Skating" ~ "Ice",
+      discipline_name == "Ice Hockey" ~ "Ice",
+      discipline_name == "Luge" ~ "Ice",
+      discipline_name == "Short Track Speed Skating" ~ "Ice",
+      discipline_name == "Skeleton" ~ "Ice",
+      discipline_name == "Speed Skating" ~ "Ice",
+      TRUE ~ "Snow"
+    ))
+```
+```{r}
+schedule |> 
+  group_by(discipline_name) |> 
+  summarize(n())
+```
+
+
+```{r}
+
+my_palette <- c(
+  "#E41A1C", "#377EB8", "#4DAF4A", "#984EA3", "#FF7F00", "#FFFF33", 
+  "#A65628", "#F781BF", "#999999", "#66C2A5", "#FC8D62", "#8DA0CB", 
+  "#E78AC3", "#A6D854", "#FFD92F", "#E5C494"
+)
+
+
+schedule |> 
+  filter(is_medal_event) |> 
+  group_by(discipline_name, day) |> 
+  summarize(count = n()) |> 
+  ggplot(aes(x = day, y = count, color = discipline_name)) + 
+  #geom_point()
+  geom_jitter(width = 0, height = 0.2) + 
+  #geom_line() + 
+  scale_color_manual(values = my_palette)
+```
+
+
+
+```{r}
+schedule |> 
+  ggplot(aes(y = start_time, x = day, color = discipline_name )) + 
+  geom_point() + 
+  facet_grid(surface ~ where)  + 
+  scale_color_manual(values = my_palette)
+```
+
+
+
+```{r}
+#| fig.cap: "Using data from olympics.com,  wikipedia, and kaggle, @chendaniely compiled information on all Winter Olympics events, including start time, venue location, and other metadata. In the histograms, we can see that some disciplines happen at all times during the day and other disciplines happen primarily in the morning or in the afternoon."
+#| fig.alt: Winter Olympics events broken down by whether the event takes place inside or outside and whether it is on the snow or ice. Each sub-plot is a histogram to identify the frequency of events for that discipline over time. We can see that there are very few outside snow events at dusk. Some disciplines like alpine skiing and nordic combined only take place in the morning. Ski jumping happens primarily in the evening. Speed skating happens primarily in the early afternoon.
+
+schedule |> 
+  ggplot(aes(x = start_time, 
+             fill = discipline_name )) + 
+  geom_histogram(binwidth = 3600, color = "white") + 
+  facet_grid(surface ~ where)  + 
+  scale_fill_manual(values = my_palette) + 
+  scale_x_time(breaks = scales::breaks_width("2 hour")) + 
+  theme_linedraw() + 
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) + 
+  labs(x = "Start time of event",
+       y = "",
+       title = "Frequency of Winter Olympic Events",
+       fill = "Discipline")
+```
+
+
+```{r}
+#| echo: false
+#| include: false
+
+p <- schedule |> 
+  ggplot(aes(x = start_time, 
+             fill = discipline_name )) + 
+  geom_histogram(binwidth = 3600, color = "white") + 
+  facet_grid(surface ~ where)  + 
+  scale_fill_manual(values = my_palette) + 
+  scale_x_time(breaks = scales::breaks_width("2 hour")) + 
+  theme_linedraw() + 
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) + 
+  labs(x = "Start time of event",
+       y = "",
+       title = "Frequency of Winter Olympic Events",
+       fill = "Discipline")
+
+
+png(filename = "winterolympics.png", width = 550, height = 450)
+
+p
+
+dev.off()
+
+```
+
+
+```{r}
+praise()
+```
+

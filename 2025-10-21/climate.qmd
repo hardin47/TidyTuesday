@@ -75,7 +75,7 @@ year_annotations <- list(
 ```
 
 ```{r}
-#| fig.alt: "High temperatures recorded for each month and each year since about 2000 in Aberporth. The values are presented in a spiral so that we can see how the temperature changes across year while keeping month constant. There are slighlty higher temperatures in recent years across each month."
+#| fig.alt: "High temperatures recorded for each month and each year since about 2000 in Aberporth. The values are presented in a spiral so that we can see how the temperature changes across year while keeping month constant. There are slightly higher temperatures in recent years across each month."
 
 historic_station_met |> 
   filter(station == "aberporth") |> 
