@@ -1,0 +1,161 @@
+---
+title: "New Zealand Agriculture"
+author: "Jo Hardin"
+date: February 17, 2026
+format: 
+  html:
+    embed-resources: true
+    code-fold: true
+execute:
+  warning: false
+  message: false
+---
+
+```{r}
+library(tidyverse) # ggplot, lubridate, dplyr, stringr, readr...
+library(praise)
+```
+
+
+## The Data
+
+This week we are exploring [agriculture production statistics in New Zealand](https://figure.nz/table/TSQ8lkuKnyzfERF3) using data compiled from 
+from [StatsNZ](https://datainfoplus.stats.govt.nz/item/nz.govt.stats/eb7208cf-2f0f-416a-bd77-2fdbb9043255?_ga=2.264735308.2106648024.1715287902-1399521469.1678132138). 
+
+Sheep have long outnumbered people in New Zealand, but the [ratio of sheep to people peaked in the 1980s and has been in steady decline](https://www.rnz.co.nz/news/country/560252/gap-between-people-and-sheep-rapidly-closing)
+
+> The gap between people and sheep in New Zealand is rapidly closing. There's now about 4.5 sheep to every person in New Zealand compared to a peak of 22 sheep per person in the 1980s, that's according to figures released by Stats NZ this week.
+
+- Is sheep production unique in its decline? Do other types of meat production show the same pattern?
+- Which agricultural industries have shown the most production growth?
+
+Thank you to [Jen Richmond](https://github.com/jenrichmond) for curating this week's dataset.
+
+
+```{r}
+dataset <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2026/2026-02-17/dataset.csv') |> 
+  mutate(measure = case_when(
+    measure == "Total goats" ~ "Total Goats",
+    measure == "Total poultry" ~ "Total Poultry",
+    measure == "Total Dairy Cattle (including Bobby Calves)" ~ "Total Dairy Cattle",
+    measure == "Total Lambs Marked and/or Tailed" ~ "Total Lambs",
+    TRUE ~ measure
+  ))
+```
+
+
+
+
+```{r}
+dataset |> 
+  group_by(measure) |> 
+  summarize(count_row = n()) |> 
+  arrange(desc(count_row))
+```
+
+
+
+```{r}
+animals <- dataset |> 
+  filter(measure %in% c("Total Sheep", "Total Beef Cattle", 
+                        #"Total Cattle",
+                        "Total Dairy Cattle",
+                        "Total Deer", "Total Goats", 
+                        "Total Lambs",
+                        "Total Pigs", "Total Poultry"#, 
+                        #"Total Ram and Wether Hoggets"
+                        ))
+```
+
+
+
+```{r}
+library(rvest)
+
+pop_nz <- read_html("https://commons.wikimedia.org/wiki/Data:New_Zealand_Total_Population.tab") |>
+  html_elements("table") |> 
+  html_table(header = TRUE) |> 
+  as.data.frame() |> 
+  slice(-(1:2)) |> 
+  mutate(across(everything(), as.numeric)) |> 
+  mutate(pop = y1*1000000)
+
+
+
+animals_pop <- left_join(animals, pop_nz, by = c("year_ended_june" = "x"))
+  
+```
+
+
+```{r}
+#| fig.cap: "Number of livestock broken down by cattle, deer, goats, sheep, etc., over time. Sheep are the dominate livestock animal, although their numbers have been decreasing since the mid-1980s. It is not clear whether pigs, goats, deer, and cattle were introduced to NZ in the early 1970s or whether that's just when data collection began."
+#| fig.alt: "A line plot with year on the x axis and number of livestock animals on the y-axis. Data describe agriculture in New Zealand. There are way more sheep than any other type of livestock, although the number of sheep has been steadily decreasing since the late 1970s. The New Zealand population of humans is also given. The number of people in New Zealand has been steadily increasing across the entire time period (that is, since 1935)."
+#| fig.width: 10
+
+cb10 <- c(
+  #"#000000", # black
+  "#E69F00", # orange
+  "#56B4E9", # sky blue
+  "#009E73", # bluish green
+  "#F0E442", # yellow
+  "#0072B2", # blue
+  "#D55E00", # vermillion
+  "#CC79A7", # reddish purple
+  "#999999", # gray
+  "#44AA99"  # teal
+)
+
+library(scales)
+
+scale <- 10
+
+animals_pop |> 
+  ggplot(aes(x = year_ended_june, y = value, color = measure)) + 
+  geom_point() + 
+  geom_line() + 
+  scale_color_brewer(palette = "Dark2") + 
+  #scale_color_manual(values = cb10) + 
+  geom_line(aes(y = pop*scale), size = 1.5, color = "black") +
+  scale_y_continuous(sec.axis = sec_axis(~./scale, name = "NZ population")) +
+  labs(x = "",
+       y = "number of animals",
+       color = "",
+       title = "Animal  in New Zealand over time",
+       subtitle = "with black population line superimposed")
+
+```
+
+
+
+```{r}
+#| echo: false
+#| include: false
+
+p <- animals_pop |> 
+  ggplot(aes(x = year_ended_june, y = value, color = measure)) + 
+  geom_point() + 
+  geom_line() + 
+  scale_color_brewer(palette = "Dark2") + 
+  #scale_color_manual(values = cb10) + 
+  geom_line(aes(y = pop*scale), size = 1.5, color = "black") +
+  scale_y_continuous(sec.axis = sec_axis(~./scale, name = "NZ population")) +
+  labs(x = "",
+       y = "number of animals",
+       color = "",
+       title = "Animal  in New Zealand over time",
+       subtitle = "with black population line superimposed")
+
+
+png(filename = "animals.png", width = 550, height = 450)
+
+p
+
+dev.off()
+
+```
+
+
+```{r}
+praise()
+```
+
