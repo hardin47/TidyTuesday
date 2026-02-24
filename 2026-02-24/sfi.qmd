@@ -1,0 +1,109 @@
+---
+title: "Science Foundation Ireland Grants Commitments"
+author: "Jo Hardin"
+date: February 24, 2026
+format: 
+  html:
+    embed-resources: true
+    code-fold: true
+execute:
+  warning: false
+  message: false
+---
+
+```{r}
+library(tidyverse) # ggplot, lubridate, dplyr, stringr, readr...
+library(praise)
+```
+
+
+## The Data
+
+This week we're exploring Irish STEM research and ancillary projects funded by Science
+Foundation Ireland (SFI) since its foundation in 2000 to its dissolution on 31st
+July 2024. The data comes from [Ireland's Open Data Portal](https://data.gov.ie/dataset/science-foundation-ireland-grants-commitments)
+
+> SFI was the national foundation in Ireland for investment in scientific and
+> engineering research. Consequently, SFI invested in those academic
+> researchers and research teams who were most likely to generate new
+> knowledge, leading edge technologies and competitive enterprises in the
+> fields of science, technology, engineering and maths (STEM).
+
+
+
+```{r}
+sfi_grants <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2026/2026-02-24/sfi_grants.csv') |> 
+  mutate(AI = str_detect(str_to_lower(proposal_title),
+                      "\\bai\\b|\\ba[.]i[.]\\b|\\bartificial\\s+intelligence\\b|(neural net)|(machine learn)|(deep learn)")) |> 
+  mutate(year = year(start_date)) |> 
+  drop_na(proposal_title) |> 
+  filter(year <= 2024)
+```
+
+
+
+```{r}
+ai_data <- sfi_grants |> 
+  filter(AI)
+```
+
+
+
+```{r}
+#| fig.cap: The proportion of grants given in a particular year across the space of grants.  That is, over 20% of the AI grants were given in 2023. Fewer than 2% of the non-AI grants were given in 2009.
+#| fig.alt: A line graph with year on the x-axis and proportion of the total grants given per year on the y-axis. There are two lines, one for AI grants and one for non-AI grants. The AI grants have become a higher proportion of total grants in recent years. The non-AI grants have been steady for the last decade or so.
+
+sfi_grants |> 
+  mutate(AI = ifelse(AI, "AI grant", "non-AI grant")) |> 
+  group_by(AI, year) |> 
+  summarize(count = n(), average = mean(current_total_commitment)) |> 
+  mutate(count_total = sum(count), prop_total = count / count_total) |> 
+  ggplot(aes(x = year, y = prop_total, color = AI)) + 
+  geom_line() + 
+  geom_point(aes(size = average)) + 
+  theme_minimal() + 
+  labs(x = "",
+       y = "",
+       title = "Proportion of grants given",
+       color = "type of grant",
+       size = "average grant\n(in Euros)") +
+  scale_color_manual(values = c("AI grant" = "#648FFF", "non-AI grant" = "#FE6100"))
+```
+
+
+
+
+```{r}
+#| echo: false
+#| include: false
+
+p <- sfi_grants |> 
+  mutate(AI = ifelse(AI, "AI grant", "non-AI grant")) |> 
+  group_by(AI, year) |> 
+  summarize(count = n(), average = mean(current_total_commitment)) |> 
+  mutate(count_total = sum(count), prop_total = count / count_total) |> 
+  ggplot(aes(x = year, y = prop_total, color = AI)) + 
+  geom_line() + 
+  geom_point(aes(size = average)) + 
+  theme_minimal() + 
+  labs(x = "",
+       y = "",
+       title = "Proportion of grants given",
+       color = "type of grant",
+       size = "average grant\n(in Euros)") +
+  scale_color_manual(values = c("AI grant" = "#648FFF", "non-AI grant" = "#FE6100"))
+
+
+png(filename = "sfi.png", width = 550, height = 450)
+
+p
+
+dev.off()
+
+```
+
+
+```{r}
+praise()
+```
+
