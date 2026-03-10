@@ -1,0 +1,159 @@
+---
+title: "How Likely is 'Likely'?"
+author: "Jo Hardin"
+date: March 10, 2026
+format: 
+  html:
+    embed-resources: true
+    code-fold: true
+execute:
+  warning: false
+  message: false
+---
+
+```{r}
+library(tidyverse) # ggplot, lubridate, dplyr, stringr, readr...
+library(ggrepel)
+library(praise)
+```
+
+
+## The Data
+
+In an [online quiz](https://probability.kucharski.io/), created as an independent project by Adam Kucharski, over 5,000 participants compared pairs of probability phrases (e.g. “Which conveys a higher probability: Likely or Probable?”) and assigned numerical values (0–100%) to each of 19 phrases. The resulting data can be used to analyse how people interpret common probability phrases.
+
+* Which phrases do people most disagree on, in relation to the probability they represent?
+* Which demographic background is the most optimistic?
+* Does the order people are shown phrases in change their interpretation?
+
+Thank you to [Nicola Rennie](https://github.com/nrennie) for curating this week's dataset.
+
+
+```{r}
+absolute <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2026/2026-03-10/absolute_judgements.csv')
+pairwise <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2026/2026-03-10/pairwise_comparisons.csv')
+metadata <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2026/2026-03-10/respondent_metadata.csv')
+```
+
+
+
+
+## Language background
+
+```{r}
+prob_fluent <- absolute |> 
+  left_join(metadata, by = "response_id")
+```
+
+```{r}
+prob_fluent |> 
+  group_by(term, english_background) |> 
+  summarize(prob = mean(probability)) |> 
+  mutate(english_background = case_when(
+    english_background == "English is my first language" ~ "first",
+    english_background == "English is not my first language and I am not fluent" ~ "not_fluent",
+    english_background == "English is not my first language but I am fluent" ~ "fluent",
+    is.na(english_background) ~ "missing"
+  )) |> 
+  pivot_wider(names_from = english_background, values_from = prob) |> 
+  mutate(change = ifelse(first < not_fluent, "over", "under"),
+         change_num = abs(first - not_fluent)) |>
+  ggplot() + 
+  geom_label_repel(aes(x = first, y = first, label = term, color = change_num),
+                   nudge_y = 10) + 
+  geom_point(aes(x = first, y = not_fluent), color = "purple") + 
+  geom_point(aes(x = first, y = fluent), color = "red") + 
+  geom_point(aes(x = first, y = missing), color = "green") + 
+  geom_line(aes(x = first, y = not_fluent), color = "purple") + 
+  geom_line(aes(x = first, y = fluent), color = "red") + 
+  geom_line(aes(x = first, y = missing), color = "green") + 
+  geom_abline(slope = 1, intercept = 0) +
+  scale_color_gradient(low = "pink", high = "blue") + 
+  theme_minimal()
+
+```
+
+
+
+
+```{r}
+#| fig.cap: The height of the bar is the median assigned probability for each word in each language proficiency group. The error bars extend to the 25th and 75th quantiles. There seems to be a slight inclination for those who are not fluent to hedge their bets. That is, their assigned probabilities are a little higher for low probability words and a little lower for high probability words.
+#| fig.alt: "For each of 19 different probabilistic phrases like 'highly unlikely' or 'probable', volunteers assigned their own probability. In the bar chart, we have plotted the median assigned probability for each word in each language proficiency group (one of: English as a first language, English not as a first language but fluent, and English not as first language and not fluent). The error bars describe the 25th and 75th quantiles of assigned probabilities for each group. The 'likely' words are more consistent than the 'unlikely' words. Everyone seems to assign a probability of 0.5 to 'about even'."
+
+prob_fluent |> 
+  group_by(term, english_background) |> 
+  summarize(prob = median(probability),
+            prob_q1 = quantile(probability, 0.25),
+            prob_q3 = quantile(probability, 0.75)) |> 
+  mutate(english_background = fct_relevel(as.factor(english_background),
+                                          c("English is not my first language and I am not fluent",
+                                            "English is not my first language but I am fluent",
+                                            "English is my first language"))) |> 
+  ungroup() |> 
+  mutate(term = forcats::fct_reorder(as.factor(term), prob, .fun = mean)) |> 
+  filter(!is.na(english_background)) |> 
+  ggplot(aes(x = term, fill = english_background)) + 
+  geom_bar(aes(y = prob), 
+           stat = "identity", position = "dodge") +
+  geom_errorbar(aes(ymin = prob_q1, ymax = prob_q3),
+                position = "dodge") + 
+  theme_minimal() + 
+  theme(axis.text.x = element_text(angle=45, hjust = .5)) +
+  scale_fill_brewer(palette = "Purples") + 
+  labs(x = "", y = "", title = "Suggested probabilities for each term",
+       fill = "English background")
+```
+
+
+
+```{r}
+prob_fluent |> 
+  filter(term == "Almost No Chance") |> 
+  ggplot() + 
+  geom_boxplot(aes(x = english_background, y = probability))
+```
+
+
+
+
+```{r}
+#| echo: false
+#| include: false
+
+p <- prob_fluent |> 
+  group_by(term, english_background) |> 
+  summarize(prob = median(probability),
+            prob_q1 = quantile(probability, 0.25),
+            prob_q3 = quantile(probability, 0.75)) |> 
+  mutate(english_background = fct_relevel(as.factor(english_background),
+                                          c("English is not my first language and I am not fluent",
+                                            "English is not my first language but I am fluent",
+                                            "English is my first language"))) |> 
+  ungroup() |> 
+  mutate(term = forcats::fct_reorder(as.factor(term), prob, .fun = mean)) |> 
+  filter(!is.na(english_background)) |> 
+  ggplot(aes(x = term, fill = english_background)) + 
+  geom_bar(aes(y = prob), 
+           stat = "identity", position = "dodge") +
+  geom_errorbar(aes(ymin = prob_q1, ymax = prob_q3),
+                position = "dodge") + 
+  theme_minimal() + 
+  theme(axis.text.x = element_text(angle=45, hjust = .5)) +
+  scale_fill_brewer(palette = "Purples") + 
+  labs(x = "", y = "", title = "Suggested probabilities for each term",
+       fill = "English background")
+
+
+png(filename = "likely.png", width = 550, height = 450)
+
+p
+
+dev.off()
+
+```
+
+
+```{r}
+praise()
+```
+
