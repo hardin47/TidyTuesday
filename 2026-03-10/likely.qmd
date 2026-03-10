@@ -79,6 +79,7 @@ prob_fluent |>
 ```{r}
 #| fig.cap: The height of the bar is the median assigned probability for each word in each language proficiency group. The error bars extend to the 25th and 75th quantiles. There seems to be a slight inclination for those who are not fluent to hedge their bets. That is, their assigned probabilities are a little higher for low probability words and a little lower for high probability words.
 #| fig.alt: "For each of 19 different probabilistic phrases like 'highly unlikely' or 'probable', volunteers assigned their own probability. In the bar chart, we have plotted the median assigned probability for each word in each language proficiency group (one of: English as a first language, English not as a first language but fluent, and English not as first language and not fluent). The error bars describe the 25th and 75th quantiles of assigned probabilities for each group. The 'likely' words are more consistent than the 'unlikely' words. Everyone seems to assign a probability of 0.5 to 'about even'."
+#| fig.width: 12
 
 prob_fluent |> 
   group_by(term, english_background) |> 
@@ -144,7 +145,7 @@ p <- prob_fluent |>
        fill = "English background")
 
 
-png(filename = "likely.png", width = 550, height = 450)
+png(filename = "likely.png", width = 650, height = 450)
 
 p
 
