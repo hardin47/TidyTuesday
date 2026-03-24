@@ -111,7 +111,7 @@ join_days |>
   scale_fill_viridis_d(option = "turbo")  +
   #scale_fill_brewer(palette = "Paired") + 
   labs(x = "", y = "", fill = "") + 
-  annotate("text", x = 0, y = 0, label = "pi", parse = TRUE, 
+  annotate("text", x = 0, y = 0, label = "π", parse = TRUE, 
            size = 47, color = "white", alpha = 0.5)
 
 ```
@@ -134,11 +134,11 @@ p <- join_days |>
   scale_fill_viridis_d(option = "turbo")  +
   #scale_fill_brewer(palette = "Paired") + 
   labs(x = "", y = "", fill = "") + 
-  annotate("text", x = 0, y = 0, label = "pi", parse = TRUE, 
+  annotate("text", x = 0, y = 0, label = "π", parse = TRUE, 
            size = 47, color = "white", alpha = 0.5)
 
 
-png(filename = "pi_digits", width = 650, height = 450)
+png(filename = "pi_digits.png", width = 650, height = 450)
 
 p
 
