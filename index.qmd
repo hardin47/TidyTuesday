@@ -33,6 +33,9 @@ A few other places to see TidyTuesday compilations:
 
 ## 2026
 
+* 2026-04-07 <a href = "https://hardin47.github.io/TidyTuesday/2026-04-07/repair.html" target = "_blank">Repair Cafe</a> <a href = "https://hardin47.github.io/TidyTuesday/2026-04-07/repair.html" target = "_blank"><img src="2026-04-07/repair.png" alt = "Box plots of the year of production compared to the repairability. Repairability is on a scale of 1 (difficult) to 10 (easy). The boxplots are also broken down by the brand, using the following brands: Bosch, Miele, Philips, Sony, and Tefal. There do not appear to be any trends linking the production year and the repairability score." style="width:100px;"/></a>
+
+
 * 2026-03-24 <a href = "https://hardin47.github.io/TidyTuesday/2026-03-24/pi_digits.html" target = "_blank">Digits of pi</a> <a href = "https://hardin47.github.io/TidyTuesday/2026-03-24/pi_digits.html" target = "_blank"><img src="2026-03-24/pi_digits.png" alt = "Each day of the year is assessed for how many times it shows up in the first million digits of pi. The plot is a bar chart where the height of bar represents the number of instances, but the plot has been transformed into polar coordinates. The bars have been colored by month. Unsurprisingly, there are no real patterns to which days show up more or less often in the first million digits of pi." style="width:100px;"/></a>
 
 

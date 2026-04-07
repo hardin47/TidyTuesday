@@ -1,0 +1,133 @@
+---
+title: "Repair Cafe"
+author: "Jo Hardin"
+date: April 7, 2026
+format: 
+  html:
+    embed-resources: true
+    code-fold: true
+execute:
+  warning: false
+  message: false
+---
+
+```{r}
+library(tidyverse) # ggplot, lubridate, dplyr, stringr, readr...
+library(praise)
+```
+
+# Repair Cafes Worldwide
+
+The dataset this week comes from the [Repair Monitor](https://dashboard.repairmonitor.org/?language=en), which has been compiling data from Repair Cafes worldwide since 2015.
+Repair Cafe branches bring together volunteer fixers to help people learn how to repair household items that are broken. 
+
+Note: There appears to be some uncertainty (by submitters to the source data) of what to put in `repair_info_source` and `repair_info_url`. We included the questions for these fields to aid in the interpretation of the data.
+
+> As carbon-hungry consumer production and its subsequent waste surge to all-time highs, experts say that the concept can help curb pollution while promoting a more circular economy. 
+
+- What kinds of items are most easily repaired?
+- What are the most common reasons that items can't be repaired? 
+- Which countries have seen the most growth in Repair Cafe branches?
+- Is GenAI becoming more popular than YouTube as a source of useful information for repairers?
+
+Thank you to [Jen Richmond](https://github.com/jenrichmond) for curating this week's dataset.
+
+
+# The Data
+
+```{r}
+repairs <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2026/2026-04-07/repairs.csv')
+repairs_text <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2026/2026-04-07/repairs_text.csv')
+```
+
+
+
+```{r}
+repairs |>
+  group_by(brand) |>
+  summarize(count = n()) |>
+  arrange(desc(count))
+```
+
+
+```{r}
+repairs |>
+  filter(brand %in% c("Philips", "Bosch", "Sony", "Miele", "Tefal")) |>
+  group_by(brand) |>
+  summarize(mean_repair = mean(repairability, na.rm = TRUE))
+```
+```{r}
+repairs |>
+  filter(brand %in% c("Philips", "Bosch", "Sony", "Miele", "Tefal")) |>
+  ggplot() +
+  geom_jitter(aes(x = repairability, y = brand), alpha = .1)+
+  geom_point(aes(x = repairability, y = brand), color = "red")
+```
+
+
+```{r}
+repairs |>
+  filter(brand %in% c("Philips", "Bosch", "Sony", "Miele", "Tefal")) |>
+  filter(estimated_year_of_production > 1910, estimated_year_of_production < 2026) |> 
+  ggplot() +
+  geom_jitter(aes(x = estimated_year_of_production, y = repairability,
+                 color = brand), width = 0, alpha = 0.4) +
+  geom_point(aes(x = estimated_year_of_production, y = repairability, color = brand))
+```
+
+
+
+```{r}
+#| fig.cap: "For the 5 most frequent brands in the Repair Cafe dataset, how do the production year and the repairability compare? (Repairability is on a scale of 1 (difficult) to 10 (easy).) There do not seem to be any strong trends across time or brand."
+#| fig.alt: "Box plots of the year of production compared to the repairability. Repairability is on a scale of 1 (difficult) to 10 (easy). The boxplots are also broken down by the brand, using the following brands: Bosch, Miele, Philips, Sony, and Tefal. There do not appear to be any trends linking the production year and the repairability score."
+
+repairs |>
+  filter(brand %in% c("Philips", "Bosch", "Sony", "Miele", "Tefal")) |>
+  filter(estimated_year_of_production > 1910, estimated_year_of_production < 2026) |> 
+  filter(!is.na(repairability)) |> 
+  filter(repairability > 0) |>
+  ggplot() +
+  geom_boxplot(aes(y = estimated_year_of_production, x = as.factor(repairability),
+                 fill = brand), color = "black") + 
+  geom_jitter(aes(y = estimated_year_of_production, x = as.factor(repairability)), 
+              alpha = 0.1, size = 0.2) + 
+  geom_hline(yintercept = 2015) + 
+  theme_minimal() + 
+  labs(x = "repairability", y = "production year",
+       title = "Is it harder to repair older items?")
+```
+
+
+```{r}
+#| echo: false
+#| include: false
+
+p <- repairs |>
+  filter(brand %in% c("Philips", "Bosch", "Sony", "Miele", "Tefal")) |>
+  filter(estimated_year_of_production > 1910, estimated_year_of_production < 2026) |> 
+  filter(!is.na(repairability)) |> 
+  ggplot() +
+  geom_boxplot(aes(y = estimated_year_of_production, x = as.factor(repairability),
+                 fill = brand), color = "black") + 
+  geom_jitter(aes(y = estimated_year_of_production, x = as.factor(repairability)), 
+              alpha = 0.1, size = 0.2) + 
+  geom_hline(yintercept = 2015) + 
+  theme_minimal() + 
+  labs(x = "repairability", y = "production year",
+       title = "Is it harder to repair older items?")
+
+
+png(filename = "repair.png", width = 650, height = 450)
+
+p
+
+dev.off()
+
+```
+
+```{r}
+praise()
+```
+
+
+
