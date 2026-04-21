@@ -33,6 +33,10 @@ A few other places to see TidyTuesday compilations:
 
 ## 2026
 
+* 2026-04-21 <a href = "https://hardin47.github.io/TidyTuesday/2026-04-21/globalhealth.html" target = "_blank">Global Health Spending</a> <a href = "https://hardin47.github.io/TidyTuesday/2026-04-21/globalhealth.html" target = "_blank"><img src="2026-04-21/globalhealth.png" alt = "A world map where each country is colored by the percent of total health care expenditures which were acquired externally. The majority of countries have zero or negligible external health care funding. The countries with the biggest percentage of external funding are in Africa, Central America, and a few countries throughout Asia." style="width:100px;"/></a>
+
+* 2026-04-14 <a href = "https://hardin47.github.io/TidyTuesday/2026-04-14/birds.html" target = "_blank">Bird Sightings</a> <a href = "https://hardin47.github.io/TidyTuesday/2026-04-14/birds.html" target = "_blank"><img src="2026-04-14/birds.png" alt = "Scatterplot with date, roughly 1975 to 1990, on the x-axis and location on the y-axis.  The different locations include: feeding, sitting on water, sitting on ice, flying past, accompanying, and following ship. There are two types of birds, albatross and puffins.  The majority of albatross are following the ship, over all time periods; the majority of puffins are flying past, over all time periods." style="width:100px;"/></a>
+
 * 2026-04-07 <a href = "https://hardin47.github.io/TidyTuesday/2026-04-07/repair.html" target = "_blank">Repair Cafe</a> <a href = "https://hardin47.github.io/TidyTuesday/2026-04-07/repair.html" target = "_blank"><img src="2026-04-07/repair.png" alt = "Box plots of the year of production compared to the repairability. Repairability is on a scale of 1 (difficult) to 10 (easy). The boxplots are also broken down by the brand, using the following brands: Bosch, Miele, Philips, Sony, and Tefal. There do not appear to be any trends linking the production year and the repairability score." style="width:100px;"/></a>
 
 

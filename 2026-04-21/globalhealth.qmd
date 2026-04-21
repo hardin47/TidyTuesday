@@ -1,0 +1,162 @@
+---
+title: "Global Health Spending"
+author: "Jo Hardin"
+date: April 21, 2026
+format: 
+  html:
+    embed-resources: true
+    code-fold: true
+execute:
+  warning: false
+  message: false
+---
+
+```{r}
+library(tidyverse) # ggplot, lubridate, dplyr, stringr, readr...
+library(praise)
+```
+
+
+
+# Global Health Spending
+
+This week we're exploring global health spending data. The
+[WHO Global Health Expenditure Database (GHED)](https://apps.who.int/nha/database)
+provides comparable data on health expenditure for 195 countries and territories since 2000.
+
+The data tracks how much countries spend on health care, where the money comes from (government, private, or external sources), how it is channeled through financing schemes (e.g. government programmes,  voluntary insurance, out-of-pocket payments), and what it is spent on (e.g. curative care,  preventive care, medical goods). How health systems are funded and how resources are allocated directly shapes health outcomes, progress toward universal health coverage, and whether households face financial hardship when accessing care. These indicators are essential to inform health policy decisions.
+
+The data is organised into three datasets:
+
+- **`health_spending`** — Aggregate health spending and its breakdown by funding source (domestic government, domestic private, and external aid).
+- **`financing_schemes`** — Health spending by financing scheme (e.g. government schemes, voluntary insurance, out-of-pocket payments).
+- **`spending_purpose`** — Health spending by health care function (e.g. curative care, preventive care, medical goods).
+
+```{r}
+financing_schemes <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2026/2026-04-21/financing_schemes.csv')
+health_spending <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2026/2026-04-21/health_spending.csv')
+spending_purpose <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2026/2026-04-21/spending_purpose.csv')
+
+```
+
+
+## Visualization
+
+
+```{r}
+health_spending |>
+  filter(indicator_code == "ext_che") |>
+  arrange(desc(value))
+```
+
+
+```{r}
+health_spending |>
+  filter(iso3_code %in% c("MEX", "ESP", "USA", "HTI", "SSD", "FSM", "PAK", "JPN")) |>
+  filter(unit == "% of current health expenditure") |>
+  filter(year == 2018) |>
+  ggplot(aes(x = country_name, y = value, fill = indicator_code)) + 
+    geom_col(stat = "identity")
+```
+
+
+
+
+
+```{r}
+health_spending |>
+  filter(iso3_code %in% c("MEX", "ESP", "USA", "HTI", "SSD", "FSM", "PAK", "SOM", "CUB")) |>
+  filter(indicator_code == "ext_che") |>
+  ggplot(aes(x = year, y = value, color = iso3_code)) + 
+    geom_point() + 
+    geom_line() + 
+  scale_color_brewer(palette = "Set1")
+```
+
+
+```{r}
+library(rnaturalearth)
+
+world <- ne_countries(scale = "medium", returnclass = "sf")
+
+
+world_data <- world |> 
+  filter(iso_a3_eh != -99) |>
+  left_join(health_spending |> filter(indicator_code == "ext_che"), 
+            by = c("iso_a3_eh" = "iso3_code"), 
+            relationship = "many-to-many") |>
+  group_by(iso_a3_eh, geometry) |>
+  complete(year = 2000:2023) |>
+  ungroup() |>
+  sf::st_as_sf()
+
+
+world_data |> 
+  filter(year == 2018) |>
+  ggplot() +
+  geom_sf(aes(fill = value)) +
+  scale_fill_gradient(low = "white", high = "red") + 
+  theme_minimal() + 
+  labs(title = "",
+       fill = "% of health care expenditures\n acquired externally") 
+```
+
+
+```{r}
+#| fig.cap: "Map showing the proportion of total health care expenditure that is acquired externally. White indicates zero external health care expenditures. Grey indicates missing information about external health care expenditures."
+#| fig.alt: "A world map where each country is colored by the percent of total health care expenditures which were acquired externally. The majority of countries have zero or negligible external health care funding. The countries with the biggest percentage of external funding are in Africa, Central America, and a few countries throughout Asia."
+
+library(gganimate)
+p <- world_data |> 
+  ggplot(aes(fill = value)) +
+  geom_sf() +
+  scale_fill_gradient(low = "white", high = "red") + 
+  theme_minimal() + 
+  labs(title = "% Health Care Expenditure (Year: {closest_state})",
+       fill = "% of health care\n expenditures\n acquired externally") +
+  transition_states(year, transition_length = 0, state_length = 1)
+
+animate(p)
+
+```
+
+
+
+
+
+
+
+
+
+```{r}
+#| echo: false
+#| include: false
+
+p <- world_data |> 
+  filter(year == 2018) |>
+  ggplot() +
+  geom_sf(aes(fill = value)) +
+  scale_fill_gradient(low = "white", high = "red") + 
+  theme_minimal() + 
+  labs(title = "",
+       fill = "% of health care expenditures\n comes externally") 
+
+
+png(filename = "globalhealth.png", width = 650, height = 450)
+
+p
+
+dev.off()
+
+```
+
+```{r}
+praise()
+```
+
+
+
+
+
+
+

@@ -1,0 +1,140 @@
+---
+title: "Bird Sightings"
+author: "Jo Hardin"
+date: April 14, 2026
+format: 
+  html:
+    embed-resources: true
+    code-fold: true
+execute:
+  warning: false
+  message: false
+---
+
+```{r}
+library(tidyverse) # ggplot, lubridate, dplyr, stringr, readr...
+library(praise)
+```
+
+# Bird Sightings at Sea
+
+This week we're exploring Bird Sightings at Sea! The data this week comes from Te Papa Tongarewa, The Museum of New Zealand. It consists of log book entries of bird sightings at sea near New Zealand, from 1969 to 1990.
+
+Thank you to [David Hood](https://bsky.app/profile/thoughtfulnz.bsky.social) for the [dataset suggestion](https://bsky.app/profile/thoughtfulnz.bsky.social/post/3mdp6dzuaks2d).
+
+> The data was recorded using guidelines for the Australasian Seabird Mapping Scheme and counts seabirds seen from a ship during a 10 minute period. The data includes geolocations of the sightings, bird species, numbers and behaviour, observer and ship name, and observation date and time.
+
+- The data was recorded by hand and split into standardized columns. Do the logbook entries in `species_common_name` in the `birds` dataset always match up with the split columns such as `species_scientific_name`, `age`, `wan_plumage_phase`, `plumage_phase`, and `sex`.
+
+
+
+```{r}
+beaufort_scale <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2026/2026-04-14/beaufort_scale.csv')
+birds <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2026/2026-04-14/birds.csv') |>
+  mutate(genus = stringr::str_extract(species_scientific_name, "\\w+"))
+
+sea_states <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2026/2026-04-14/sea_states.csv')
+ships <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2026/2026-04-14/ships.csv')
+
+```
+
+
+
+```{r}
+birds |> 
+  group_by(genus) |> 
+  drop_na(genus) |>
+  summarize(count_genus = n()) |>
+  arrange(desc(count_genus))
+```
+
+
+
+
+```{r}
+birds |> 
+  group_by(genus) |> 
+  drop_na(genus) |>
+  mutate(count_genus = n()) |> 
+  filter(count_genus > 1000)
+```
+
+
+
+
+```{r}
+#| fig.cap: "For genus of Diomedea (albatross) and Puffinus (puffins), the number of birds in each activity is diplayed over time.  The albatross seem more likely to be following the ship; the puffins seem more likely to be flying past. More puffins seem to be observed in the late 80s and onward, but that might be more to do with counting practices than bird patterns."
+#| fig.alt: "Scatterplot with date, roughly 1975 to 1990, on the x-axis and location on the y-axis. The different locations include: feeding, sitting on water, sitting on ice, flying past, accompanying, and following ship. There are two types of birds, albatross and puffins.  The majority of albatross are following the ship, over all time periods; the majority of puffins are flying past, over all time periods."
+
+birds |>
+  filter(count != 99999) |>
+  mutate(countTF = (!is.na(n_feeding) + 0) + 
+              (!is.na(n_sitting_on_water) + 0) + 
+              (!is.na(n_sitting_on_ice) + 0) +  
+              (!is.na(n_flying_past) + 0) + 
+              (!is.na(n_accompanying) + 0) + 
+              (!is.na(n_following_ship) + 0)) |>
+  filter(countTF == 6) |>
+  filter(genus == "Puffinus" | genus == "Diomedea") |>
+  pivot_longer(c(n_feeding, n_sitting_on_ice, n_sitting_on_water,
+                 n_flying_past, n_accompanying, n_following_ship), 
+               values_to = "number", names_to = "where") |>
+  filter(number > 0) |>
+  mutate(log10count = log10(number)) |>
+  left_join(ships, by = "record_id") |>
+  filter(date > "1975-01-01", date < "1990-01-01") |>
+  ggplot(aes(x = date, y = where, size = log10count, color = genus)) + 
+  geom_jitter(alpha = 0.5, width = 0) +
+  scale_color_brewer(palette = "Set1")
+```
+
+
+
+
+
+
+
+```{r}
+#| echo: false
+#| include: false
+
+p <- birds |>
+  filter(count != 99999) |>
+  mutate(countTF = (!is.na(n_feeding) + 0) + 
+              (!is.na(n_sitting_on_water) + 0) + 
+              (!is.na(n_sitting_on_ice) + 0) +  
+              (!is.na(n_flying_past) + 0) + 
+              (!is.na(n_accompanying) + 0) + 
+              (!is.na(n_following_ship) + 0)) |>
+  filter(countTF == 6) |>
+  filter(genus == "Puffinus" | genus == "Diomedea") |>
+  pivot_longer(c(n_feeding, n_sitting_on_ice, n_sitting_on_water,
+                 n_flying_past, n_accompanying, n_following_ship), 
+               values_to = "number", names_to = "where") |>
+  filter(number > 0) |>
+  mutate(log10count = log10(number)) |>
+  left_join(ships, by = "record_id") |>
+  filter(date > "1975-01-01", date < "1990-01-01") |>
+  ggplot(aes(x = date, y = where, size = log10count, color = genus)) + 
+  geom_jitter(alpha = 0.5, width = 0) +
+  scale_color_brewer(palette = "Set1")
+
+
+png(filename = "birds.png", width = 650, height = 450)
+
+p
+
+dev.off()
+
+```
+
+```{r}
+praise()
+```
+
+
+
+
+
+
+
