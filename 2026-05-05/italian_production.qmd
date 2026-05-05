@@ -1,0 +1,171 @@
+---
+title: "Italian industrial production"
+author: "Jo Hardin"
+date: May 5, 2026
+format: 
+  html:
+    embed-resources: true
+    code-fold: true
+execute:
+  warning: false
+  message: false
+---
+
+```{r}
+library(tidyverse) # ggplot, lubridate, dplyr, stringr, readr...
+library(praise)
+```
+
+
+# Italian industrial production
+
+[ISTAT (Istituto nazionale di statistica / Italian National Institute of Statistics)](https://www.istat.it/) is the primary source of official statistics in Italy. They publish long-running time series data on industrial production of food and beverages, transport equipment, and textiles covering over 100 years.
+
+> Information on the volumes of some industrial products has been also collected over time by public and private Institutions and published by Istat in the previous Sommari di statistiche storiche (Historical statistics summaries), for the period between 1861 to 1985. This information does not provide a coherent reconstruction of the development of the Italian industrial system; however, for the purposes of completing the historical overview of the statistics in the sector, this chapter does present some parts of the material collected over the years, with specific reference to the food, textiles and transport industries
+
+* Which industries have increased production, and which have decreased?
+* How has the average weight per ship changed over time?
+
+Thank you to [Nicola Rennie](https://github.com/nrennie) for curating this week's dataset.
+
+
+# The Data
+
+
+```{r}
+food_beverages <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2026/2026-05-05/food_beverages.csv')
+textiles <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2026/2026-05-05/textiles.csv')
+transport <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2026/2026-05-05/transport.csv')
+
+full_data <- food_beverages |>
+  full_join(textiles, by = "Year") |>
+  full_join(transport, by = "Year")
+```
+
+
+
+```{r}
+#| fig-cap: "Production of four Italian products: beer, alcohol, cotton yarn, and all yarn over time. Different events in the last century played a role in the production of various products."
+#| fig-alt: "Line plot showing the production amounts of four Italian products over time: beer, alcohol, cotton yarn, and all yarn. During both WW1 and WW2 production dropped precipitously. Since the 1950s, beer production has increased quickly."
+
+scale = 10
+
+full_data |>
+  ggplot(aes(x = Year)) + 
+  geom_rect(xmin = 1915, xmax = 1918, ymin = -Inf, ymax = 9e+06,
+            fill = "lightgrey", alpha = 0.05) + 
+  geom_rect(xmin = 1940, xmax = 1945, ymin = -Inf, ymax = 9e+06,
+            fill = "lightgrey", alpha = 0.05) + 
+  geom_line(aes(y = Beer, color = "Beer")) + 
+  geom_line(aes(y = Total_yarn*10, color = "Yarn")) + 
+  geom_line(aes(y = Cotton_yarn*10, color = "Cotton")) + 
+  geom_line(aes(y = Ethyl_alcohol_1, color = "Alcohol")) + 
+  scale_y_continuous(sec.axis = sec_axis(~./scale, name = "tons")) +
+  scale_x_continuous(breaks = seq(1860, 1985, by = 10)) + 
+  labs(y = "hecolitres", 
+       title = "Italian Production") + 
+  geom_rect(xmin = 1972.8, xmax = 1973.2, ymin = -Inf, ymax = 9e+06) + 
+  geom_rect(xmin = 1975.8, xmax = 1976.2, ymin = -Inf, ymax = 9e+06) + 
+  geom_rect(xmin = 1928.8, xmax = 1929.2, ymin = -Inf, ymax = 9e+06) + 
+  geom_text(label = "WWI", x = 1916.5, y = 9.5e+06,
+            family = "PingFangMO-Ultralight") + 
+  geom_text(label = "Great\n Depression", x = 1929, y = 9.5e+06,
+            family = "PingFangMO-Ultralight") + 
+  geom_text(label = "WWII", x = 1942.5, y = 9.5e+06,
+            family = "PingFangMO-Ultralight") + 
+  geom_text(label = "Oil\n crisis", x = 1971, y = 9.5e+06,
+            family = "PingFangMO-Ultralight") +   
+  geom_text(label = "Lira\n collapse", x = 1978, y = 9.5e+06,
+            family = "PingFangMO-Ultralight") +  
+    scale_color_manual(
+    values = c(
+      "Beer" = "brown",
+      "Yarn" = "blue",
+      "Cotton" = "purple",
+      "Alcohol" = "forestgreen"
+    ),
+    name = "Product"
+  ) +
+  theme_minimal() + 
+  theme(plot.title = element_text(family = "PingFangMO-Ultralight", face = "bold"),
+        axis.title.x = element_text(family = "PingFangMO-Ultralight", face = "bold"),
+        axis.title.y = element_text(family = "PingFangMO-Ultralight", face = "bold"),
+        legend.title = element_text(family = "PingFangMO-Ultralight", face = "bold"),
+        legend.text = element_text(family = "PingFangMO-Ultralight", face = "bold"))
+```
+
+
+
+
+
+
+
+
+```{r}
+#| echo: false
+#| include: false
+
+p <- full_data |>
+  ggplot(aes(x = Year)) + 
+  geom_rect(xmin = 1915, xmax = 1918, ymin = -Inf, ymax = 9e+06,
+            fill = "lightgrey", alpha = 0.05) + 
+  geom_rect(xmin = 1940, xmax = 1945, ymin = -Inf, ymax = 9e+06,
+            fill = "lightgrey", alpha = 0.05) + 
+  geom_line(aes(y = Beer, color = "Beer")) + 
+  geom_line(aes(y = Total_yarn*10, color = "Yarn")) + 
+  geom_line(aes(y = Cotton_yarn*10, color = "Cotton")) + 
+  geom_line(aes(y = Ethyl_alcohol_1, color = "Alcohol")) + 
+  scale_y_continuous(sec.axis = sec_axis(~./scale, name = "tons")) +
+  scale_x_continuous(breaks = seq(1860, 1985, by = 10)) + 
+  labs(y = "hecolitres", 
+       title = "Italian Production") + 
+  geom_rect(xmin = 1972.8, xmax = 1973.2, ymin = -Inf, ymax = 9e+06) + 
+  geom_rect(xmin = 1975.8, xmax = 1976.2, ymin = -Inf, ymax = 9e+06) + 
+  geom_rect(xmin = 1928.8, xmax = 1929.2, ymin = -Inf, ymax = 9e+06) + 
+  geom_text(label = "WWI", x = 1916.5, y = 9.5e+06,
+            family = "PingFangMO-Ultralight") + 
+  geom_text(label = "Great\n Depression", x = 1929, y = 9.5e+06,
+            family = "PingFangMO-Ultralight") + 
+  geom_text(label = "WWII", x = 1942.5, y = 9.5e+06,
+            family = "PingFangMO-Ultralight") + 
+  geom_text(label = "Oil\n crisis", x = 1971, y = 9.5e+06,
+            family = "PingFangMO-Ultralight") +   
+  geom_text(label = "Lira\n collapse", x = 1978, y = 9.5e+06,
+            family = "PingFangMO-Ultralight") +  
+    scale_color_manual(
+    values = c(
+      "Beer" = "brown",
+      "Yarn" = "blue",
+      "Cotton" = "purple",
+      "Alcohol" = "forestgreen"
+    ),
+    name = "Product"
+  ) +
+  theme_minimal() + 
+  theme(plot.title = element_text(family = "PingFangMO-Ultralight", face = "bold"),
+        axis.title.x = element_text(family = "PingFangMO-Ultralight", face = "bold"),
+        axis.title.y = element_text(family = "PingFangMO-Ultralight", face = "bold"),
+        legend.title = element_text(family = "PingFangMO-Ultralight", face = "bold"),
+        legend.text = element_text(family = "PingFangMO-Ultralight", face = "bold"))
+
+
+
+png(filename = "italian_prod.png", width = 650, height = 450)
+
+p
+
+dev.off()
+
+```
+
+```{r}
+praise()
+```
+
+
+
+
+
+
+
+
