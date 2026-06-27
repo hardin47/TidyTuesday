@@ -1,0 +1,101 @@
+---
+title: "UK Babynames"
+author: "Jo Hardin"
+date: June 16, 2026
+format: 
+  html:
+    embed-resources: true
+    code-fold: true
+execute:
+  warning: false
+  message: false
+---
+
+
+```{r}
+library(tidyverse)
+library(praise)
+```
+
+# UK Baby Names
+
+This week's dataset explores baby names in the UK. 
+
+There are three datasets which cover baby names across England and Wales from the [Office for National Statistics](https://www.ons.gov.uk/peoplepopulationandcommunity/birthsdeathsandmarriages/livebirths/datasets/babynamesinenglandandwalesfrom1996), Northern Ireland from the [Northern Ireland Statistics and Research Agency](https://www.nisra.gov.uk/publications/baby-names-2025), and Scotland from [National Records of Scotland](https://www.nrscotland.gov.uk/publications/babies-first-names-2025/).
+
+> Dearest gentle reader… we can report that Daphne, Eloise and Penelope have all increased in popularity this year, with the name of each Bridgerton character reaching joint 172nd, 91st, and 71st place respectively, up from 476th, 124th, and 81st in 2024. 
+
+* How does the ranking of most popular names compare between the three datasets?
+* Are boys' or girls' names more likely to be unique?
+* Can you show the *Bridgerton trend* in charts?
+
+Thank you to [Nicola Rennie](https://github.com/nrennie) for curating this week's dataset.
+
+
+```{r}
+england_wales_names <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2026/2026-06-16/england_wales_names.csv')
+ni_names <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2026/2026-06-16/ni_names.csv')
+scotland_names <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2026/2026-06-16/scotland_names.csv')
+```
+
+
+```{r}
+all_names <- rbind(
+    cbind(england_wales_names, country = "England & Wales"),
+    cbind(ni_names, country = "Northern Ireland"),
+    cbind(scotland_names, country = "Scotland")
+)
+```
+
+```{r}
+#| fig-cap: "For each of our names, we look at the number of babies in each county per year (on a log10 scale).  While Simon and Frances are decreasing in popularity, Frida is increasing in popularity."
+#| fig-alt: "Line plot with year on the x-axis and count on the y-axis. The separate lines represents the number of babies who were given the names Frances, Frida, Johanna, Nathalie, and Simon, faceted by countries in the UK: England & Wales, Northern Ireland, and Scotland."
+
+all_names |>
+    filter(Name %in% c("Frida", "Frances", "Nathalie", "Johanna", "Simon")) |>
+    ggplot(aes(x = Year, y = Number, color = Name, shape = Sex)) + 
+    geom_line() + 
+    geom_point() +
+    facet_grid(~country) +
+    scale_y_log10(labels = scales::label_number()) + 
+    theme_minimal() + 
+    labs(x = "", y = "", title = "Number of babies with a given name")
+```
+
+
+
+```{r}
+#| echo: false
+#| include: false
+
+p <- all_names |>
+    filter(Name %in% c("Frida", "Frances", "Nathalie", "Johanna", "Simon")) |>
+    ggplot(aes(x = Year, y = Number, color = Name, shape = Sex)) + 
+    geom_line() + 
+    geom_point() +
+    facet_grid(~country) +
+    scale_y_log10(labels = scales::label_number()) + 
+    theme_minimal() + 
+    labs(x = "", y = "", title = "Number of babies with a given name")
+
+
+png(filename = "uk_babynames.png", width = 650, height = 450)
+
+p
+
+dev.off()
+
+```
+
+```{r}
+praise()
+```
+
+
+
+
+
+
+
+
+
