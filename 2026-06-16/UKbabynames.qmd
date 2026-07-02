@@ -39,6 +39,7 @@ scotland_names <- readr::read_csv('https://raw.githubusercontent.com/rfordatasci
 ```
 
 
+
 ```{r}
 all_names <- rbind(
     cbind(england_wales_names, country = "England & Wales"),

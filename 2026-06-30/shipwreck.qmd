@@ -1,0 +1,123 @@
+---
+title: "Shipwrecks in Ireland"
+author: "Jo Hardin"
+date: June 30, 2026
+format: 
+  html:
+    embed-resources: true
+    code-fold: false
+execute:
+  warning: false
+  message: false
+---
+
+# Wreck Inventory of Ireland
+
+This week we are exploring Irish shipwreck data. The [Wreck Inventory of Ireland Database (WIID)](https://www.archaeology.ie/advice-and-support/locate-a-monument-or-wreck/wreck-viewer/) holds records of over 18,000 known and potential wreck sites in Irish waters, with data going back all the way to the 1300s.
+
+> The Wreck Inventory of Ireland Database (WIID) holds records of over
+> 18,000 known and potential wreck sites in the marine and inland waterways of
+> Ireland. The WIID includes all known wrecks dating to pre-1946 but some later
+> wrecks are also included. The database also includes records of aircraft
+> wrecks where these have come to attention.
+
+- How many wrecks still have not been found?
+- Where are shipwrecks more likely to occur around Ireland?
+
+Thank you to [Cormac Monaghan](https://github.com/C-Monaghan) for curating this week's dataset.
+
+
+
+```{r}
+library(tidyverse)
+library(praise)
+```
+
+
+```{r}
+wreck_inventory <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2026/2026-06-30/wreck_inventory.csv') |>
+    mutate(year2 = as.numeric(str_extract(descriptive_date, "\\d{4}"))) |>
+    mutate(century = floor(year2 / 100) * 100 )
+```
+
+
+```{r}
+wreck_inventory |>
+    ggplot(aes(x = classification)) +
+    geom_bar(fill = "purple")
+```
+
+
+```{r}
+wreck_inventory |>
+    summarize(count = n())
+
+
+wreck_inventory |>
+    group_by(classification) |>
+    summarize(count = n()) |>
+    arrange(desc(count))
+
+
+wreck2 <- wreck_inventory |>
+    group_by(classification) |>
+    mutate(count = n()) |>
+    filter(count >= 50) |>
+    #filter(classification != "Unknown") |>
+    filter(century >= 1700)
+```
+
+```{r}
+#| fig.cap: "In the last few centuries, the count of the type of ship that was wrecked in Ireland. The type of ship was filtered to only those types that had at least 50 wrecks across all time."
+#| fig.alt: "Bar chart with ship type on the x-axis and count on the y-axis, faceted by century of 1700, 1800, 1900, and 2000. The most common type of 'ship' was actually the unknown variety. In the 1800s, there were a lot of Schooner wrecks.  In the 1900s there were a lot of Steamship wrecks."
+
+wreck2 |>
+    ggplot(aes(x = classification)) + 
+    geom_bar(aes(color = classification)) + 
+    labs(x = "", y = "") + 
+    theme_minimal() + 
+    theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1, size =4),
+          legend.position = "none") +
+    facet_wrap(~century)
+```
+
+```{r}
+wreck_inventory |>
+  count(wreck_name) |>         
+  filter(n > 50) |>
+  filter(wreck_name != "Unknown") |>
+  mutate(n_dots = n %/% 10) |> 
+  uncount(n_dots)  |>
+      ggplot(aes(x = wreck_name)) +
+    geom_dotplot(binwidth = .5) + 
+    coord_flip()
+```
+
+
+```{r}
+#| echo: false
+#| include: false
+
+p <- wreck2 |>
+    ggplot(aes(x = classification)) + 
+    geom_bar(aes(color = classification)) + 
+    labs(x = "", y = "") + 
+    theme_minimal() + 
+    theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1, size =4),
+          legend.position = "none") +
+    facet_wrap(~century)
+
+
+png(filename = "wreck.png", width = 650, height = 450)
+
+p
+
+dev.off()
+
+```
+
+
+```{r}
+praise()
+```
+

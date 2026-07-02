@@ -33,6 +33,8 @@ A few other places to see TidyTuesday compilations:
 
 ## 2026
 
+* 2026-06-30 <a href = "https://hardin47.github.io/TidyTuesday/2026-06-30/shipwreck.html" target = "_blank">Shipwrecks in Ireland</a> <a href = "https://hardin47.github.io/TidyTuesday/2026-06-30/shipwreck.html" target = "_blank"><img src="2026-06-30/wreck.png" alt = "Bar chart with ship type on the x-axis and count on the y-axis, faceted by century of 1700, 1800, 1900, and 2000. The most common type of 'ship' was actually the unknown variety. In the 1800s, there were a lot of Schooner wrecks.  In the 1900s there were a lot of Steamship wrecks." style="width:100px;"/></a>
+
 * 2026-06-16 <a href = "https://hardin47.github.io/TidyTuesday/2026-06-16/UKbabynames.html" target = "_blank">UK Babynames</a> <a href = "https://hardin47.github.io/TidyTuesday/2026-06-16/UKbabynames.html" target = "_blank"><img src="2026-06-16/uk_babynames.png" alt = "Line plot with year on the x-axis and count on the y-axis. The separate lines represents the number of babies who were given the names Frances, Frida, Johanna, Nathalie, and Simon, faceted by countries in the UK: England & Wales, Northern Ireland, and Scotland." style="width:100px;"/></a>
 
 * 2026-05-05 <a href = "https://hardin47.github.io/TidyTuesday/2026-05-05/italian_production.html" target = "_blank">Italian industrial production</a> <a href = "https://hardin47.github.io/TidyTuesday/2026-05-05/italian_production.html" target = "_blank"><img src="2026-05-05/italian_prod.png" alt = "Line plot showing the production amounts of four Italian products over time: beer, alcohol, cotton yarn, and all yarn. During both WW1 and WW2 production dropped precipitously. Since the 1950s, beer production has increased quickly." style="width:100px;"/></a>
