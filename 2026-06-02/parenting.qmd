@@ -1,0 +1,113 @@
+---
+title: "European Parenting Leave Policies"
+author: "Jo Hardin"
+date: June 2, 2026
+format: 
+  html:
+    embed-resources: true
+    code-fold: false
+execute:
+  warning: false
+  message: false
+---
+
+# European Parenting Leave Policies
+
+This week we're exploring European Parenting Leave Policies. The European Parenting Leave Policies (EPLP) Dataset provides harmonised data on maternity, co-parent, paid parental, and job-protected leave regulations across 21 European countries from 1970 to 2024.
+
+> The dataset enables quantitative analyses of policy trends, cross-national differences, and the effects of major reforms – for researchers, policymakers, and others interested in family policy.
+
+Given the variety of parental leave schemes across countries, the dataset considers three different dimensions of parental leave duration for each country, if applicable. Dimension 1 (par1) identifies the paid parental leave scheme with the longest possible duration. Dimension 2 (par2) identifies the paid parental leave duration with the highest monthly flat rate payment. Dimension 3 (par3) identifies the duration with the highest replacement rate. 
+
+Values that are missing are represented as `NA`. Some values are missing because they are not applicable. These values are encoded as `"Not applicable"` for character vectors, and `-98` for numeric variables.
+
+* Which countries were the first to implement co-parent leave policies?
+* Has parenting leave decreased in any countries?
+
+Cite the dataset as: S. Spitzer et al., “The European Parenting Leave Policies (EPLP) Dataset”. Zenodo, Nov. 19, 2025. doi: 10.5281/zenodo.17648712.
+
+Thank you to [Nicola Rennie](https://github.com/nrennie) for curating this week's dataset.
+
+```{r}
+library(tidyverse)
+library(sf)
+library(rnaturalearth)
+library(gganimate)
+library(magick)
+library(praise)
+```
+
+
+```{r}
+eplp <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2026/2026-06-02/eplp.csv') |>
+  mutate(across(where(is.numeric), ~ na_if(.x, -98)))  # changes all of the -98 to NA
+```
+
+
+## Job-protected leave
+
+Using the variable `job-protected leave duration for birth mothers (maximum duration)`, we consider changes across time and country. The variable measures the maximum length of time, after childbirth, that a birth mother is legally entitled to be absent from paid work while her job (or an equivalent position) is protected. 
+
+```{r}
+#| fig.cap: "Over time most countries have increased their number of weeks of job protection."
+#| fig.alt: "Figure shows a map of Europe where each country is colored based on the number of weeks of job protection for a birth mother. Colors change over time from 1970 to 2024. In the early years, most countries have no mandatory job protection. In the last few decades, most countries have at least 80 or so weeks of mandatory job protection."
+
+europe <- ne_countries(continent = "europe", returnclass = "sf")
+yrs <- sort(unique(eplp$year))
+
+p <- europe |> 
+  mutate(country2 = ifelse(iso_a2_eh == "GB", "UK", iso_a2_eh)) |>
+  tidyr::expand_grid(year = yrs) |>
+  st_as_sf() |>
+  left_join(eplp, by = c("country2" = "country", "year")) |>
+  ggplot() + 
+  geom_sf(aes(fill = jp_ld_m)) + 
+  coord_sf(xlim = c(-10, 45), ylim = c(27, 82)) + 
+  theme_minimal() + 
+  scale_fill_gradient2(
+    low = "#91BFDB", mid = "#FFFFBF", high = "#FC8D59",
+    name = "job protected \nleave (weeks)",
+    midpoint = median(eplp$jp_ld_m, na.rm = TRUE)
+  ) + 
+  transition_states(year, transition_length = 0, state_length = 4) + 
+  labs(title = "Year: {closest_state}")
+
+animate(p)
+
+```
+
+
+```{r}
+#| echo: false
+#| include: false
+
+p <- europe |>
+  mutate(country2 = ifelse(iso_a2_eh == "GB", "UK", iso_a2_eh)) |>
+  tidyr::expand_grid(year = yrs) |>
+  st_as_sf() |>
+  left_join(eplp, by = c("country2" = "country", "year")) |>
+  filter(year == 2023) |>
+  ggplot() + 
+  geom_sf(aes(fill = jp_ld_m)) + 
+  coord_sf(xlim = c(-10, 45), ylim = c(27, 82)) + 
+  theme_minimal() + 
+  scale_fill_gradient2(
+    low = "#91BFDB", mid = "#FFFFBF", high = "#FC8D59",
+    name = "job protected \nleave (weeks)",
+    midpoint = median(eplp$jp_ld_m, na.rm = TRUE)
+  )
+
+
+png(filename = "parenting.png", width = 650, height = 450)
+
+p
+
+dev.off()
+
+```
+
+
+
+```{r}
+praise()
+```
