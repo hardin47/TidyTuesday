@@ -35,6 +35,7 @@ library(rnaturalearth)
 library(gganimate)
 library(magick)
 library(praise)
+library(broom)
 ```
 
 
@@ -75,6 +76,54 @@ p <- europe |>
 animate(p)
 
 ```
+
+
+# Predicting protected leave weeks
+
+We can use a linear model and the following variables -  `par1_ld` (paid parental leave duration ) and `year` and `par1_for_whom` (who is eligible for paid parental leave) - to predict `jd_ld_m` (job-protected leave duration for birth mothers ).
+
+Caveat: from the scatterplot (and the residual plot below), it doesn't seem like a linear model is necessarily the best model to fit here. That is, `jd_ld_m` is not really a linear model of the variables.
+
+
+
+
+Running models one at a time to investigate the relationship between `part1_ld` and `par1_for_whom` in predicting `jp_ld_m`. We are only interested in predicting for those countries that actually have policies (i.e., where `part1_ld` $\ne 0$). Note that `par1_for_whom` is either `mothers` or `either`.
+
+```{r}
+eplp1 <- eplp |>
+  filter(par1_ld != 0)
+```
+```{r}
+eplp1 |>
+  ggplot(aes(x = par1_ld, y = jp_ld_m, color = year)) +
+  geom_point() + 
+  geom_smooth(method = "lm", se = FALSE, color = "red") + 
+  facet_wrap( ~ par1_for_whom)
+```
+
+
+Again, with the caveat that the relationship is not truly linear, it seems like both `par1_ld` and `par1_for_whom` are important in predicting `jp_ld_m`.  Additionally, there seems to be moderate interaction between `par1_ld` and `par1_for_whom`.
+
+```{r}
+lm(jp_ld_m ~ par1_ld, data = eplp1) |>
+  tidy()
+lm(jp_ld_m ~ par1_ld + par1_for_whom, data = eplp1) |>
+  tidy()
+lm(jp_ld_m ~ par1_ld * par1_for_whom, data = eplp1) |>
+  tidy()
+```
+
+To check whether it was reasonable to run a linear model, we produce a residual plot. As expected, the residuals are not particularly scattered (normally) around the `y = 0` line. So any inference drawn on the model should be done so with a grain of salt.
+
+```{r}
+lm(jp_ld_m ~ par1_ld * par1_for_whom, data = eplp1) |>
+  augment() |>
+  ggplot(aes(x = .fitted, y = .resid)) + 
+  geom_point() + 
+  geom_hline(yintercept = 0)
+```
+
+
 
 
 ```{r}
