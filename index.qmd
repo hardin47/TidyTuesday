@@ -33,6 +33,9 @@ A few other places to see TidyTuesday compilations:
 
 ## 2026
 
+* 2026-07-23 <a href = "https://hardin47.github.io/TidyTuesday/2026-07-23/loveisland.html" target = "_blank">Love Island USA</a> <a href = "https://hardin47.github.io/TidyTuesday/2026-07-23/loveisland.html" target = "_blank"><img src="2026-07-23/loveisland.png" alt = "A graph with nodes representing contestants and edges representing couples in Love Island Season 8. Bryce and Trinity (who won the entire show) only coupled with each other. Carl, Aniya, KC, and Tierra also showed limited coupling with only each other. The rest of the contestants are connected in a large web of couplings." style="width:100px;"/></a>
+
+
 * 2026-06-30 <a href = "https://hardin47.github.io/TidyTuesday/2026-06-30/shipwreck.html" target = "_blank">Shipwrecks in Ireland</a> <a href = "https://hardin47.github.io/TidyTuesday/2026-06-30/shipwreck.html" target = "_blank"><img src="2026-06-30/wreck.png" alt = "Bar chart with ship type on the x-axis and count on the y-axis, faceted by century of 1700, 1800, 1900, and 2000. The most common type of 'ship' was actually the unknown variety. In the 1800s, there were a lot of Schooner wrecks.  In the 1900s there were a lot of Steamship wrecks." style="width:100px;"/></a>
 
 * 2026-06-16 <a href = "https://hardin47.github.io/TidyTuesday/2026-06-16/UKbabynames.html" target = "_blank">UK Babynames</a> <a href = "https://hardin47.github.io/TidyTuesday/2026-06-16/UKbabynames.html" target = "_blank"><img src="2026-06-16/uk_babynames.png" alt = "Line plot with year on the x-axis and count on the y-axis. The separate lines represents the number of babies who were given the names Frances, Frida, Johanna, Nathalie, and Simon, faceted by countries in the UK: England & Wales, Northern Ireland, and Scotland." style="width:100px;"/></a>

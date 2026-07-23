@@ -1,0 +1,170 @@
+---
+title: "Love Island Coupling"
+author: "Jo Hardin"
+date: July 23, 2026
+format: 
+  html:
+    embed-resources: true
+    code-fold: true
+execute:
+  warning: false
+  message: false
+---
+
+While not actually a TidyTuesday dataset this week, we've worked through data that comes from the Love Island USA Wikipedia pages, seasons 1 through 8.
+
+The majority of the code in this entry was written by Emil Hvitfeldt for his <a href = "https://emilhvitfeldt.com/post/love-island-connections/" target = "_blank">Love Island Connections</a> blog.
+
+```{r}
+library(tidyverse)
+library(rvest)
+library(jsonlite)
+library(praise)
+```
+
+Scraping the html coupling table from each individual Love Island Wikipedia page. Fortunately, the URLs for each season are quite easy to work with.
+
+```{r}
+url7 <- "https://en.wikipedia.org/wiki/Love_Island_USA_season_7"
+url8 <- "https://en.wikipedia.org/wiki/Love_Island_USA_season_8"
+
+extract_couples <- function(url) {
+  page <- read_html(url)
+  all_tables <- page |> html_elements("table.wikitable") # |> html_table()
+  coupling_table <- all_tables[[2]]
+
+  html <- read_html(url)
+
+  rows <- coupling_table |>
+    html_element("tbody") |>
+    html_elements("tr")
+
+  rows <- rows[-c(1, 2, length(rows) - c(0:6))]
+
+  names <- rows |>
+    html_elements("th") |>
+    html_text() |>
+    str_trim()
+
+  extract_matches <- function(row) {
+    row |>
+      html_elements("td") |>
+      html_text() |>
+      str_trim()
+  }
+
+  map(rows, extract_matches) |>
+    map2(names, ~ tibble(x = .y, y = .x)) |>
+    list_rbind() |>
+    filter(!str_detect(y, "\\(")) |>
+    filter(!str_detect(y, "\\)")) |>
+    filter(!str_detect(y, "\\&")) |>
+    filter(!str_detect(y, "save")) |>
+    filter(!str_detect(y, "dump")) |>
+    filter(!str_detect(y, "100k")) |>
+    filter(
+      y != "N/A",
+      y != "Not in Villa",
+      y != "Single",
+      y != "Finalist",
+      y != "Safe",
+      y != "Vulnerable",
+      y != "Eliminated",
+      y != "Not inVilla",
+      y != "Immune",
+      y != "Saved"
+    )
+}
+
+test7 <- extract_couples(url7)
+test8 <- extract_couples(url8)
+```
+
+
+
+
+```{r}
+li_data <- paste0(
+  "https://en.wikipedia.org/wiki/Love_Island_USA_season_",
+  1:8
+) |>
+  map(extract_couples) |>
+  list_rbind(names_to = "season") |>
+  select(x, y, season)
+
+# write_csv(li_data, "2026-07-23/li_data.csv")
+```
+
+# Making a graph
+
+Each node is a contestant in Love Island. A line connecting two contestants indicates that the two individuals "coupled" at some point during the show.
+
+
+```{r}
+library(ggraph)
+library(tidygraph)
+library(igraph)
+
+chart_graph <- function(data) {
+  as_tbl_graph(data, directed = FALSE) |>
+    ggraph(layout = "fr") +
+    geom_edge_link() +
+    geom_node_point() +
+    geom_node_text(aes(label = name), repel = TRUE) +
+    theme_graph() +
+    theme(
+      plot.background = element_rect(fill = "transparent", color = NA),
+      panel.background = element_rect(fill = "transparent", color = NA)
+    ) +
+    labs(title = paste0("Love Island, Season ", unique(data$season)))
+}
+```
+
+```{r}
+#| fig-alt: "A graph with nodes representing contestants and edges representing couples in Love Island Season 8. Bryce and Trinity (who won the entire show) only coupled with each other. Carl, Aniya, KC, and Tierra also showed limited coupling with only each other. The rest of the contestants are connected in a large web of couplings."
+#| fig-cap: "A graph showing couplings between contestants on Love Island, Season 8."
+
+chart_graph(li_data |> filter(season == 8))
+```
+
+Now that we have a graph for Season 8, we can create similar graphs for all eight seasons.
+
+<p> </p>
+
+::: {.panel-tabset}
+
+```{r}
+#| label: graph-tabset
+#| results: asis
+#| dev.args: !expr list(bg = "transparent")
+set.seed(4774)
+
+for (season in sort(unique(li_data$season))) {
+  cat("\n\n## Season", season, "\n\n")
+  print(chart_graph(li_data[li_data$season == season, ]))
+}
+```
+
+:::
+
+
+
+```{r}
+#| echo: false
+#| include: false
+
+p <- chart_graph(li_data |> filter(season == 8))
+
+
+png(filename = "loveisland.png", width = 650, height = 450)
+
+p
+
+dev.off()
+```
+
+
+
+```{r}
+praise()
+```

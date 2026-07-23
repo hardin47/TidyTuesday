@@ -40,8 +40,10 @@ library(broom)
 
 
 ```{r}
-eplp <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2026/2026-06-02/eplp.csv') |>
-  mutate(across(where(is.numeric), ~ na_if(.x, -98)))  # changes all of the -98 to NA
+eplp <- readr::read_csv(
+  'https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2026/2026-06-02/eplp.csv'
+) |>
+  mutate(across(where(is.numeric), ~ na_if(.x, -98))) # changes all of the -98 to NA
 ```
 
 
@@ -56,25 +58,26 @@ Using the variable `job-protected leave duration for birth mothers (maximum dura
 europe <- ne_countries(continent = "europe", returnclass = "sf")
 yrs <- sort(unique(eplp$year))
 
-p <- europe |> 
+p <- europe |>
   mutate(country2 = ifelse(iso_a2_eh == "GB", "UK", iso_a2_eh)) |>
   tidyr::expand_grid(year = yrs) |>
   st_as_sf() |>
   left_join(eplp, by = c("country2" = "country", "year")) |>
-  ggplot() + 
-  geom_sf(aes(fill = jp_ld_m)) + 
-  coord_sf(xlim = c(-10, 45), ylim = c(27, 82)) + 
-  theme_minimal() + 
+  ggplot() +
+  geom_sf(aes(fill = jp_ld_m)) +
+  coord_sf(xlim = c(-10, 45), ylim = c(27, 82)) +
+  theme_minimal() +
   scale_fill_gradient2(
-    low = "#91BFDB", mid = "#FFFFBF", high = "#FC8D59",
+    low = "#91BFDB",
+    mid = "#FFFFBF",
+    high = "#FC8D59",
     name = "job protected \nleave (weeks)",
     midpoint = median(eplp$jp_ld_m, na.rm = TRUE)
-  ) + 
-  transition_states(year, transition_length = 0, state_length = 4) + 
+  ) +
+  transition_states(year, transition_length = 0, state_length = 4) +
   labs(title = "Year: {closest_state}")
 
 animate(p)
-
 ```
 
 
@@ -96,9 +99,9 @@ eplp1 <- eplp |>
 ```{r}
 eplp1 |>
   ggplot(aes(x = par1_ld, y = jp_ld_m, color = year)) +
-  geom_point() + 
-  geom_smooth(method = "lm", se = FALSE, color = "red") + 
-  facet_wrap( ~ par1_for_whom)
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE, color = "red") +
+  facet_wrap(~par1_for_whom)
 ```
 
 
@@ -118,8 +121,8 @@ To check whether it was reasonable to run a linear model, we produce a residual 
 ```{r}
 lm(jp_ld_m ~ par1_ld * par1_for_whom, data = eplp1) |>
   augment() |>
-  ggplot(aes(x = .fitted, y = .resid)) + 
-  geom_point() + 
+  ggplot(aes(x = .fitted, y = .resid)) +
+  geom_point() +
   geom_hline(yintercept = 0)
 ```
 
@@ -136,12 +139,14 @@ p <- europe |>
   st_as_sf() |>
   left_join(eplp, by = c("country2" = "country", "year")) |>
   filter(year == 2023) |>
-  ggplot() + 
-  geom_sf(aes(fill = jp_ld_m)) + 
-  coord_sf(xlim = c(-10, 45), ylim = c(27, 82)) + 
-  theme_minimal() + 
+  ggplot() +
+  geom_sf(aes(fill = jp_ld_m)) +
+  coord_sf(xlim = c(-10, 45), ylim = c(27, 82)) +
+  theme_minimal() +
   scale_fill_gradient2(
-    low = "#91BFDB", mid = "#FFFFBF", high = "#FC8D59",
+    low = "#91BFDB",
+    mid = "#FFFFBF",
+    high = "#FC8D59",
     name = "job protected \nleave (weeks)",
     midpoint = median(eplp$jp_ld_m, na.rm = TRUE)
   )
@@ -152,7 +157,6 @@ png(filename = "parenting.png", width = 650, height = 450)
 p
 
 dev.off()
-
 ```
 
 
