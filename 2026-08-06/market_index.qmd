@@ -163,7 +163,7 @@ full_data |>
 
 We also played around with Shiny so the user could choose which variable to plot:
 
-<iframe src="https://019fdd7a-0f99-982e-6893-85608fd3a282.share.connect.posit.cloud/" width="90%" height="800"   style="border: none;" data-external="1"></iframe>
+<iframe src="https://hardin47-market-indicator-explorer.share.connect.posit.cloud/" width="90%" height="800"   style="border: none;" data-external="1"></iframe>
 
 ```{r}
 #| echo: false
