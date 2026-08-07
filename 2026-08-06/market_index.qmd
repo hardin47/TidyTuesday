@@ -140,7 +140,7 @@ map(
 Instead of looking at a single variable at a time, we might be interested in looking at multiple variables on the same plot. It is a little bit tricky because the variables are meausured on quite different scales, but some are comparable.
 
 ```{r}
-#| fig-cap: "Comparing the US 10y yield bond rate versus global temperature deviations from the average temperature for all of the 20th century."
+#| fig-cap: "Comparing the US 10y yield bond rate, the S&P 500, and global temperature deviations from the average temperature for all of the 20th century."
 #| fig-alt: "A line plot with time from the 1950s to the 2020s on the x-axis. The y-axis measures three distinct variables: (1) the US 10y yield bond rate, (2) the S and P 500, and (3) the global temperature deviations from the average temperature for all of the 20th centure. The three time series are not particularly correlated. The bond rate peaks sharply in the 1980s and has started to rise again in the 2020. The S and P has risen a lot over the time period and is numerically much later than the other two time series. The temperature has risen slowly over the entire time period."
 
 full_data |>
