@@ -1,0 +1,193 @@
+---
+title: "Market Indicators"
+author: "Jo Hardin"
+date: August 6, 2026
+format: 
+  html:
+    embed-resources: true
+    code-fold: false
+execute:
+  warning: false
+  message: false
+---
+
+Today we are measuring different market indicators using data from the <a href = "https://github.com/datasets" target = "_balnk">Curated open data on GitHub</a>.
+
+
+```{r}
+library(tidyverse)
+library(praise)
+```
+
+
+## Data
+
+We collect data over time on: gold prices, natural gas prices, oil prices, the yield rate of the US 10y bond, volatility index, and the S & P 500.
+
+```{r}
+#| code-fold: true
+gold <- readr::read_csv(
+  'https://raw.githubusercontent.com/datasets/gold-prices/refs/heads/main/data/monthly-processed.csv'
+) |>
+  rename(gold_price = Price)
+
+oil <- readr::read_csv(
+  'https://raw.githubusercontent.com/datasets/oil-prices/refs/heads/main/data/wti-monthly.csv'
+) |>
+  rename(oil_price = Price)
+
+nat_gas <- readr::read_csv(
+  'https://raw.githubusercontent.com/datasets/natural-gas/refs/heads/main/data/monthly-processed.csv'
+) |>
+  rename(gas_price = Price)
+
+vix <- readr::read_csv(
+  'https://raw.githubusercontent.com/datasets/finance-vix/refs/heads/main/data/vix-monthly.csv'
+) |> # volatility index
+  rename(vol_idx = Close)
+
+bond <- readr::read_csv(
+  'https://raw.githubusercontent.com/datasets/bond-yields-us-10y/refs/heads/main/data/monthly.csv'
+) |> # bond yields us 10y
+  rename(bond_rate = Rate)
+
+temp <- readr::read_csv(
+  'https://raw.githubusercontent.com/datasets/global-temp/refs/heads/main/data/monthly.csv'
+) |>
+  mutate(Date = lubridate::as_date(paste0(Year, "-01"))) |>
+  rename(temp_diff = Mean) |>
+  select(-Year, -Source)
+# difference of that month from the average over all of the 20th century
+
+sp <- readr::read_csv(
+  'https://raw.githubusercontent.com/datasets/s-and-p-500/refs/heads/main/data/data.csv'
+) |>
+  select(Date, SP500)
+
+full_data <- gold |>
+  full_join(oil) |>
+  full_join(nat_gas) |>
+  full_join(vix) |>
+  full_join(bond) |>
+  full_join(temp) |>
+  full_join(sp)
+```
+
+
+## Making a single plot
+
+We start by making a single line plot over time, measuring oil prices.
+
+```{r}
+
+full_data |>
+  select(Date, oil_price) |>
+  drop_na() |>
+  ggplot(aes(x = Date, y = oil_price)) +
+  geom_line() +
+  theme_bw()
+```
+
+
+## Write a function
+
+The function takes a variable name as the argument and makes a line plot over time for that variable.  Note the `{{ }}` needed due to the non-standard evaluation.
+
+```{r}
+plot_ts <- function(variable, log = TRUE) {
+  if (log) {
+    full_data |>
+      select(Date, {{ variable }}) |>
+      drop_na() |>
+      ggplot(aes(x = Date, y = {{ variable }})) +
+      geom_line() +
+      theme_bw() +
+      scale_y_log10() +
+      labs(x = "date")
+  } else {
+    full_data |>
+      select(Date, {{ variable }}) |>
+      drop_na() |>
+      ggplot(aes(x = Date, y = {{ variable }})) +
+      geom_line() +
+      theme_bw() +
+      labs(x = "date")
+  }
+}
+
+plot_ts(SP500, log = TRUE)
+plot_ts(SP500, log = FALSE)
+```
+
+## Mapping the function
+
+Unforunately, the non-standard evaluation means that the function we wrote cannot be directly mapped.  `map()` will go through the variables vector one at a time (e.g., `variables[1]`, `variables[2]`, etc.), and the name of the variable then needs to be translated into something that can be used in the tidy pipeline.
+
+
+```{r}
+variables <- c("vol_idx", "gold_price", "oil_price")
+
+map(
+  variables,
+  \(v, log = TRUE) plot_ts(!!rlang::sym(v), log = log),
+  log = FALSE
+)
+```
+
+## Plotting multiple variables
+
+
+Instead of looking at a single variable at a time, we might be interested in looking at multiple variables on the same plot. It is a little bit tricky because the variables are meausured on quite different scales, but some are comparable.
+
+```{r}
+#| fig-cap: "Comparing the US 10y yield bond rate versus global temperature deviations from the average temperature for all of the 20th century."
+#| fig-alt: "A line plot with time from the 1950s to the 2020s on the x-axis. The y-axis measures three distinct variables: (1) the US 10y yield bond rate, (2) the S and P 500, and (3) the global temperature deviations from the average temperature for all of the 20th centure. The three time series are not particularly correlated. The bond rate peaks sharply in the 1980s and has started to rise again in the 2020. The S and P has risen a lot over the time period and is numerically much later than the other two time series. The temperature has risen slowly over the entire time period."
+
+full_data |>
+  select(Date, bond_rate, temp_diff, SP500) |>
+  drop_na() |>
+  pivot_longer(
+    cols = -Date,
+    names_to = "product",
+    values_to = "value"
+  ) |>
+  ggplot(aes(x = Date, y = value, color = product)) +
+  geom_line() +
+  theme_bw() +
+  scale_color_brewer(palette = "Dark2") +
+  scale_y_log10() +
+  labs(y = "", title = "Comparison over time, log10 scale")
+```
+
+
+```{r}
+#| echo: false
+#| include: false
+
+p <- full_data |>
+  select(Date, bond_rate, temp_diff, SP500) |>
+  drop_na() |>
+  pivot_longer(
+    cols = -Date,
+    names_to = "product",
+    values_to = "value"
+  ) |>
+  ggplot(aes(x = Date, y = value, color = product)) +
+  geom_line() +
+  theme_bw() +
+  scale_color_brewer(palette = "Dark2") +
+  labs(y = "", title = "Comparison over time, log10 scale") +
+  scale_y_log10()
+
+
+png(filename = "marketindex.png", width = 650, height = 450)
+
+p
+
+dev.off()
+```
+
+
+```{r}
+praise()
+```
