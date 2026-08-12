@@ -1,0 +1,306 @@
+---
+title: "Foundation Shades"
+author: "Jo Hardin"
+date: August 12, 2026
+format: 
+  html:
+    embed-resources: true
+    code-fold: true
+execute:
+  warning: false
+  message: false
+---
+
+
+```{r}
+library(tidyverse)
+library(praise)
+```
+
+## Data
+
+We use screen shots of different shades / colors from four foundations at Sephora: Luminous Silk by Armani, Triclone Skin Tech Foundation by Haus Labs, Pro Filt\u2019r Soft Matte by Fenty Beauty, and Hollywood Flawless Filter by Charlotte Tillbury.  
+
+```{r}
+# Haus Labs
+hex <- c(
+  "#3F1E0B",
+  "#4B2511",
+  "#6A3E32",
+  "#6D3D33",
+  "#8A5B2D",
+  "#6F3A0E",
+  "#6D3C22",
+  "#7B4D3D",
+  "#6E3D33",
+  "#5A352F",
+  "#5C2E2E",
+  "#8E5D1F",
+  "#7E4C2F",
+  "#9E622E",
+  "#B36F43",
+  "#A36A5A",
+  "#A66D4B",
+  "#B67E5F",
+  "#7F4A2B",
+  "#B57B5B",
+  "#B68D71",
+  "#B98B6E",
+  "#C69A7E",
+  "#CDA28B",
+  "#C79A7A",
+  "#C49B7C",
+  "#C8A88D",
+  "#C9A18D",
+  "#D1B29B",
+  "#D7B8A5",
+  "#D7BCA8",
+  "#E4C3B0",
+  "#DDB9A8",
+  "#D6B3A4",
+  "#DCC0B2",
+  "#D2B3A7",
+  "#D6BBAE",
+  "#D7BBAE",
+  "#E3C1B3",
+  "#E7C7B6",
+  "#E7C4B2",
+  "#EBC7B0",
+  "#E7C7B0",
+  "#EBC7B0",
+  "#F4D1BC",
+  "#F3D6C1",
+  "#F0D2B7",
+  "#F0D2B7",
+  "#F6D8BC",
+  "#F6D9C0",
+  "#F6D8BC",
+  "#F6D8BC",
+  "#F6D8BC",
+  "#F2E6E3"
+)
+
+brand <- rep("Haus Labs", length(hex))
+product <- rep("Triclone Skin Tech Foundation", length(hex))
+
+df_HL <- data.frame(hex = hex, brand = brand, product = product)
+
+
+# Charlotte Tilbury
+df_CT <- data.frame(
+  hex = c(
+    "#F0DCCB",
+    "#E8CDBB",
+    "#D3A773",
+    "#E7BFA9",
+    "#DCC6AB",
+    "#D5A37F",
+    "#E5BDA5",
+    "#D7B27A",
+    "#E0B69C",
+    "#B47C52",
+    "#D3A58E",
+    "#A8795C"
+  ),
+  brand = rep("Charlotte Tilbury", 12),
+  product = rep("Hollywood Flawless Filter", 12)
+)
+
+# Armani
+df_A <- data.frame(
+  hex = c(
+    "#E6B98E",
+    "#E3B68F",
+    "#E0B57F",
+    "#DDAA72",
+    "#E5B58E",
+    "#E0B17C",
+    "#DDB38A",
+    "#D5A77C",
+    "#D8A879",
+    "#D7A97E",
+    "#D2A278",
+    "#C99A6D",
+    "#D19C6B",
+    "#D0A17D",
+    "#C89A67",
+    "#CD9C74",
+    "#C69A6E",
+    "#C98551",
+    "#C99367",
+    "#C79365",
+
+    "#BD8B61",
+    "#C78B60",
+    "#B98253",
+    "#B67846",
+    "#C38B65",
+    "#A9784E",
+    "#B47C54",
+    "#B57B4B",
+    "#C58C69",
+    "#AA794E",
+    "#9F6B3F",
+    "#A66E45",
+    "#A8734C",
+    "#9E693F",
+    "#8F5A32",
+    "#925F3E",
+    "#9A623C",
+    "#8C4C29",
+    "#8D5C3E",
+    "#885B3F",
+
+    "#875A3E",
+    "#805137",
+    "#673B29",
+    "#6B4030"
+  ),
+  brand = rep("Armani", 44),
+  product = rep("Luminous Silk", 44)
+)
+
+
+# Fenty
+hex_codes <- c(
+  "#492E1D",
+  "#502C1C",
+  "#58361F",
+  "#552F20",
+  "#653F28",
+  "#663F27",
+  "#7C5437",
+  "#81512E",
+  "#96603D",
+  "#835332",
+  "#99623E",
+  "#A46F45",
+  "#976239",
+  "#9E6231",
+  "#A46E43",
+  "#C08660",
+  "#B98353",
+  "#AD7D52",
+  "#B88450",
+  "#B68558",
+  "#CA9561",
+  "#C99564",
+  "#CA9464",
+  "#C3966C",
+  "#D1A77A",
+  "#D8B385",
+  "#DEB38D",
+  "#CEAA81",
+  "#D7AB85",
+  "#DCB286",
+  "#D3AA86",
+  "#D3A671",
+  "#D8B092",
+  "#E0BB92",
+  "#E5BC99",
+  "#D9B08A",
+  "#E1BE9F",
+  "#EAC69E",
+  "#E9C59D",
+  "#D6B591",
+  "#E4C1A8",
+  "#F0D0AE",
+  "#EAD5BD",
+  "#EDD5BA",
+  "#E7CA96",
+  "#EDD5BA",
+  "#DCBC9B",
+  "#F9E3D1",
+  "#F9E7DC",
+  "#F9E7DE"
+)
+
+df_F <- data.frame(
+  hex = hex_codes,
+  brand = "Fenty Beauty",
+  product = "Pro Filt\u2019r Soft Matte"
+)
+
+
+makeup <- rbind(df_HL, df_CT, df_A, df_F)
+```
+
+
+## Waffle plots to see foundation shades
+
+We note that Haus Labs has the most options, which in turn means they have the most options for darker skin and for lighter skin. Charlotte Tilbury has very few options, particularly for darker skin. Armani has a medium number of options, but none of them are particularly light or dark. Fenty seems to have a good range with lots of different shade options. 
+
+An extension to this project would be to find many more foundation product shades to compare.
+
+```{r}
+#| fig-cap: Shade / color options for four different foundation brands.
+#| fig-alt: Four different waffle plots broken down by brand / product. Each product has a different number of foundation shades and a different range of colors. 
+
+df_plot <- makeup |>
+  group_by(brand) |>
+  mutate(
+    id = row_number(),
+    x = (id - 1) %% 10,
+    y = (id - 1) %/% 10,
+    hex = sort(hex),
+    brand_prod = paste(brand, product, sep = "\n")
+  ) |>
+  ungroup()
+
+ggplot(df_plot, aes(x = x, y = -y)) +
+  geom_tile(
+    aes(fill = hex),
+    width = 0.95,
+    height = 0.95
+  ) +
+  facet_wrap(~brand_prod) +
+  scale_fill_identity() +
+  coord_equal() +
+  theme_void() +
+  theme(
+    strip.text = element_text(
+      size = 10
+    ),
+    panel.spacing = unit(2, "lines")
+  )
+```
+
+
+
+
+```{r}
+#| echo: false
+#| include: false
+
+p <- ggplot(df_plot, aes(x = x, y = -y)) +
+  geom_tile(
+    aes(fill = hex),
+    width = 0.95,
+    height = 0.95
+  ) +
+  facet_wrap(~brand) +
+  scale_fill_identity() +
+  coord_equal() +
+  theme_void() +
+  theme(
+    strip.text = element_text(
+      size = 12
+    ),
+    panel.spacing = unit(2, "lines")
+  )
+
+
+png(filename = "foundation.png", width = 650, height = 450)
+
+p
+
+dev.off()
+```
+
+
+
+
+
+```{r}
+praise()
+```

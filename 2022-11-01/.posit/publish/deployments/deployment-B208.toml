@@ -10,7 +10,7 @@ id = "019fde14-ecf5-2e6d-c2ff-e713f5685d99"
 dashboard_url = "https://connect.posit.cloud/hardin47/content/019fde14-ecf5-2e6d-c2ff-e713f5685d99"
 direct_url = "https://019fde14-ecf5-2e6d-c2ff-e713f5685d99.share.connect.posit.cloud"
 logs_url = "https://connect.posit.cloud/hardin47/content/019fde14-ecf5-2e6d-c2ff-e713f5685d99/history"
-deployed_at = "2026-08-07T21:36:51.958Z"
+deployed_at = "2026-08-07T21:37:37.224Z"
 bundle_id = "019fde28-494e-c27a-a672-676609199df8"
 files = [
     ".posit/publish/deployments/deployment-B208.toml",

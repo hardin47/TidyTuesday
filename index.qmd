@@ -33,6 +33,8 @@ A few other places to see TidyTuesday compilations:
 
 ## 2026
 
+* 2026-08-12 <a href = "https://hardin47.github.io/TidyTuesday/2026-08-12/makeup_shades.html" target = "_blank">Foundation Shades</a> <a href = "https://hardin47.github.io/TidyTuesday/2026-08-12/makeup_shades.html" target = "_blank"><img src="2026-08-12/foundation.png" alt = "Four different waffle plots broken down by brand / product. Each product has a different number of foundation shades and a different range of colors." style="width:100px;"/></a>
+
 * 2026-08-06 <a href = "https://hardin47.github.io/TidyTuesday/2026-08-06/market_index.html" target = "_blank">Market Indices</a> <a href = "https://hardin47.github.io/TidyTuesday/2026-08-06/market_index.html" target = "_blank"><img src="2026-08-06/marketindex.png" alt = "A line plot with time from the 1950s to the 2020s on the x-axis. The y-axis measures three distinct variables: (1) the US 10y yield bond rate, (2) the S and P 500, and (3) the global temperature deviations from the average temperature for all of the 20th centure. The three time series are not particularly correlated. The bond rate peaks sharply in the 1980s and has started to rise again in the 2020. The S and P has risen a lot over the time period and is numerically much later than the other two time series. The temperature has risen slowly over the entire time period." style="width:100px;"/></a>
 
 
