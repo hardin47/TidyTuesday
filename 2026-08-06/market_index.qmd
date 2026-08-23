@@ -161,7 +161,7 @@ full_data |>
 
 ## Using Shiny
 
-We also played around with Shiny so the user could choose which variable to plot:
+We also played around with creating a <a href = "https://hardin47-market-indicator-explorer.share.connect.posit.cloud/" target = "_blank">Shiny app</a> so the user could choose which variable to plot:
 
 <iframe src="https://hardin47-market-indicator-explorer.share.connect.posit.cloud/" width="90%" height="800"   style="border: none;" data-external="1"></iframe>
 
