@@ -1,0 +1,180 @@
+---
+title: "Frogs and Toads"
+author: "Jo Hardin"
+date: Oct 13, 2026
+format: 
+  html:
+    embed-resources: true
+    code-fold: true
+execute:
+  warning: false
+  message: false
+---
+
+```{r}
+library(tidyverse)
+library(countrycode)
+library(ggalluvial)
+library(Polychrome)
+library(praise)
+```
+
+
+# AmphibiaWeb
+
+This week we're exploring **Frogs and Toads** through [**AmphibiaWeb**](https://amphibiaweb.org/index.html)'s massive dataset! The quote below is taken from one of the many weekly articles linked in their **Amphibian News!** portal, with entries going all the way back to 2009.  
+
+> Understanding why biodiversity is unevenly distributed is fundamental to ecology and evolution. Should we look to contemporary climate to explain where species diversity is highest, or look deeper into the past? Jongsma et al. (2026) tackled this question in the Lower Guinean Forests of Central Africa... Pleistocene forest stability explained 65-71% of spatial variance in species richness and phylogenetic diversity, which far exceeds contemporary temperature, precipitation, or forest cover.
+> 
+> -- **Greg Jongsma via [AmphibiaWeb News](https://amphibiaweb.org/resources/amphibian_news.html)** (referencing [Jongsma et al., 2026](https://doi.org/10.1002/ece3.73207))
+
+#### Citation
+Jongsma, G. F. M., N. Barve, J. M. Allen, H. L. Owens, and D. C. Blackburn. 2026. "Pleistocene Forest Stability Predicts Patterns of Frog Diversity in Central Africa." *Ecology and Evolution* 16 (3): e73207. [https://doi.org/10.1002/ece3.73207](https://doi.org/10.1002/ece3.73207).
+
+The article above needn't be the only place to draw inspiration. [AmphibiaWeb News](https://amphibiaweb.org/resources/amphibian_news.html) highlights an amphibian-related journal article every week!
+
+# The Data
+
+```{r}
+amphibs <- readr::read_csv(
+  'https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2026/2026-10-13/frogs_and_toads_amphibiaweb.csv'
+) |>
+  separate_longer_delim(isocc, ",") |>
+  mutate(
+    country = countrycode(isocc, "iso2c", "country.name.en"),
+    continent = countrycode(isocc, "iso2c", "continent")
+  )
+```
+
+# The Analysis
+
+Our idea was to see how the different amphibean families were dispersed across different continents. The biggest families are labeled.
+
+#### An alluvial plot
+
+
+```{r}
+#| fig.cap: "adfa"
+#| fig.alt: "dasfsda"
+
+set.seed(47)
+num_colors <- 62
+custom_palette <- createPalette(num_colors, c("#FF0000", "#00FF00", "#0000FF"))
+names(custom_palette) <- NULL # Clear names so it acts as a clean character vector
+
+
+amphibs |>
+  filter(!is.na(isocc), !is.na(family)) |>
+  group_by(family, continent) |>
+  summarize(count = n()) |>
+  ggplot(aes(y = count, axis1 = family, axis2 = continent)) +
+  geom_alluvium(aes(fill = family)) +
+  geom_stratum(color = "white", aes(fill = family), linewidth = .7) +
+  geom_label(stat = "stratum", aes(label = after_stat(stratum)), min.y = 500) +
+  scale_fill_manual(values = custom_palette) +
+  theme_void() +
+  theme(
+    legend.position = "none",
+    axis.text.x = element_blank(),
+    axis.ticks.x = element_blank(),
+    axis.text.y = element_blank(),
+    axis.ticks.y = element_blank()
+  ) +
+  labs(y = "") +
+  annotate(
+    geom = "text",
+    y = c(15000, 15000),
+    x = c(1, 2),
+    label = c("Family", "Continent")
+  )
+```
+
+#### A Sankey plot
+
+
+```{r}
+#devtools::install_github("davidsjoberg/ggsankey")
+library(ggsankey)
+
+frogs_and_toads_amphibiaweb <- readr::read_csv(
+  'https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2026/2026-10-13/frogs_and_toads_amphibiaweb.csv'
+) |>
+  separate_longer_delim(isocc, ",") |>
+  mutate(
+    country = countrycode(isocc, "iso2c", "country.name.en"),
+    continent = countrycode(isocc, "iso2c", "continent")
+  )
+
+
+frogs_and_toads_amphibiaweb |>
+  filter(!is.na(isocc), !is.na(family)) |>
+  group_by(family, continent) |>
+  summarize(count = n()) |>
+  ungroup() |>
+  make_long(family, continent, value = count) |>
+  mutate(
+    node2 = case_when(
+      x == "continent" ~ node,
+      value > 500 ~ node,
+      TRUE ~ NA
+    )
+  ) |>
+  ggplot(aes(
+    x = x,
+    next_x = next_x,
+    node = node,
+    next_node = next_node,
+    fill = factor(node),
+    value = value,
+    label = node2
+  )) +
+  geom_sankey(flow.alpha = 0.6) +
+  geom_sankey_label(size = 1, color = "white", fill = "gray40") +
+  theme_sankey(base_size = 16) +
+  scale_fill_manual(values = custom_palette) +
+  theme(legend.position = "none") +
+  labs(x = "")
+```
+
+```{r}
+#| echo: false
+#| include: false
+
+p <- amphibs |>
+  filter(!is.na(isocc), !is.na(family)) |>
+  group_by(family, continent) |>
+  summarize(count = n()) |>
+  ggplot(aes(y = count, axis1 = family, axis2 = continent)) +
+  geom_alluvium(aes(fill = family)) +
+  geom_stratum(color = "white", aes(fill = family), linewidth = .7) +
+  geom_label(stat = "stratum", aes(label = after_stat(stratum)), min.y = 500) +
+  scale_fill_manual(values = custom_palette) +
+  theme_void() +
+  theme(
+    legend.position = "none",
+    axis.text.x = element_blank(),
+    axis.ticks.x = element_blank(),
+    axis.text.y = element_blank(),
+    axis.ticks.y = element_blank()
+  ) +
+  labs(y = "") +
+  annotate(
+    geom = "text",
+    y = c(15000, 15000),
+    x = c(1, 2),
+    label = c("Family", "Continent")
+  )
+
+
+png(filename = "frogs.png", width = 650, height = 450)
+
+p
+
+dev.off()
+```
+
+
+```{r}
+praise()
+```
+

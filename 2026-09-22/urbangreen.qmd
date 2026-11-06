@@ -1,0 +1,223 @@
+---
+title: "Urban green areas"
+author: "Jo Hardin"
+date: Sep 22, 2026
+format: 
+  html:
+    embed-resources: true
+    code-fold: true
+execute:
+  warning: false
+  message: false
+---
+
+```{r}
+library(tidyverse)
+library(tidygeocoder)
+library(maps)
+library(gganimate)
+library(gifski)
+library(praise)
+```
+
+# Average share of green areas across cities
+
+This week we are exploring the average share of green areas in cities and urban
+areas and green area per capita around the world. The dataset this week comes
+from [UN Habitat Urban Indicators Dataset](https://data.unhabitat.org/pages/open-spaces-and-green-areas). 
+
+> The data referenced herein is calculated using urban boundaries defined using the Degree of Urbanization approach to defining cities and urban areas, which may be larger or smaller than the official municipality boundaries. Within each city/urban area, the green areas are extracted using satellite imagery analysis for five time periods 1990, 2000, 2010,2020 and 2025 based on the Normalized Difference Vegetation Index (NDVI), which assesses the level of greenness from satellite imagery. In this analysis, green areas are defined as parts of the city that are green for most parts of the year, and include individual trees, forests or forested areas, shrubs, perennial grasses and such other types of long-term vegetation. Waterbodies are not considered as green areas in this assessment. 
+
+- Which city has the most green area per capita in each year?
+- Which city has lost the largest percentage of its green area since 1990?
+- Which city has gained the largest percentage of green area since 1990?
+
+Thank you to [Gabriela Palomo-Munoz](https://github.com/GabsPalomo) for curating this week's dataset.
+
+## The Data
+
+See below for the original idea. However, after seeing what other people did with the data, I decided to follow the work of <a href = "https://karaman.is/blog/2026/09/tidytuesday-2026-39" target = "_blank">Georgios Karamanis</a> who graphed the degree to which cities have lost or gained green space.
+
+
+```{r}
+urban <- readr::read_csv(
+  'https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2026/2026-09-22/urban.csv'
+) |>
+  filter(!is.na(averageShareOfGreenAreaInCityUrbanAreaPct), !is.na(cityCode)) |>
+  filter(sdgRegion != "Global Average") |>
+  mutate(
+    continent = case_when(
+      str_detect(sdgSubRegion, "Asia") ~ "Asia",
+      str_detect(sdgSubRegion, "Africa") ~ "Africa",
+      str_detect(sdgSubRegion, "Europe") ~ "Europe",
+      sdgSubRegion == "Australia and New Zealand" ~ "Oceania",
+      sdgSubRegion == "Melanesia" ~ "Oceania",
+      str_detect(
+        sdgSubRegion,
+        "Central America|Caribbean|South America"
+      ) ~ "Latin America and Caribbean",
+      TRUE ~ sdgSubRegion
+    )
+  )
+```
+
+
+The task is to find the top three and bottom three cities in each region with respect to how much the green area has changed.
+
+```{r}
+#| fig-cap: "Each line represents a city in the given continent. For each continent, we report the top and bottom three cities in terms of the change in amount of urban green space. It is clear that the top cities are gathering green space at a much slower rate than the bottom cities are losing greenspace. Greenspace is measured in the change of percent of total urban area."
+#| fig-alt: "Line plots with year on the x-axis and change of percent of total urban area on the y-axis. The plots have the top and bottom three cities in each continent. We see that those cities which increased their green space did so at a much lower absolute rate than the cities who decreased their green space."
+
+urban |>
+  group_by(cityCode) |>
+  mutate(
+    change = last(averageShareOfGreenAreaInCityUrbanAreaPct) -
+      first(averageShareOfGreenAreaInCityUrbanAreaPct),
+    change_since_1990 = averageShareOfGreenAreaInCityUrbanAreaPct -
+      first(averageShareOfGreenAreaInCityUrbanAreaPct)
+  ) |>
+  ungroup() |>
+  group_by(continent) |>
+  mutate(bottom = dense_rank(change), top = dense_rank(desc(change))) |>
+  filter(bottom <= 3 | top <= 3) |>
+  mutate(direction = if_else(change < 0, "decrease", "increase")) |>
+  ggplot(aes(
+    x = year,
+    y = change_since_1990,
+    group = cityCode,
+    color = direction
+  )) +
+  geom_line() +
+  facet_wrap(~continent) +
+  theme_minimal() +
+  scale_color_manual(values = c("purple", "gold")) +
+  labs(
+    title = "Change in amount of greenspace",
+    subtitle = "from 1990 to 2020 (% of total area)",
+    y = ""
+  )
+```
+
+
+```{r}
+praise()
+```
+
+
+
+
+```{r}
+#| echo: false
+#| include: false
+
+p <- urban |>
+  group_by(cityCode) |>
+  mutate(
+    change = last(averageShareOfGreenAreaInCityUrbanAreaPct) -
+      first(averageShareOfGreenAreaInCityUrbanAreaPct),
+    change_since_1990 = averageShareOfGreenAreaInCityUrbanAreaPct -
+      first(averageShareOfGreenAreaInCityUrbanAreaPct)
+  ) |>
+  ungroup() |>
+  group_by(continent) |>
+  mutate(bottom = dense_rank(change), top = dense_rank(desc(change))) |>
+  filter(bottom <= 3 | top <= 3) |>
+  mutate(direction = if_else(change < 0, "decrease", "increase")) |>
+  ggplot(aes(
+    x = year,
+    y = change_since_1990,
+    group = cityCode,
+    color = direction
+  )) +
+  geom_line() +
+  facet_wrap(~continent) +
+  theme_minimal() +
+  scale_color_manual(values = c("purple", "gold")) +
+  labs(
+    title = "Change in amount of greenspace",
+    subtitle = "from 1990 to 2020",
+    y = ""
+  )
+
+
+png(filename = "urbangreen.png", width = 650, height = 450)
+
+p
+
+dev.off()
+```
+
+
+
+
+## The original idea
+
+The original idea was to plot the amount of green in each city onto a world map.  We started by finding latitude and longitude from `maps::world.cities`, but so many of the cities were missing!
+
+```{r}
+urban <- readr::read_csv(
+  'https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2026/2026-09-22/urban.csv'
+) |>
+  mutate(country = stringr::str_sub(cityCode, 1, 2)) |>
+  left_join(
+    maps::world.cities,
+    by = c("cityName" = "name", "countryOrTerritoryName" = "country.etc")
+  )
+```
+
+
+The function `tidygeocoder::geocode()` takes a very long time (6 min on the remaining cities), and only added lat/long for an additional 40 cities. I'm going to turn it off because it didn't add much, and it is easier to render the Quarto file without it. Part of the problem has to do with how each of the city names is spelled (inconsistently).
+
+```{r}
+#| eval: false
+missing_latlong <- urban |>
+  group_by(cityCode, country) |>
+  summarize(missing = sum(is.na(lat))) |>
+  filter(missing != 0)
+
+missing_latlong <- missing_latlong |>
+  tidygeocoder::geocode(
+    city = cityCode,
+    country = country,
+    method = "osm",
+    lat = latitude,
+    long = longitude
+  )
+
+urban <- urban |>
+  left_join(missing_latlong, by = "cityCode") |>
+  mutate(
+    lat2 = if_else(is.na(lat), latitude, lat),
+    long2 = if_else(is.na(long), longitude, long)
+  )
+```
+only got about 40 more...
+
+
+Nevertheless, we can plot the cities for which we do have latitude and longitude. By using `gganimate::animate()` we can see the change over time.  The picture, however, doesn't show us a lot about what is really going on.
+
+```{r}
+world_map <- map_data("world")
+
+urban_low <- urban |>
+  filter(averageShareOfGreenAreaInCityUrbanAreaPct < 20)
+
+p <- urban_low |>
+  ggplot(aes(group = cityCode)) +
+  geom_polygon(
+    data = world_map,
+    aes(x = long, y = lat, group = group),
+    color = "grey",
+    fill = "white"
+  ) +
+  geom_point(
+    data = urban,
+    aes(x = long, y = lat, color = averageShareOfGreenAreaInCityUrbanAreaPct)
+  ) +
+  scale_color_gradient(low = "magenta", high = "#15803d") +
+  theme_void() +
+  transition_states(year) +
+  labs(title = "Year: {closest_state}", color = "% green")
+
+animate(p, renderer = gifski_renderer())
+```

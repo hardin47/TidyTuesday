@@ -1,0 +1,103 @@
+---
+title: "Ikea sofa and armchair pricing"
+author: "Jo Hardin"
+date: Oct 27, 2026
+format: 
+  html:
+    embed-resources: true
+    code-fold: true
+execute:
+  warning: false
+  message: false
+---
+
+
+
+
+
+```{r}
+library(tidyverse)
+# pak::pak("haleyjeppson/ggmosaic")
+library(ggmosaic)
+
+```
+
+
+
+## The Data
+
+```{r}
+ikea_places <- readr::read_csv(
+    'https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2026/2026-10-27/ikea_places.csv'
+)
+ikea_seating <- readr::read_csv(
+    'https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2026/2026-10-27/ikea_seating.csv'
+)
+
+ikea <- ikea_seating |>
+    select(category, name) |>
+    distinct() |>
+    inner_join(ikea_places, by = "name")
+```
+
+
+```{r}
+ikea |>
+    count(place_type, category) |>
+    ggplot() +
+    geom_mosaic(aes(x = product(place_type), fill = category, weight = n)) +
+    theme_minimal() +
+    theme(
+        legend.position = "none",
+        #axis.text.x = element_text(angle = 270, vjust = 0.5, hjust=0),
+        axis.text.y = element_text(size = 7),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank()
+    ) +
+    coord_flip()
+```
+
+
+```{r}
+ikea |>
+    select(place_type, category) |>
+    table()
+```
+
+
+
+```{r}
+ikea_seating |>
+    ggplot(aes(x = price_usd, y = country, color = category)) +
+    geom_point()
+```
+
+
+```{r}
+jattebo <- ikea_seating |>
+    filter(product_name == "JÄTTEBO")
+
+jattebo |>
+    ggplot(aes(x = price_usd, fill = country)) +
+    geom_histogram()
+```
+
+
+```{r}
+ikea_seating |>
+    filter(
+        country %in% c("mx", "ae", "us", "se", "th", "de", "au", "jp", "kr")
+    ) |>
+    group_by(country, product_name) |>
+    summarize(count = n()) |>
+    ggplot(aes(x = count)) +
+    geom_histogram() +
+    facet_grid(country ~ 1)
+```
+
+
+```{r}
+countries <- ikea_seating |> distinct(country)
+```
+
+

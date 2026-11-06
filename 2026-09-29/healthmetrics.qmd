@@ -1,0 +1,116 @@
+---
+title: "Health metric in urban centers"
+author: "Jo Hardin"
+date: Sep 29, 2026
+format: 
+  html:
+    embed-resources: true
+    code-fold: true
+execute:
+  warning: false
+  message: false
+---
+
+```{r}
+library(tidyverse)
+```
+
+```{r}
+health <- readr::read_csv(
+  'https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2026/2026-09-29/health.csv'
+)
+```
+
+
+```{r}
+health |>
+  ggplot(aes(
+    x = HL_FDE_HOS_2024,
+    y = HL_SHP_HOS_2025,
+    color = GC_DEV_WIG_2025
+  )) +
+  geom_point() +
+  facet_wrap(~GC_DEV_USR_2025)
+```
+
+
+
+```{r}
+health |>
+  ggplot(aes(x = HL_SHP_HOS_2025, fill = GC_DEV_WIG_2025)) +
+  geom_histogram() +
+  facet_wrap(~GC_DEV_USR_2025) +
+  theme_minimal()
+```
+
+
+
+
+
+
+```{r}
+health |>
+  mutate(hos_to_pharm = HL_FPC_HOS_2025 / HL_FPC_PHA_2025) |>
+  filter(!is.na(GC_DEV_WIG_2025)) |>
+  mutate(
+    income = factor(
+      GC_DEV_WIG_2025,
+      levels = c("Low income", "Lower Middle", "Upper Middle", "High income")
+    )
+  ) |>
+  mutate(
+    income2 = case_when(
+      income == "Low income" ~ "Lower",
+      income == "Lower Middle" ~ "Lower",
+      TRUE ~ "Upper"
+    )
+  ) |>
+  ggplot(aes(y = hos_to_pharm, x = income2, color = income2)) +
+  geom_boxplot() +
+  facet_wrap(~GC_DEV_USR_2025) +
+  scale_y_log10() +
+  theme_light() +
+  theme(
+    axis.text.x = element_text(angle = 20, vjust = 0.5, hjust = 1),
+    legend.position = "none"
+  ) +
+  labs(y = "", x = "", title = "Hospital to pharmacy ratio")
+```
+
+
+
+
+```{r}
+health |>
+  filter(GC_DEV_USR_2025 == "Central and Southern Asia") |>
+  filter(!is.na(GC_DEV_WIG_2025)) |>
+  mutate(hos_to_pharm = HL_FPC_HOS_2025 / HL_FPC_PHA_2025) |>
+  mutate(
+    income = factor(
+      GC_DEV_WIG_2025,
+      levels = c("Low income", "Lower Middle", "Upper Middle", "High income")
+    )
+  ) |>
+  mutate(
+    income2 = case_when(
+      income == "Low income" ~ "Lower",
+      income == "Lower Middle" ~ "Lower",
+      TRUE ~ "Upper"
+    )
+  ) |>
+  filter(!is.na(HL_FPC_HOS_2025), !is.na(HL_FPC_PHA_2025)) |>
+  ggplot(aes(y = HL_FPC_HOS_2025, x = HL_FPC_PHA_2025, color = income)) +
+  geom_point() +
+  facet_wrap(~GC_CNT_GAD_2025) +
+  scale_y_log10() +
+  theme_light() +
+  theme(
+    axis.text.x = element_text(angle = 20, vjust = 0.5, hjust = 1),
+    legend.position = "none"
+  ) +
+  labs(
+    y = "hospitals per capita",
+    x = "pharmacies per capita",
+    title = "Hospital to pharmacy ratio"
+  )
+```

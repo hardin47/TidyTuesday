@@ -1,0 +1,68 @@
+---
+title: "Avocado Oil Authenticity"
+author: "Jo Hardin"
+date: Oct 6, 2026
+format: 
+  html:
+    embed-resources: true
+    code-fold: true
+execute:
+  warning: false
+  message: false
+---
+
+```{r}
+library(tidyverse)
+library(ggforce)
+```
+
+
+```{r}
+bottles <- readr::read_csv(
+  'https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2026/2026-10-06/avocado_oil_bottles.csv'
+)
+foods <- readr::read_csv(
+  'https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2026/2026-10-06/avocado_oil_processed_foods.csv'
+)
+```
+
+
+```{r}
+bottles |>
+  mutate(
+    oxidized = case_when(
+      is.na(oxidized) ~ "not avocado oil",
+      oxidized ~ "oxidized",
+      !oxidized ~ "fresh"
+    )
+  ) |>
+  ggplot(aes(x = grade_labeled, y = purity_result, color = oxidized)) +
+  geom_jitter(width = 0.15, height = 0.15) +
+  geom_mark_ellipse(
+    aes(group = interaction(grade_labeled, purity_result)),
+    linetype = "solid",
+    linewidth = .5,
+    expand = unit(.95, "cm"),
+    label.margin = margin(0, 0, 0, 0, "mm"),
+    show.legend = FALSE,
+    color = "darkgrey"
+  ) +
+  scale_color_manual(
+    values = c(
+      "fresh" = "orange",
+      "oxidized" = "dodgerblue",
+      "not avocado oil" = "brown"
+    )
+  ) +
+  theme_minimal() +
+  #theme(legend.position = "none") +
+  labs(y = "", x = "labeled grade")
+```
+
+
+```{r}
+bottles |>
+  filter(!is.na(oxidized)) |>
+  ggplot(aes(x = c18_1_oleic_pct, y = c18_3_linolenic_pct, color = oxidized)) +
+  geom_point()
+```

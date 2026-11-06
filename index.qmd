@@ -19,7 +19,9 @@ A few other places to see TidyTuesday compilations:
 
 * Steven Ponce <a href = "https://stevenponce.netlify.app/data_visualizations.html" target = "_blank">Data Visualizations</a>
 
-* Nicola Rennie <a href = "https://github.com/nrennie/tidytuesday" target = "_blank">#TidyTuesday</a>.  Also, check our her <a href = "https://nrennie.rbind.io/data-science-resources/" target = "_blank">data science resources</a>. And she has now created a <a href = "https://nrennie.rbind.io/viz-gallery/" target = "_blank">Data Visualization Gallery</a>. 
+* Georgios Karamanis <a href = "https://karaman.is/" target = "_blank">TidyTuesday</a> gallery.
+
+* Nicola Rennie <a href = "https://github.com/nrennie/tidytuesday" target = "_blank">#TidyTuesday</a>.  Also, check our her <a href = "https://nrennie.rbind.io/data-science/" target = "_blank">data science resources</a>. And she has now created a <a href = "https://nrennie.rbind.io/viz-gallery/" target = "_blank">Data Visualization Gallery</a>. 
 
 * Carl Börstell <a href = "https://github.com/borstell/tidytuesday/tree/main" target = "_blank">tidytuesday</a>
 
@@ -32,6 +34,9 @@ A few other places to see TidyTuesday compilations:
 
 
 ## 2026
+
+
+* 2026-09-22 <a href = "https://hardin47.github.io/TidyTuesday/2026-09-22/urbangreen.html" target = "_blank">Urban green areas</a> <a href = "https://hardin47.github.io/TidyTuesday/2026-09-22/urbangreen.html" target = "_blank"><img src="2026-09-22/urbangreen.png" alt = "Line plots with year on the x-axis and change of percent of total urban area on the y-axis. The plots have the top and bottom three cities in each continent. We see that those cities which increased their green space did so at a much lower absolute rate than the cities who decreased their green space." style="width:100px;"/></a>
 
 * 2026-08-12 <a href = "https://hardin47.github.io/TidyTuesday/2026-08-12/makeup_shades.html" target = "_blank">Foundation Shades</a> <a href = "https://hardin47.github.io/TidyTuesday/2026-08-12/makeup_shades.html" target = "_blank"><img src="2026-08-12/foundation.png" alt = "Four different waffle plots broken down by brand / product. Each product has a different number of foundation shades and a different range of colors." style="width:100px;"/></a>
 

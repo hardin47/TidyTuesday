@@ -1,0 +1,42 @@
+---
+title: "Frogs and Toads for AWM"
+author: "Jo Hardin"
+date: Oct 13, 2026
+format: 
+  html:
+    embed-resources: true
+    code-fold: true
+execute:
+  warning: false
+  message: false
+---
+
+
+```{r}
+library(tidyverse)
+```
+
+```{r}
+frogs_and_toads_amphibiaweb <- readr::read_csv(
+  'https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2026/2026-10-13/frogs_and_toads_amphibiaweb.csv'
+)
+```
+
+
+```{r}
+library(Polychrome)
+
+num_colors <- 57
+custom_palette <- createPalette(num_colors, c("#FF0000", "#00FF00", "#0000FF"))
+names(custom_palette) <- NULL # Clear names so it acts as a clean character vector
+
+frogs_and_toads_amphibiaweb |>
+  mutate(family = fct_rev(fct_infreq(family))) |>
+  ggplot(aes(x = family)) +
+  geom_bar(aes(fill = family)) +
+  theme(axis.text.y = element_text(size = 3), legend.position = "none") +
+  scale_fill_manual(values = custom_palette) +
+  coord_flip()
+```
+
+
