@@ -13,18 +13,26 @@ execute:
 
 
 
+# IKEA Sofas and Their Swedish Places
 
+This week's data is IKEA sofas and armchairs and the Swedish places they are named after. Ingvar Kamprad, IKEA's founder, had dyslexia and found names easier to remember than number codes. Since December 2020, new products get Swedish names only, and sofas and armchairs are named after places in Sweden. KLIPPAN is a town in Skåne and EKTORP a suburb of Stockholm, but many are hamlets of a few houses. 
+
+One table lists every sofa and armchair on ikea.com in 50 countries on 28 September 2026, with prices in local currency and US dollars. The other has the places in Sweden that share each name, from OpenStreetMap.
+
+Sources: product listings from ikea.com; places from OpenStreetMap via Nominatim, © OpenStreetMap contributors (ODbL); exchange rates from the fawazahmed0 currency API (CC0).
+
+Thank you to [Georgios Karamanis](https://github.com/gkaramanis) for curating this week's dataset.
 
 ```{r}
 library(tidyverse)
 # pak::pak("haleyjeppson/ggmosaic")
 library(ggmosaic)
-
+library(praise)
 ```
 
 
 
-## The Data
+## The data
 
 ```{r}
 ikea_places <- readr::read_csv(
@@ -41,7 +49,14 @@ ikea <- ikea_seating |>
 ```
 
 
+## The analysis
+
+Products at Ikea are names after places in Sweden. The places are broken down by the type of place (e.g., lake, hamlet, village, etc.). For each type of place, we can see the proportional breakdown of armchairs vs sofas. The height of the bar indicates the number of products at Ikea that ae names after the given type of place.
+
 ```{r}
+#| fig-cap: "The distribution of armchairs and sofas across type of place in Sweden seems to be somewhat arbitray. There are more villages, isolated dwellings, and hamlets involved with naming armchairs and sofas at Ikea"
+#| fig-alt: "A mosaic plot showing the proportion of armchairs and sofas for each type of place that the product is named after. The height of the bar in the plot indicates the number of Ikea items named after that type of place. With some variability, the armchairs and sofa are roughly evenly distributed across type of place. In terms of type of place, villages, isolated dwellings, and habitats are the most likely types of places after which the products are named."
+
 ikea |>
     count(place_type, category) |>
     ggplot() +
@@ -57,6 +72,48 @@ ikea |>
     coord_flip()
 ```
 
+
+
+
+
+```{r}
+#| echo: false
+#| include: false
+
+p <- ikea |>
+  count(place_type, category) |>
+  ggplot() +
+  geom_mosaic(aes(x = product(place_type), fill = category, weight = n)) +
+  theme_minimal() +
+  theme(
+    legend.position = "none",
+    #axis.text.x = element_text(angle = 270, vjust = 0.5, hjust=0),
+    axis.text.y = element_text(size = 7),
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank()
+  ) +
+  coord_flip()
+
+png(filename = "ikea.png", width = 650, height = 450)
+
+p
+
+dev.off()
+```
+
+
+
+
+
+
+
+
+```{r}
+praise()
+```
+
+
+## Other plots
 
 ```{r}
 ikea |>
@@ -98,6 +155,6 @@ ikea_seating |>
 
 ```{r}
 countries <- ikea_seating |> distinct(country)
+
+countries
 ```
-
-

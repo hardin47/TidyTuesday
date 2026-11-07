@@ -1,5 +1,5 @@
 ---
-title: "Which College Majors Are Safest From AI (and Do They Pay)?"
+title: "Which College Majors Are Safest From AI?"
 author: "Jo Hardin"
 date: November 3, 2026
 format: 
@@ -25,12 +25,14 @@ One thing to know about the exposure score: the AIOE is standardized to a mean o
 Thank you to [Tony Galvan, Golden Dome Data Science](https://github.com/gdatascience) for curating this week's dataset.
 
 
+## Data viz
 
 ```{r}
 library(tidyverse)
 library(praise)
 library(plotly)
 ```
+
 
 
 ```{r}
@@ -43,7 +45,12 @@ major_occupations <- readr::read_csv(
 ```
 
 
+Some families of majors, like Construction Trades and Mechanic & Repair Tech, make sense to have low exposure to A.I. Similarly, some families of majors, like Mathematics & Statistics, make sense to have high exposure to A.I. But it is surprising that Philosophy & Religion also have high exposure to A.I.
+
 ```{r}
+#| fig-cap: "Each dot represents a different major, and the size of the dot represents the number of students with that major. The color indicates the starting salary for the major."
+#| fig-alt: "Each dot is a different major. The y-axis represents the discipline family according to the Classification of Instructional Programs. The x-axis is the A.I. exposure. Other variables include the size of the dot which indicates number of majors and the color of the dot which indicates starting salary. For many of the families, there are majors which have a lot of A.I. exposre and majors which have minimal A.I. exposure. Mathematics and statistics is the family with the highest average A.I. exposure, and Philosophy and religion is the family with the second highest average A.I. exposure. Construction trades is the family with the lowest average A.I. exposure."
+
 field_order <- ai_salary_majors |>
   group_by(broad_field_short) |>
   summarize(mean_ai = mean(ai_exposure)) |>
@@ -76,7 +83,8 @@ ai_salary_majors |>
       title = "",
       dtick = 1,
       categoryorder = "array",
-      categoryarray = rev(field_order)
+      categoryarray = rev(field_order),
+      tickfont = list(size = 8)
     )
   ) |>
   colorbar(
@@ -86,11 +94,41 @@ ai_salary_majors |>
     xanchor = "center",
     y = -0.25
   )
+
 ```
 
 
 
 
+```{r}
+#| echo: false
+#| include: false
+
+p <- ai_salary_majors |>
+  ggplot(aes(
+    y = fct_reorder(broad_field_short, ai_exposure, .desc = TRUE),
+    x = ai_exposure,
+    color = median_starting_salary,
+    size = n_graduates
+  )) +
+  geom_point() +
+  labs(
+    x = "standardized AI exposure",
+    y = "",
+    color = "starting salary"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "bottom", axis.text.y = element_text(size = 8)) +
+  guides(size = "none") +
+  scale_color_viridis_c()
+
+
+png(filename = "aimajors.png", width = 650, height = 450)
+
+p
+
+dev.off()
+```
 
 
 
