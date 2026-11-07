@@ -1,5 +1,5 @@
 ---
-title: "Health metric in urban centers"
+title: "Health metrics in urban centers"
 author: "Jo Hardin"
 date: Sep 29, 2026
 format: 
@@ -11,15 +11,119 @@ execute:
   message: false
 ---
 
+
+# Health metrics in urban centres worldwide
+
+This week we're exploring the Global Human Settlement Urban Centre Database Produced by the Joint Research Centre (JRC) of the European Commission, part of the Copernicus Emergency Management Service. These are open and free data and tools to assess the human presence on the planet. The dataset covers more than 10,000 urban centres worldwide, each delineated using a population density, size, and grid-cell contiguity method called the Degree of Urbanisation. Here, we are specifically looking at the Health component which details information regarding hospitals and pharmacies in urban centers. 
+
+> This dataset contains statistics on urban centres based on data from the Global Human Settlement Layer (GHSL) produced at the Joint Research Centre of the European Commission, unit E.1 (Disaster Risk Management). This release is based on the GHSL Data Package 2023, the Degree of Urbanisation to delineate spatial entities, and geospatial data integration from a variety of open source datasets to characterise them. The result is the most complete information system on cities to date with data for 11,422 quality-controlled urban centres across 15 thematic domains [Health is one of them], 471 indicators, and 2600 attributes. 
+
+**Reference**
+
+Mari Rivero, Ines;  Melchiorri, Michele;  Florio, Pietro;  Schiavina, Marcello;  Goch, Katarzyna;  Politis, Panagiotis;  Uhl, Johannes H;  Pesaresi, Martino;  Maffenini, Luca;  Sulis, Patrizia;  Crippa, Monica;  Guizzardi, Diego;  Pisoni, Enrico;  Belis, Claudio;  Jacome Felix Oom, Duarte;  Branco, Alfredo;  Mwaniki, Dennis;  Kochulem, Edwin;  Githira, Daniel;  Carioli, Alessandra;   Ehrlich, Daniele;  Tommasi, Pierpaolo;  Kemper, Thomas;  Dijkstra, Lewis (2026): GHS-UCDB R2024A - GHS Urban Centre Database 2025. European Commission, Joint Research Centre [Dataset] doi: 10.2905/JRC.05RDPR0; 10.2905/1a338be6-7eaf-480c-9664-3a8ade88cbcd PID: http://data.europa.eu/89h/1a338be6-7eaf-480c-9664-3a8ade88cbcd
+
 ```{r}
 library(tidyverse)
+library(praise)
 ```
+
+
+
+
+## The data
+
+Each observation is a city (or "urban center"). For each urban center, we measure the number of hospitals per capita in 2025 and the number of pharmacies per capita in 2025, and we take their ratio. 
 
 ```{r}
 health <- readr::read_csv(
   'https://raw.githubusercontent.com/rfordatascience/tidytuesday/main/data/2026/2026-09-29/health.csv'
 )
 ```
+
+
+
+```{r}
+#| fig-cap: "The hospital to pharmacy ratio is measured by taking the quotient of number of hospitals per capita in 2025 and number of pharmacies per capita in 2025. Some areas (e.g., a few upper middle class cities in Eastern or South-Eastern Asia) have 100x as many hospitals as pharmacies. On the other hand, some regions (e.g., a few upper middle class cities in Latin America or the Carribean) have 100x as many pharmacies as hospitals."
+#| fit-alt: "Box plots of the hospital to pharmacy ratio broken down by continent and income group. There are no strong trends across either variable, but we can see that some urban centers have substantially more hospitals than pharmacies, and others have substantially more pharmacies than hospitals."
+
+health |>
+  mutate(hos_to_pharm = HL_FPC_HOS_2025 / HL_FPC_PHA_2025) |>
+  filter(!is.na(GC_DEV_WIG_2025)) |>
+  mutate(
+    income = factor(
+      GC_DEV_WIG_2025,
+      levels = c("Low income", "Lower Middle", "Upper Middle", "High income")
+    )
+  ) |>
+  mutate(
+    income2 = case_when(
+      income == "Low income" ~ "Lower",
+      income == "Lower Middle" ~ "Lower",
+      TRUE ~ "Upper"
+    )
+  ) |>
+  ggplot(aes(y = hos_to_pharm, x = income, color = income)) +
+  geom_boxplot() +
+  facet_wrap(~GC_DEV_USR_2025) +
+  scale_y_log10() +
+  theme_light() +
+  theme(
+    axis.text.x = element_text(angle = 20, vjust = 0.5, hjust = 1),
+    legend.position = "none"
+  ) +
+  labs(y = "", x = "", title = "Hospital to pharmacy ratio")
+```
+
+
+```{r}
+praise()
+```
+
+
+
+
+```{r}
+#| echo: false
+#| include: false
+
+p <- health |>
+  mutate(hos_to_pharm = HL_FPC_HOS_2025 / HL_FPC_PHA_2025) |>
+  filter(!is.na(GC_DEV_WIG_2025)) |>
+  mutate(
+    income = factor(
+      GC_DEV_WIG_2025,
+      levels = c("Low income", "Lower Middle", "Upper Middle", "High income")
+    )
+  ) |>
+  mutate(
+    income2 = case_when(
+      income == "Low income" ~ "Lower",
+      income == "Lower Middle" ~ "Lower",
+      TRUE ~ "Upper"
+    )
+  ) |>
+  ggplot(aes(y = hos_to_pharm, x = income, color = income)) +
+  geom_boxplot() +
+  facet_wrap(~GC_DEV_USR_2025) +
+  scale_y_log10() +
+  theme_light() +
+  theme(
+    axis.text.x = element_text(angle = 20, vjust = 0.5, hjust = 1),
+    legend.position = "none"
+  ) +
+  labs(y = "", x = "", title = "Hospital to pharmacy ratio")
+
+
+png(filename = "healthmetrics.png", width = 650, height = 450)
+
+p
+
+dev.off()
+```
+
+## Other plots
+
+In the process, we looked at other relationships across the variables.
 
 
 ```{r}
@@ -45,37 +149,6 @@ health |>
 
 
 
-
-
-
-```{r}
-health |>
-  mutate(hos_to_pharm = HL_FPC_HOS_2025 / HL_FPC_PHA_2025) |>
-  filter(!is.na(GC_DEV_WIG_2025)) |>
-  mutate(
-    income = factor(
-      GC_DEV_WIG_2025,
-      levels = c("Low income", "Lower Middle", "Upper Middle", "High income")
-    )
-  ) |>
-  mutate(
-    income2 = case_when(
-      income == "Low income" ~ "Lower",
-      income == "Lower Middle" ~ "Lower",
-      TRUE ~ "Upper"
-    )
-  ) |>
-  ggplot(aes(y = hos_to_pharm, x = income2, color = income2)) +
-  geom_boxplot() +
-  facet_wrap(~GC_DEV_USR_2025) +
-  scale_y_log10() +
-  theme_light() +
-  theme(
-    axis.text.x = element_text(angle = 20, vjust = 0.5, hjust = 1),
-    legend.position = "none"
-  ) +
-  labs(y = "", x = "", title = "Hospital to pharmacy ratio")
-```
 
 
 

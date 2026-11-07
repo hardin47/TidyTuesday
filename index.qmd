@@ -36,6 +36,8 @@ A few other places to see TidyTuesday compilations:
 ## 2026
 
 
+* 2026-09-29 <a href = "https://hardin47.github.io/TidyTuesday/2026-09-29/healthmetrics.html" target = "_blank">Health metrics in urban centers</a> <a href = "https://hardin47.github.io/TidyTuesday/2026-09-29/healthmetrics.html" target = "_blank"><img src="2026-09-29/healthmetrics.png" alt = "Box plots of the hospital to pharmacy ratio broken down by continent and income group. There are no strong trends across either variable, but we can see that some urban centers have substantially more hospitals than pharmacies, and others have substantially more pharmacies than hospitals." style="width:100px;"/></a>
+
 * 2026-09-22 <a href = "https://hardin47.github.io/TidyTuesday/2026-09-22/urbangreen.html" target = "_blank">Urban green areas</a> <a href = "https://hardin47.github.io/TidyTuesday/2026-09-22/urbangreen.html" target = "_blank"><img src="2026-09-22/urbangreen.png" alt = "Line plots with year on the x-axis and change of percent of total urban area on the y-axis. The plots have the top and bottom three cities in each continent. We see that those cities which increased their green space did so at a much lower absolute rate than the cities who decreased their green space." style="width:100px;"/></a>
 
 * 2026-08-12 <a href = "https://hardin47.github.io/TidyTuesday/2026-08-12/makeup_shades.html" target = "_blank">Foundation Shades</a> <a href = "https://hardin47.github.io/TidyTuesday/2026-08-12/makeup_shades.html" target = "_blank"><img src="2026-08-12/foundation.png" alt = "Four different waffle plots broken down by brand / product. Each product has a different number of foundation shades and a different range of colors." style="width:100px;"/></a>
