@@ -23,9 +23,15 @@ The bottled oil dataset includes detailed chemical fingerprints (fatty acid prof
 
 Thank you to [Tony Galvan, Golden Dome Data Science](https://github.com/gdatascience) for curating this week's dataset.
 
+
+## The data
+
+We are looking at bottles of avocado oil. The data include 22 bottles and whether the bottle is extra virgin, refined, or unspecified in terms of grade. Additionally, the researchers assessed whether the oil was pure or adulterated or suspected to be adulterated. Last, each bottle was either fresh, oxidized, or not avocado oil.
+
 ```{r}
 library(tidyverse)
 library(ggforce)
+library(praise)
 ```
 
 
@@ -38,14 +44,29 @@ foods <- readr::read_csv(
 )
 ```
 
+## Plotting
+
+The following visualization was inspired by <a href = "https://dataviz.manishdatt.com/posts/26A1/" target = "_blank">Manish Datt</a>. Which characteristics of the bottles are most associated with the other characteristics?
 
 ```{r}
+#| fig-cap: "We can see that the adulterated oils are not avocado oil. And the pure oils are almost all oxidized."
+#| fig-alt: "Scatterplot describing how the variables: purity, grade, and oxidation relate. Adulterated oils are found to be not avocado oil. Almost all of the pure oils are oxidized."
+
+set.seed(4747)
+
 bottles |>
   mutate(
     oxidized = case_when(
       is.na(oxidized) ~ "not avocado oil",
       oxidized ~ "oxidized",
       !oxidized ~ "fresh"
+    )
+  ) |>
+  mutate(
+    oxidized = fct_relevel(oxidized, c("fresh", "oxidized", "not avocado oil")),
+    purity_result = fct_relevel(
+      purity_result,
+      c("pure", "suspected", "adulterated")
     )
   ) |>
   ggplot(aes(x = grade_labeled, y = purity_result, color = oxidized)) +
@@ -68,9 +89,69 @@ bottles |>
   ) +
   theme_minimal() +
   #theme(legend.position = "none") +
-  labs(y = "", x = "labeled grade")
+  labs(y = "", x = "labeled grade", subtitle = "purity")
 ```
 
+```{r}
+praise()
+```
+
+
+
+
+```{r}
+#| echo: false
+#| include: false
+
+set.seed(4747)
+
+p <- bottles |>
+  mutate(
+    oxidized = case_when(
+      is.na(oxidized) ~ "not avocado oil",
+      oxidized ~ "oxidized",
+      !oxidized ~ "fresh"
+    )
+  ) |>
+  mutate(
+    oxidized = fct_relevel(oxidized, c("fresh", "oxidized", "not avocado oil")),
+    purity_result = fct_relevel(
+      purity_result,
+      c("pure", "suspected", "adulterated")
+    )
+  ) |>
+  ggplot(aes(x = grade_labeled, y = purity_result, color = oxidized)) +
+  geom_jitter(width = 0.15, height = 0.15) +
+  geom_mark_ellipse(
+    aes(group = interaction(grade_labeled, purity_result)),
+    linetype = "solid",
+    linewidth = .5,
+    expand = unit(.95, "cm"),
+    label.margin = margin(0, 0, 0, 0, "mm"),
+    show.legend = FALSE,
+    color = "darkgrey"
+  ) +
+  scale_color_manual(
+    values = c(
+      "fresh" = "orange",
+      "oxidized" = "dodgerblue",
+      "not avocado oil" = "brown"
+    )
+  ) +
+  theme_minimal() +
+  #theme(legend.position = "none") +
+  labs(y = "", x = "labeled grade", subtitle = "purity")
+
+
+png(filename = "fraud_avo.png", width = 650, height = 450)
+
+p
+
+dev.off()
+```
+
+
+## Other plots
 
 ```{r}
 bottles |>
