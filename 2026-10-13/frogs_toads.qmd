@@ -54,8 +54,8 @@ Our idea was to see how the different amphibean families were dispersed across d
 
 
 ```{r}
-#| fig.cap: "adfa"
-#| fig.alt: "dasfsda"
+#| fig.cap: "The alluvial plot connects the different amphibean families to the continents where they are found. Most families are found on one continent, although some span many continents"
+#| fig.alt: "An alluvial plot shows ribbons from amphibean families to which continent the individuals are found. Bufonidae, for example, is found on all the continents in the dataset."
 
 set.seed(47)
 num_colors <- 62

@@ -35,6 +35,8 @@ A few other places to see TidyTuesday compilations:
 
 ## 2026
 
+* 2026-10-13 <a href = "https://hardin47.github.io/TidyTuesday/2026-10-13/frogs_toads.html" target = "_blank">Frogs and Toads</a> <a href = "https://hardin47.github.io/TidyTuesday/2026-10-13/frogs_toads.html" target = "_blank"><img src="2026-10-13/frogs.png" alt = "An alluvial plot shows ribbons from amphibean families to which continent the individuals are found. Bufonidae, for example, is found on all the continents in the dataset." style="width:100px;"/></a>
+
 * 2026-10-06 <a href = "https://hardin47.github.io/TidyTuesday/2026-10-06/fraud_avo.html" target = "_blank">Avocado Oil Authenticity</a> <a href = "https://hardin47.github.io/TidyTuesday/2026-10-06/fraud_avo.html" target = "_blank"><img src="2026-10-06/fraud_avo.png" alt = "Scatterplot describing how the variables: purity, grade, and oxidation relate. Adulterated oils are found to be not avocado oil. Almost all of the pure oils are oxidized." style="width:100px;"/></a>
 
 * 2026-09-29 <a href = "https://hardin47.github.io/TidyTuesday/2026-09-29/healthmetrics.html" target = "_blank">Health metrics in urban centers</a> <a href = "https://hardin47.github.io/TidyTuesday/2026-09-29/healthmetrics.html" target = "_blank"><img src="2026-09-29/healthmetrics.png" alt = "Box plots of the hospital to pharmacy ratio broken down by continent and income group. There are no strong trends across either variable, but we can see that some urban centers have substantially more hospitals than pharmacies, and others have substantially more pharmacies than hospitals." style="width:100px;"/></a>
